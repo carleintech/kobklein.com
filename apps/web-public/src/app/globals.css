@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@source "../components";
+
+@theme {
+  --color-kob-black: #080B14;
+  --color-kob-navy: #0F1626;
+  --color-kob-panel: #151B2E;
+  --color-kob-gold: #C6A756;
+  --color-kob-goldLight: #E1C97A;
+  --color-kob-goldDark: #9F7F2C;
+  --color-kob-emerald: #1F6F4A;
+  --color-kob-text: #F2F2F2;
+  --color-kob-body: #C4C7CF;
+  --color-kob-muted: #7A8394;
+  --color-kob-danger: #DC2626;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+}
+
+html,
+body {
+  background-color: var(--color-kob-black);
+  color: var(--color-kob-body);
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes pulse-gold {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes particle-float {
+  0% {
+    transform: translateY(100vh) translateX(0) rotate(0deg) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    scale: 1;
+  }
+  90% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    transform: translateY(-100px) translateX(100px) rotate(360deg) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dust-trail {
+  0% {
+    transform: translateX(-100vw) translateY(0) scaleX(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(0) translateY(0) scaleX(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateX(100vw) translateY(-50px) scaleX(0);
+    opacity: 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s ease-in-out infinite;
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-pulse-gold {
+  animation: pulse-gold 4s ease-in-out infinite;
+}
+.animate-gradient-shift {
+  animation: gradient-shift 6s ease infinite;
+  background-size: 200% 200%;
+}
+.animate-particle-float {
+  animation: particle-float 8s linear infinite;
+}
+.animate-sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+.animate-dust-trail {
+  animation: dust-trail 10s linear infinite;
+}
+
+/* Section styles */
+.section-dark {
+  background-color: var(--color-kob-black);
+}

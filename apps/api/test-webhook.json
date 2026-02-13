@@ -1,0 +1,9 @@
+{
+  "type": "payment_intent.succeeded",
+  "data": {
+    "object": {
+      "id": "pi_test_123",
+      "amount": 5000
+    }
+  }
+}

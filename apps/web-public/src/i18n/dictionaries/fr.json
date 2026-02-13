@@ -1,0 +1,225 @@
+{
+  "meta": {
+    "title": "KobKlein — Liberté Financière Numérique pour Haïti",
+    "description": "Envoyez de l'argent instantanément. Pas besoin de banque. Un portefeuille numérique sécurisé pour les Haïtiens et leurs familles dans le monde entier."
+  },
+  "nav": {
+    "home": "Accueil",
+    "about": "À Propos",
+    "howItWorks": "Comment ça Marche",
+    "compliance": "Conformité",
+    "download": "Télécharger",
+    "distributor": "Devenir Distributeur",
+    "kcard": "K-Card",
+    "login": "Connexion"
+  },
+  "hero": {
+    "badge": "L'Avenir de la Finance Numérique en Haïti",
+    "title": "L'Avenir de la Liberté Financière Numérique",
+    "subtitle": "Envoyez de l'argent instantanément. Pas besoin de banque.",
+    "description": "Un système de portefeuille numérique sécurisé, sans espèces, conçu pour les Haïtiens et leurs familles dans le monde entier.",
+    "cta": "Commencer",
+    "ctaSecondary": "Devenir Distributeur",
+    "stats": {
+      "users": "100K+",
+      "usersLabel": "Utilisateurs Actifs",
+      "transfers": "50M$+",
+      "transfersLabel": "Transférés",
+      "countries": "15+",
+      "countriesLabel": "Pays",
+      "uptime": "99.9%",
+      "uptimeLabel": "Disponibilité"
+    }
+  },
+  "features": {
+    "title": "Pourquoi KobKlein?",
+    "subtitle": "Tout ce dont vous avez besoin pour les paiements numériques modernes",
+    "instant": {
+      "title": "K-Pay Transferts Instantanés",
+      "description": "Envoyez et recevez de l'argent en temps réel. Les transferts KobKlein à KobKlein sont gratuits en dessous de 500$."
+    },
+    "security": {
+      "title": "Sécurité Niveau Bancaire",
+      "description": "Chiffrement avancé, prévention de la fraude par conception et vérification OTP pour les transactions de grande valeur."
+    },
+    "global": {
+      "title": "K-Link Réseau Mondial",
+      "description": "Connectez-vous avec la diaspora haïtienne partout. De Miami à Montréal, Paris à Port-au-Prince — transferts instantanés."
+    },
+    "card": {
+      "title": "K-Card Carte Virtuelle",
+      "description": "Achetez Netflix, Amazon et plus avec votre portefeuille KobKlein. Bientôt disponible pour les comptes vérifiés."
+    },
+    "lowFees": {
+      "title": "Frais Les Plus Bas Garantis",
+      "description": "Les transferts K-Pay sont gratuits. Envois internationaux à seulement 1.99$. Battez Western Union, MoneyGram et tous les autres."
+    },
+    "kcode": {
+      "title": "K-Code & K-Scan",
+      "description": "Partagez un code rotatif à 6 chiffres ou un QR pour recevoir de l'argent. Pas besoin de numéro de téléphone. Sûr et privé."
+    }
+  },
+  "howItWorks": {
+    "title": "Comment ça Marche",
+    "subtitle": "Commencez en quelques minutes seulement",
+    "step1": {
+      "label": "ÉTAPE 01",
+      "title": "Téléchargez l'App",
+      "description": "Disponible gratuitement sur iOS et Android. Cherchez KobKlein."
+    },
+    "step2": {
+      "label": "ÉTAPE 02",
+      "title": "Créez un Compte",
+      "description": "Inscription simple avec juste votre numéro de téléphone. Vérifiez pour débloquer des limites plus élevées."
+    },
+    "step3": {
+      "label": "ÉTAPE 03",
+      "title": "Ajoutez des Fonds",
+      "description": "Rechargez chez un K-Agent distributeur local, par virement bancaire, ou depuis la famille à l'étranger."
+    },
+    "step4": {
+      "label": "ÉTAPE 04",
+      "title": "Commencez à Payer",
+      "description": "Envoyez, recevez et payez les commerçants instantanément. Utilisez K-Card pour les achats en ligne."
+    }
+  },
+  "ecosystem": {
+    "title": "L'Écosystème KobKlein",
+    "subtitle": "Quatre piliers travaillant ensemble pour créer la révolution du paiement numérique en Haïti",
+    "clients": {
+      "number": "01",
+      "title": "Clients",
+      "description": "Les Haïtiens et les membres de la diaspora créent un portefeuille pour envoyer, recevoir et stocker de l'argent numérique en toute sécurité.",
+      "features": ["Création de Portefeuille Sécurisé", "Envoyer & Recevoir de l'Argent", "Achats en Ligne K-Card", "Badge K-Trust Vérifié"]
+    },
+    "distributors": {
+      "number": "02",
+      "title": "K-Agents (Distributeurs)",
+      "description": "Les partenaires locaux gèrent les recharges et retraits d'espèces, faisant le pont entre économies numérique et physique.",
+      "features": ["Recharges d'Espèces", "Retraits d'Espèces", "Gagner des Commissions", "Gestion du Float"]
+    },
+    "merchants": {
+      "number": "03",
+      "title": "Commerçants",
+      "description": "Les entreprises acceptent les paiements numériques via K-Scan QR, élargissant leur base de clientèle.",
+      "features": ["Accepter les Paiements K-Pay", "Code QR K-Scan", "Rapports de Ventes Quotidiens", "Règlement Instantané"]
+    },
+    "diaspora": {
+      "number": "04",
+      "title": "Diaspora",
+      "description": "Envoyez de l'argent au pays instantanément pour les frais les plus bas. Gardez votre famille connectée avec K-Link.",
+      "features": ["Panneau Familial K-Link", "Frais de Transfert Les Plus Bas", "Conversion USD en HTG", "Plans de Soutien Mensuels"]
+    }
+  },
+  "comparison": {
+    "title": "Comparez & Économisez",
+    "subtitle": "Découvrez pourquoi KobKlein est le moyen le plus intelligent d'envoyer de l'argent en Haïti",
+    "route": "Route",
+    "westernUnion": "Western Union",
+    "moneyGram": "MoneyGram",
+    "kobklein": "KobKlein",
+    "usToHaiti": "USA → Haïti (100$)",
+    "p2p": "KobKlein → KobKlein",
+    "cashOut": "Retrait chez un Agent",
+    "onlinePurchase": "Achat K-Card",
+    "free": "GRATUIT",
+    "na": "N/A"
+  },
+  "kcard": {
+    "title": "K-Card — Achetez dans le Monde Entier",
+    "subtitle": "Pour la première fois, les Haïtiens peuvent acheter en ligne partout",
+    "description": "Netflix, Amazon, Spotify et plus encore — tout alimenté par votre portefeuille KobKlein. Carte Visa virtuelle pour les comptes vérifiés. Carte physique bientôt disponible.",
+    "features": {
+      "virtual": "Carte Visa Virtuelle",
+      "instant": "Activation Instantanée",
+      "global": "Acceptée Partout",
+      "control": "Notifications en Temps Réel"
+    },
+    "waitlist": "Rejoindre la Liste K-Card",
+    "waitlistDescription": "Soyez le premier en ligne pour la K-Card physique.",
+    "namePlaceholder": "Nom Complet",
+    "phonePlaceholder": "Numéro de Téléphone",
+    "cityPlaceholder": "Ville",
+    "interest": "Je suis intéressé par:",
+    "virtualOnly": "Carte Virtuelle Uniquement",
+    "physicalOnly": "Carte Physique Uniquement",
+    "both": "Les Deux",
+    "submit": "Rejoindre la Liste",
+    "joined": "Vous êtes sur la liste! Nous vous avertirons.",
+    "faq": "Pour les achats en ligne internationaux, KobKlein fournit une adresse de facturation supportée pour tous les détenteurs de K-Card. Vos achats sont financés directement depuis votre portefeuille KobKlein."
+  },
+  "mission": {
+    "title": "Notre Mission",
+    "subtitle": "Donner du Pouvoir à l'Avenir d'Haïti",
+    "description": "KobKlein a été conçu pour donner aux Haïtiens un système de paiement moderne et sans espèces. Trop de personnes restent non bancarisées, sans accès aux envois de fonds mondiaux ou à la finance numérique. Nous changeons cela avec une plateforme inclusive, transparente et communautaire.",
+    "values": {
+      "title": "Valeurs Fondamentales",
+      "trust": { "title": "Confiance", "description": "Transparence et responsabilité dans chaque transaction." },
+      "accessibility": { "title": "Accessibilité", "description": "Services inclusifs pour les Haïtiens partout, bancarisés ou non." },
+      "security": { "title": "Sécurité", "description": "Chiffrement bancaire et prévention de la fraude par conception." },
+      "innovation": { "title": "Innovation", "description": "Outils numériques modernes adaptés à l'économie future d'Haïti." }
+    },
+    "vision": {
+      "title": "Regarder Vers l'Avenir",
+      "description": "KobKlein est plus que des paiements — c'est un mouvement vers l'indépendance financière d'Haïti. Notre vision est de s'étendre dans toute la Caraïbe et la diaspora, connectant les familles, donnant du pouvoir aux commerçants et offrant aux Haïtiens partout les outils qu'ils méritent dans l'économie mondiale."
+    }
+  },
+  "compliance": {
+    "title": "Cadre de Conformité",
+    "subtitle": "Quatre piliers de notre programme de conformité réglementaire complet",
+    "financial": { "title": "Réglementations Financières", "description": "Conformité totale avec les réglementations bancaires et de services financiers dans toutes les juridictions d'exploitation." },
+    "data": { "title": "Protection des Données", "description": "Respect des lois internationales sur la vie privée des données et les standards de protection des utilisateurs." },
+    "international": { "title": "Standards Internationaux", "description": "Conformité avec les exigences mondiales AML et de financement du contre-terrorisme." },
+    "operational": { "title": "Excellence Opérationnelle", "description": "Respect des meilleures pratiques de l'industrie pour la gestion des risques opérationnels et la continuité des activités." },
+    "licensesTitle": "Licences & Enregistrements",
+    "metricsTitle": "Métriques de Conformité",
+    "metrics": {
+      "examinations": { "value": "5/5", "label": "Examens Réglementaires Réussis" },
+      "score": { "value": "98.5%", "label": "Score de Conformité Global" },
+      "audit": { "value": "Propre", "label": "Résultats d'Audit — Aucune Constatation Matérielle" },
+      "actions": { "value": "0", "label": "Actions d'Application Réglementaire" }
+    }
+  },
+  "download": {
+    "title": "Téléchargez l'App KobKlein",
+    "subtitle": "Disponible maintenant sur iOS et Android",
+    "appStore": "Télécharger sur l'App Store",
+    "playStore": "Télécharger sur Google Play",
+    "features": ["Transferts instantanés", "Sécurité bancaire", "Réseau de distributeurs", "Support 24/7"]
+  },
+  "footer": {
+    "tagline": "Votre argent, entre vos mains.",
+    "product": "Produit",
+    "company": "Entreprise",
+    "legal": "Juridique",
+    "about": "À Propos",
+    "howItWorks": "Comment ça Marche",
+    "pricing": "Tarifs",
+    "faq": "FAQ",
+    "terms": "Conditions d'Utilisation",
+    "privacy": "Politique de Confidentialité",
+    "compliance": "Conformité",
+    "aml": "Politique AML",
+    "contact": "Contactez-nous",
+    "careers": "Carrières",
+    "press": "Presse",
+    "copyright": "KobKlein Inc. Tous droits réservés."
+  },
+  "cta": {
+    "title": "Prêt à Rejoindre la Révolution?",
+    "subtitle": "Téléchargez KobKlein aujourd'hui et découvrez l'avenir des paiements numériques pour Haïti.",
+    "button": "Commencer Gratuitement"
+  },
+  "distributor": {
+    "title": "Devenez un K-Agent",
+    "subtitle": "Rejoignez le réseau de paiement numérique à la croissance la plus rapide en Haïti",
+    "description": "En tant que K-Agent, vous faites le pont entre l'argent numérique et physique. Gagnez des commissions sur chaque transaction d'entrée et de sortie d'espèces dans votre communauté.",
+    "benefits": {
+      "earn": { "title": "Gagnez des Commissions", "description": "Gagnez sur chaque transaction. Plus de volume, plus vous gagnez." },
+      "community": { "title": "Servez Votre Communauté", "description": "Aidez vos voisins à accéder aux paiements numériques et aux envois de fonds." },
+      "support": { "title": "Support Complet", "description": "Formation, outils de gestion du float et support 24/7 de KobKlein." },
+      "grow": { "title": "Développez Votre Business", "description": "Ajoutez les services de paiement numérique à votre business existant." }
+    },
+    "apply": "Postuler pour Devenir K-Agent"
+  }
+}

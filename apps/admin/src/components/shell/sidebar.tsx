@@ -1,0 +1,86 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  Activity,
+  FileText,
+  Landmark,
+  LayoutDashboard,
+  MessageSquare,
+  Settings,
+  ShieldAlert,
+  Users,
+} from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+
+const nav = [
+  { label: "Overview", href: "/", icon: LayoutDashboard },
+  { label: "Operations", href: "/operations", icon: Activity },
+  { label: "Agents", href: "/agents", icon: Users },
+  { label: "Risk", href: "/risk", icon: ShieldAlert },
+  { label: "Cases", href: "/cases", icon: FileText },
+  { label: "Notifications", href: "/notifications", icon: MessageSquare },
+  { label: "Settlements", href: "/settlements", icon: Landmark },
+  { label: "System", href: "/system", icon: Settings },
+];
+
+export function Sidebar() {
+  const pathname = usePathname();
+
+  return (
+    <aside
+      className="hidden md:flex md:flex-col border-r border-white/5 bg-[#0F1626] fixed top-0 left-0 h-screen"
+      style={{ width: "var(--sidebar-w)" }}
+    >
+      {/* Branding */}
+      <div className="h-16 px-4 flex items-center gap-2.5 border-b border-white/5">
+        <div className="w-7 h-7 rounded-lg bg-[#C6A756] flex items-center justify-center text-xs font-bold text-[#080B14]">
+          K
+        </div>
+        <span className="font-semibold text-sm tracking-tight text-[#F2F2F2]">KobKlein</span>
+        <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-[#151B2E] text-[#7A8394] border border-white/5">
+          Admin
+        </span>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+        {nav.map((item) => {
+          const isActive =
+            pathname === item.href ||
+            (item.href !== "/" && pathname.startsWith(item.href));
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-200 ${
+                isActive
+                  ? "bg-[#C6A756]/10 text-[#C6A756] font-medium"
+                  : "text-[#7A8394] hover:text-[#F2F2F2] hover:bg-white/3"
+              }`}
+            >
+              {/* Gold active bar — 3px left vertical */}
+              {isActive && (
+                <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[#C6A756]" />
+              )}
+              <Icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Footer */}
+      <div className="p-3 border-t border-white/5">
+        <Separator className="mb-3 bg-white/4" />
+        <div className="text-[11px] text-[#7A8394] space-y-1">
+          <div>Env: <span className="text-[#C6A756]">Dev</span></div>
+          <div className="truncate">API: {process.env.NEXT_PUBLIC_API_BASE_URL}</div>
+        </div>
+      </div>
+    </aside>
+  );
+}

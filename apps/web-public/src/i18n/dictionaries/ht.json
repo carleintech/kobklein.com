@@ -1,0 +1,225 @@
+{
+  "meta": {
+    "title": "KobKlein — Libète Finansyè Dijital pou Ayiti",
+    "description": "Voye lajan touswit. Pa bezwen bank. Yon bous dijital ki an sekirite pou Ayisyen ak fanmi yo toupatou nan mond lan."
+  },
+  "nav": {
+    "home": "Akèy",
+    "about": "Konsènan",
+    "howItWorks": "Kijan li Mache",
+    "compliance": "Konformite",
+    "download": "Telechaje",
+    "distributor": "Vin Distribitè",
+    "kcard": "K-Card",
+    "login": "Konekte"
+  },
+  "hero": {
+    "badge": "Lavni Finans Dijital an Ayiti",
+    "title": "Lavni Libète Finansyè Dijital",
+    "subtitle": "Voye lajan touswit. Pa bezwen bank.",
+    "description": "Yon sistèm bous dijital ki an sekirite, san lajan kach, fèt pou Ayisyen ak fanmi yo toupatou nan mond lan.",
+    "cta": "Kòmanse",
+    "ctaSecondary": "Vini Distribitè",
+    "stats": {
+      "users": "100K+",
+      "usersLabel": "Itilizatè Aktif",
+      "transfers": "$50M+",
+      "transfersLabel": "Lajan Transfere",
+      "countries": "15+",
+      "countriesLabel": "Peyi",
+      "uptime": "99.9%",
+      "uptimeLabel": "Disponibilite"
+    }
+  },
+  "features": {
+    "title": "Poukisa KobKlein?",
+    "subtitle": "Tout sa ou bezwen pou peman dijital modèn",
+    "instant": {
+      "title": "K-Pay Transfè Enstantane",
+      "description": "Voye ak resevwa lajan an tan reyèl. Transfè KobKlein a KobKlein gratis anba $500."
+    },
+    "security": {
+      "title": "Sekirite Nivo Bank",
+      "description": "Ankripte avanse, prevansyon fwod pa konsepsyon, ak verifikasyon OTP pou gwo tranzaksyon."
+    },
+    "global": {
+      "title": "K-Link Rezo Mondyal",
+      "description": "Konekte ak dyaspora ayisyen an toupatou. Miami, Montreal, Pari pou Pòtoprens — transfè lajan touswit."
+    },
+    "card": {
+      "title": "K-Card Kat Vityèl",
+      "description": "Achte Netflix, Amazon, ak plis ankò ak bous KobKlein ou. Byento disponib pou kont verifye."
+    },
+    "lowFees": {
+      "title": "Frè Pi Ba Garanti",
+      "description": "Transfè K-Pay gratis. Remitans entènasyonal pou sèlman $1.99. Bat Western Union, MoneyGram, ak tout lòt yo."
+    },
+    "kcode": {
+      "title": "K-Code & K-Scan",
+      "description": "Pataje yon kòd 6 chif oswa QR pou resevwa lajan. Pa bezwen nimewo telefòn. An sekirite e prive."
+    }
+  },
+  "howItWorks": {
+    "title": "Kijan li Mache",
+    "subtitle": "Kòmanse nan kèk minit sèlman",
+    "step1": {
+      "label": "ETAP 01",
+      "title": "Telechaje App la",
+      "description": "Disponib gratis sou iOS ak Android. Chèche KobKlein."
+    },
+    "step2": {
+      "label": "ETAP 02",
+      "title": "Kreye yon Kont",
+      "description": "Enskripsyon senp ak nimewo telefòn ou sèlman. Verifye pou debloke pi gwo limit."
+    },
+    "step3": {
+      "label": "ETAP 03",
+      "title": "Mete Lajan",
+      "description": "Rechaje lakay yon K-Ajan distribitè, pa bank, oswa depi fanmi aletranje."
+    },
+    "step4": {
+      "label": "ETAP 04",
+      "title": "Kòmanse Peye",
+      "description": "Voye, resevwa, ak peye machann touswit. Sèvi ak K-Card pou achte sou entènèt."
+    }
+  },
+  "ecosystem": {
+    "title": "Ekosistèm KobKlein",
+    "subtitle": "Kat poto mitan ki travay ansanm pou kreye revolisyon peman dijital Ayiti",
+    "clients": {
+      "number": "01",
+      "title": "Kliyan",
+      "description": "Ayisyen ak manm dyaspora kreye yon bous pou voye, resevwa, ak estoke lajan dijital an sekirite.",
+      "features": ["Kreyasyon Bous Sekirize", "Voye & Resevwa Lajan", "Achte sou Entènèt ak K-Card", "Badj K-Trust Verifye"]
+    },
+    "distributors": {
+      "number": "02",
+      "title": "K-Ajan (Distribitè)",
+      "description": "Patnè lokal yo jere rechajman lajan kach ak retrè, fè pon ant ekonomi dijital ak fizik.",
+      "features": ["Rechajman Lajan Kach", "Retrè Lajan Kach", "Touche Komisyon", "Jesyon Flote"]
+    },
+    "merchants": {
+      "number": "03",
+      "title": "Machann",
+      "description": "Biznis yo aksepte peman dijital pa K-Scan QR, elaji baz kliyan yo.",
+      "features": ["Aksepte Peman K-Pay", "Kòd QR K-Scan", "Rapò Vant Jounen", "Règleman Enstantane"]
+    },
+    "diaspora": {
+      "number": "04",
+      "title": "Dyaspora",
+      "description": "Voye lajan lakay touswit pou frè pi ba yo. Kenbe fanmi ou konekte ak K-Link.",
+      "features": ["Panèl Fanmi K-Link", "Frè Remitans Pi Ba", "Konvèsyon USD a HTG", "Plan Sipò Mansyèl"]
+    }
+  },
+  "comparison": {
+    "title": "Konpare & Ekonomize",
+    "subtitle": "Gade poukisa KobKlein se fason ki pi entèlijan pou voye lajan an Ayiti",
+    "route": "Wout",
+    "westernUnion": "Western Union",
+    "moneyGram": "MoneyGram",
+    "kobklein": "KobKlein",
+    "usToHaiti": "USA → Ayiti ($100)",
+    "p2p": "KobKlein → KobKlein",
+    "cashOut": "Retrè nan Ajan",
+    "onlinePurchase": "Acha K-Card",
+    "free": "GRATIS",
+    "na": "N/A"
+  },
+  "kcard": {
+    "title": "K-Card — Achte nan Mond Lan",
+    "subtitle": "Pou premye fwa, Ayisyen ka achte sou entènèt nenpòt kote",
+    "description": "Netflix, Amazon, Spotify, ak plis ankò — tout alimante pa bous KobKlein ou. Kat Visa vityèl pou kont verifye. Kat fizik ap vini byento.",
+    "features": {
+      "virtual": "Kat Visa Vityèl",
+      "instant": "Aktivasyon Enstantane",
+      "global": "Aksepte Toupatou",
+      "control": "Notifikasyon an Tan Reyèl"
+    },
+    "waitlist": "Enskri pou K-Card",
+    "waitlistDescription": "Se premye nan lis pou K-Card fizik la.",
+    "namePlaceholder": "Non Konplè",
+    "phonePlaceholder": "Nimewo Telefòn",
+    "cityPlaceholder": "Vil",
+    "interest": "Mwen enterese nan:",
+    "virtualOnly": "Kat Vityèl Sèlman",
+    "physicalOnly": "Kat Fizik Sèlman",
+    "both": "Toude",
+    "submit": "Enskri",
+    "joined": "Ou nan lis la! Nap avize ou.",
+    "faq": "Pou acha sou entènèt entènasyonal, KobKlein bay yon adrès faktirasyon sipòte pou tout detantè K-Card. Acha ou yo finanse dirèkteman depi bous KobKlein ou."
+  },
+  "mission": {
+    "title": "Misyon Nou",
+    "subtitle": "Bay Ayiti Pouvwa pou Lavni",
+    "description": "KobKlein te bati pou bay Ayisyen pouvwa ak yon sistèm peman modèn, san lajan kach. Twòp moun rete san bank, san aksè a remitans mondyal oswa finans dijital. Nap chanje sa ak yon platfòm ki enklizif, transparan, epi ki pou kominote a.",
+    "values": {
+      "title": "Valè Fondamantal",
+      "trust": { "title": "Konfyans", "description": "Transparans ak responsabilite nan chak tranzaksyon." },
+      "accessibility": { "title": "Aksesibilite", "description": "Sèvis enklizif pou Ayisyen toupatou, ak bank oswa san bank." },
+      "security": { "title": "Sekirite", "description": "Ankripte nivo bank ak prevansyon fwod pa konsepsyon." },
+      "innovation": { "title": "Inovasyon", "description": "Zouti dijital modèn adapte pou ekonomi fiti Ayiti." }
+    },
+    "vision": {
+      "title": "Gade Pi Devan",
+      "description": "KobKlein se plis pase peman — se yon mouvman pou endepandans finansyè Ayiti. Vizyon nou se grandi nan tout Karayib la ak dyaspora a, konekte fanmi, bay machann pouvwa, epi bay Ayisyen toupatou zouti yo merite nan ekonomi mondyal la."
+    }
+  },
+  "compliance": {
+    "title": "Kad Konformite",
+    "subtitle": "Kat poto mitan nan pwogram konformite regilatè konplè nou an",
+    "financial": { "title": "Regilasyon Finansyè", "description": "Konformite total ak regilasyon sèvis bankè ak finansyè nan tout jiridiksyon operasyon yo." },
+    "data": { "title": "Pwoteksyon Done", "description": "Respè lwa entènasyonal sou vi prive done ak pwoteksyon itilizatè." },
+    "international": { "title": "Estanda Entènasyonal", "description": "Konformite ak egzijans mondyal AML ak finansman kontr-teworis." },
+    "operational": { "title": "Ekselans Operasyonèl", "description": "Satisfè pi bon pratik endistri pou jesyon risk operasyonèl ak kontinyite biznis." },
+    "licensesTitle": "Lisans & Anrejistreman",
+    "metricsTitle": "Mezi Konformite",
+    "metrics": {
+      "examinations": { "value": "5/5", "label": "Egzamen Regilatè Pase" },
+      "score": { "value": "98.5%", "label": "Nòt Konformite Global" },
+      "audit": { "value": "Pwòp", "label": "Rezilta Odit — Pa gen Konklizyon Materyèl" },
+      "actions": { "value": "0", "label": "Aksyon Ranfòsman Regilatè" }
+    }
+  },
+  "download": {
+    "title": "Telechaje App KobKlein",
+    "subtitle": "Disponib kounye a sou iOS ak Android",
+    "appStore": "Telechaje sou App Store",
+    "playStore": "Jwenn li sou Google Play",
+    "features": ["Transfè enstantane", "Sekirite nivo bank", "Rezo distribitè", "Sipò 24/7"]
+  },
+  "footer": {
+    "tagline": "Lajan ou, nan men ou.",
+    "product": "Pwodui",
+    "company": "Konpayi",
+    "legal": "Legal",
+    "about": "Konsènan",
+    "howItWorks": "Kijan li Mache",
+    "pricing": "Tarif",
+    "faq": "FAQ",
+    "terms": "Kondisyon Sèvis",
+    "privacy": "Règ sou Vi Prive",
+    "compliance": "Konformite",
+    "aml": "Politik AML",
+    "contact": "Kontakte Nou",
+    "careers": "Karyè",
+    "press": "Laprès",
+    "copyright": "KobKlein Inc. Tout dwa rezève."
+  },
+  "cta": {
+    "title": "Pare pou Rejwenn Revolisyon an?",
+    "subtitle": "Telechaje KobKlein jodi a epi fè eksperyans lavni peman dijital pou Ayiti.",
+    "button": "Kòmanse Gratis"
+  },
+  "distributor": {
+    "title": "Vin yon K-Ajan",
+    "subtitle": "Rejwenn rezo peman dijital ki ap grandi pi vit an Ayiti",
+    "description": "Kòm yon K-Ajan, ou fè pon ant lajan dijital ak fizik. Touche komisyon sou chak tranzaksyon lajan kach ki antre ak ki sòti nan kominote ou.",
+    "benefits": {
+      "earn": { "title": "Touche Komisyon", "description": "Touche sou chak tranzaksyon. Plis volim, plis ou touche." },
+      "community": { "title": "Sèvi Kominote Ou", "description": "Ede vwazen ou yo gen aksè a peman dijital ak remitans." },
+      "support": { "title": "Sipò Konplè", "description": "Fòmasyon, zouti jesyon flote, ak sipò 24/7 nan men KobKlein." },
+      "grow": { "title": "Fè Biznis Ou Grandi", "description": "Ajoute sèvis peman dijital nan biznis ou deja genyen an." }
+    },
+    "apply": "Aplike pou Vin yon K-Ajan"
+  }
+}

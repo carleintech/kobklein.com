@@ -1,0 +1,225 @@
+{
+  "meta": {
+    "title": "KobKlein — Digital Financial Freedom for Haiti",
+    "description": "Send money instantly. No banks required. A secure, cashless digital wallet for Haitians and their families worldwide."
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "howItWorks": "How It Works",
+    "compliance": "Compliance",
+    "download": "Download",
+    "distributor": "Become a Distributor",
+    "kcard": "K-Card",
+    "login": "Sign In"
+  },
+  "hero": {
+    "badge": "The Future of Digital Finance in Haiti",
+    "title": "The Future of Digital Financial Freedom",
+    "subtitle": "Send money instantly. No banks required.",
+    "description": "A secure, cashless digital wallet system designed for Haitians and their families worldwide.",
+    "cta": "Get Started",
+    "ctaSecondary": "Become a Distributor",
+    "stats": {
+      "users": "100K+",
+      "usersLabel": "Active Users",
+      "transfers": "$50M+",
+      "transfersLabel": "Transferred",
+      "countries": "15+",
+      "countriesLabel": "Countries",
+      "uptime": "99.9%",
+      "uptimeLabel": "Uptime"
+    }
+  },
+  "features": {
+    "title": "Why KobKlein?",
+    "subtitle": "Everything you need for modern digital payments",
+    "instant": {
+      "title": "K-Pay Instant Transfers",
+      "description": "Send and receive money in real-time. KobKlein to KobKlein transfers are instant and free under $500."
+    },
+    "security": {
+      "title": "Bank-Grade Security",
+      "description": "Advanced encryption, fraud prevention by design, and OTP step-up verification for high-value transactions."
+    },
+    "global": {
+      "title": "K-Link Global Network",
+      "description": "Connect with the Haitian diaspora worldwide. Miami, Montreal, Paris to Port-au-Prince — instant money transfers."
+    },
+    "card": {
+      "title": "K-Card Virtual Card",
+      "description": "Shop Netflix, Amazon, and more with your KobKlein wallet. Coming soon for verified accounts."
+    },
+    "lowFees": {
+      "title": "Lowest Fees Guaranteed",
+      "description": "K-Pay transfers are free. International remittances at just $1.99. Beat Western Union, MoneyGram, and the rest."
+    },
+    "kcode": {
+      "title": "K-Code & K-Scan",
+      "description": "Share a 6-digit rotating code or QR to receive money. No phone number needed. Safe and private."
+    }
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Get started in just minutes",
+    "step1": {
+      "label": "STEP 01",
+      "title": "Download the App",
+      "description": "Available free on iOS and Android. Search for KobKlein."
+    },
+    "step2": {
+      "label": "STEP 02",
+      "title": "Create an Account",
+      "description": "Simple sign-up with just your phone number. Verify to unlock higher limits."
+    },
+    "step3": {
+      "label": "STEP 03",
+      "title": "Add Funds",
+      "description": "Top up via local K-Agent distributor, bank transfer, or from family abroad."
+    },
+    "step4": {
+      "label": "STEP 04",
+      "title": "Start Paying",
+      "description": "Send, receive, and pay merchants instantly. Use K-Card for online shopping."
+    }
+  },
+  "ecosystem": {
+    "title": "The KobKlein Ecosystem",
+    "subtitle": "Four pillars working together to create Haiti's digital payment revolution",
+    "clients": {
+      "number": "01",
+      "title": "Clients",
+      "description": "Haitians and diaspora members create a wallet to send, receive, and store digital money securely.",
+      "features": ["Secure Wallet Creation", "Send & Receive Money", "K-Card Online Shopping", "K-Trust Verified Badge"]
+    },
+    "distributors": {
+      "number": "02",
+      "title": "K-Agents (Distributors)",
+      "description": "Local partners handle cash top-ups and withdrawals, bridging digital and physical economies.",
+      "features": ["Cash Top-ups", "Cash Withdrawals", "Earn Commissions", "Float Management"]
+    },
+    "merchants": {
+      "number": "03",
+      "title": "Merchants",
+      "description": "Businesses accept digital payments via K-Scan QR, expanding their customer base.",
+      "features": ["Accept K-Pay Payments", "K-Scan QR Code", "Daily Sales Reports", "Instant Settlement"]
+    },
+    "diaspora": {
+      "number": "04",
+      "title": "Diaspora",
+      "description": "Send money home instantly for the lowest fees. Keep your family connected with K-Link.",
+      "features": ["K-Link Family Panel", "Lowest Remittance Fees", "USD to HTG Conversion", "Monthly Support Plans"]
+    }
+  },
+  "comparison": {
+    "title": "Compare & Save",
+    "subtitle": "See why KobKlein is the smartest way to send money to Haiti",
+    "route": "Route",
+    "westernUnion": "Western Union",
+    "moneyGram": "MoneyGram",
+    "kobklein": "KobKlein",
+    "usToHaiti": "US → Haiti ($100)",
+    "p2p": "KobKlein → KobKlein",
+    "cashOut": "Cash-out at Agent",
+    "onlinePurchase": "K-Card Purchase",
+    "free": "FREE",
+    "na": "N/A"
+  },
+  "kcard": {
+    "title": "K-Card — Shop the World",
+    "subtitle": "For the first time, Haitians can buy online anywhere",
+    "description": "Netflix, Amazon, Spotify, and more — all powered by your KobKlein wallet. Virtual Visa card for verified accounts. Physical card coming soon.",
+    "features": {
+      "virtual": "Virtual Visa Card",
+      "instant": "Instant Activation",
+      "global": "Accepted Worldwide",
+      "control": "Real-time Notifications"
+    },
+    "waitlist": "Join the K-Card Waitlist",
+    "waitlistDescription": "Be first in line for the physical K-Card.",
+    "namePlaceholder": "Full Name",
+    "phonePlaceholder": "Phone Number",
+    "cityPlaceholder": "City",
+    "interest": "I'm interested in:",
+    "virtualOnly": "Virtual Card Only",
+    "physicalOnly": "Physical Card Only",
+    "both": "Both",
+    "submit": "Join Waitlist",
+    "joined": "You're on the list! We'll notify you.",
+    "faq": "For international online purchases, KobKlein provides a supported billing address for all K-Card holders. Your purchases are funded directly from your KobKlein wallet."
+  },
+  "mission": {
+    "title": "Our Mission",
+    "subtitle": "Empowering Haiti's Future",
+    "description": "KobKlein was built to empower Haitians with a modern, cashless payment system. Too many remain unbanked, unable to access global remittances or digital finance. We are changing that with a platform that is inclusive, transparent, and community-owned.",
+    "values": {
+      "title": "Core Values",
+      "trust": { "title": "Trust", "description": "Transparency and accountability in every transaction." },
+      "accessibility": { "title": "Accessibility", "description": "Inclusive services for Haitians everywhere, banked or unbanked." },
+      "security": { "title": "Security", "description": "Bank-grade encryption and fraud prevention by design." },
+      "innovation": { "title": "Innovation", "description": "Modern digital tools tailored for Haiti's future economy." }
+    },
+    "vision": {
+      "title": "Looking Ahead",
+      "description": "KobKlein is more than payments — it's a movement toward financial independence for Haiti. Our vision is to scale across the Caribbean and diaspora, connecting families, empowering merchants, and giving Haitians everywhere the tools they deserve in the global economy."
+    }
+  },
+  "compliance": {
+    "title": "Compliance Framework",
+    "subtitle": "Four pillars of our comprehensive regulatory compliance program",
+    "financial": { "title": "Financial Regulations", "description": "Full compliance with banking and financial services regulations across all operating jurisdictions." },
+    "data": { "title": "Data Protection", "description": "Adherence to international data privacy laws and user protection standards." },
+    "international": { "title": "International Standards", "description": "Compliance with global AML and counter-terrorism financing requirements." },
+    "operational": { "title": "Operational Excellence", "description": "Meeting industry best practices for operational risk management and business continuity." },
+    "licensesTitle": "Licenses & Registrations",
+    "metricsTitle": "Compliance Metrics",
+    "metrics": {
+      "examinations": { "value": "5/5", "label": "Regulatory Examinations Passed" },
+      "score": { "value": "98.5%", "label": "Overall Compliance Score" },
+      "audit": { "value": "Clean", "label": "Audit Results — No Material Findings" },
+      "actions": { "value": "0", "label": "Regulatory Enforcement Actions" }
+    }
+  },
+  "download": {
+    "title": "Download the KobKlein App",
+    "subtitle": "Available now on iOS and Android",
+    "appStore": "Download on the App Store",
+    "playStore": "Get it on Google Play",
+    "features": ["Instant transfers", "Bank-grade security", "Distributor network", "24/7 support"]
+  },
+  "footer": {
+    "tagline": "Your money, in your hands.",
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "about": "About",
+    "howItWorks": "How It Works",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "compliance": "Compliance",
+    "aml": "AML Policy",
+    "contact": "Contact Us",
+    "careers": "Careers",
+    "press": "Press",
+    "copyright": "KobKlein Inc. All rights reserved."
+  },
+  "cta": {
+    "title": "Ready to Join the Revolution?",
+    "subtitle": "Download KobKlein today and experience the future of digital payments for Haiti.",
+    "button": "Get Started Free"
+  },
+  "distributor": {
+    "title": "Become a K-Agent",
+    "subtitle": "Join Haiti's fastest growing digital payment network",
+    "description": "As a K-Agent, you bridge the gap between digital and physical money. Earn commissions on every cash-in and cash-out transaction in your community.",
+    "benefits": {
+      "earn": { "title": "Earn Commissions", "description": "Earn on every transaction. The more volume, the more you earn." },
+      "community": { "title": "Serve Your Community", "description": "Help your neighbors access digital payments and remittances." },
+      "support": { "title": "Full Support", "description": "Training, float management tools, and 24/7 support from KobKlein." },
+      "grow": { "title": "Grow Your Business", "description": "Add digital payment services to your existing business." }
+    },
+    "apply": "Apply to Become a K-Agent"
+  }
+}
