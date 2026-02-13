@@ -1,6 +1,7 @@
 import { randomInt } from "crypto";
 import { prisma } from "../db/prisma";
 import { createNotification } from "../notifications/notification.service";
+import { hashOtp, verifyOtpHash } from "./otp.util";
 
 function generateCode() {
   return randomInt(100000, 999999).toString();
@@ -11,16 +12,18 @@ export async function createOtp(userId: string, purpose: string, phone: string) 
 
   const expires = new Date(Date.now() + 5 * 60 * 1000);
 
+  // Store hashed OTP — never persist plaintext codes
   await prisma.otpCode.create({
     data: {
       userId,
       phone,
-      code,
+      code: hashOtp(code),
       purpose,
       expiresAt: expires,
     },
   });
 
+  // Return plaintext code to caller for SMS/email delivery only
   return code;
 }
 
@@ -63,7 +66,8 @@ export async function verifyOtp(params: {
     throw new Error("Too many attempts");
   }
 
-  if (record.code !== params.code) {
+  // Verify against hash using constant-time comparison
+  if (!verifyOtpHash(params.code, record.code)) {
     await prisma.otpCode.update({
       where: { id: record.id },
       data: { attempts: { increment: 1 } },

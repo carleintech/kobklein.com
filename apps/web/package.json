@@ -8,11 +8,13 @@
     "start": "next start -p 3002"
   },
   "dependencies": {
+    "@kobklein/i18n": "workspace:*",
     "@auth0/nextjs-auth0": "^4.5.1",
     "@radix-ui/react-slot": "^1.2.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.511.0",
+    "qrcode.react": "^4.2.0",
     "next": "^15.3.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

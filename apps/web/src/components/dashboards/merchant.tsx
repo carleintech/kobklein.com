@@ -9,6 +9,7 @@ import {
   Banknote,
   Bell,
   BarChart3,
+  Monitor,
   QrCode,
   Store,
 } from "lucide-react";
@@ -115,7 +116,7 @@ export function MerchantDashboard({ profile }: Props) {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <button
           type="button"
           onClick={() => router.push("/merchant/qr")}
@@ -125,6 +126,17 @@ export function MerchantDashboard({ profile }: Props) {
           <span className="text-sm font-medium">K-Scan QR</span>
           <span className="text-[10px] text-muted-foreground">
             Show to customers
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => router.push("/merchant/pos")}
+          className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[#C6A756]/30 bg-card hover:bg-secondary transition"
+        >
+          <Monitor className="h-8 w-8 text-[#C6A756]" />
+          <span className="text-sm font-medium">POS Terminal</span>
+          <span className="text-[10px] text-muted-foreground">
+            Full-screen mode
           </span>
         </button>
         <button
@@ -145,6 +157,7 @@ export function MerchantDashboard({ profile }: Props) {
         {[
           { label: "Sales & History", sub: "All payment transactions", href: "/merchant", icon: BarChart3 },
           { label: "QR Code", sub: "K-Scan receive payment", href: "/merchant/qr", icon: QrCode },
+          { label: "POS Terminal", sub: "Full-screen payment mode", href: "/merchant/pos", icon: Monitor },
           { label: "Withdraw", sub: "Cash-out via K-Agent", href: "/merchant/withdraw", icon: Banknote },
         ].map((item) => (
           <a

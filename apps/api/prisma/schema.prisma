@@ -50,6 +50,10 @@ model User {
   auditLogs           AuditLog[]
   scheduledSent       ScheduledTransfer[] @relation("scheduledSender")
   scheduledReceived   ScheduledTransfer[] @relation("scheduledRecipient")
+  stepUpTokens        StepUpToken[]
+  sanctionsChecks     SanctionsCheck[]
+  pushTokens          PushToken[]
+  amlFlags            AmlFlag[]
 }
 
 model Distributor {
@@ -68,6 +72,8 @@ model Distributor {
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  recharges      DistributorRecharge[]
 
   @@index([status])
 }
@@ -413,13 +419,16 @@ model MerchantWithdrawal {
 }
 
 model DeviceSession {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   fingerprint String
   ip          String
   userAgent   String
-  lastSeenAt  DateTime @default(now())
-  createdAt   DateTime @default(now())
+  trusted     Boolean   @default(false)
+  label       String?
+  revokedAt   DateTime?
+  lastSeenAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id])
 
@@ -888,4 +897,196 @@ model AccountFlag {
   @@index([userId])
   @@index([flagType])
   @@index([resolvedAt])
+}
+
+// ─── Phases 61-64: Tier-Based Subscription Plans ────────────────────────
+
+model PlatformPlan {
+  id            String   @id @default(cuid())
+  slug          String   @unique   // "diaspora_plus", "merchant_growth", "distributor_pro"
+  role          String              // "diaspora", "merchant", "distributor"
+  tier          Int      @default(1) // 0=free, 1=basic, 2=pro, 3=enterprise
+  priceUsd      Decimal  @db.Decimal(18, 2)
+  interval      String   @default("monthly") // monthly | yearly
+  stripePriceId String?  @unique   // Stripe Price ID for recurring billing
+  features      Json?    // { "sendLimit": 5000, "fxMarkup": 0.5, "kpayIncluded": true, ... }
+
+  // Multilingual
+  nameEn        String
+  nameFr        String
+  nameHt        String
+  nameEs        String
+  descEn        String?
+  descFr        String?
+  descHt        String?
+  descEs        String?
+
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  userPlans     UserPlan[]
+
+  @@index([role])
+  @@index([tier])
+}
+
+model UserPlan {
+  id                  String    @id @default(cuid())
+  userId              String
+  planId              String
+  stripeSubscriptionId String?  @unique  // Stripe Subscription ID
+  stripeCustomerId    String?             // Stripe Customer ID
+
+  status              String    @default("active") // active | past_due | canceled | trialing
+  currentPeriodStart  DateTime
+  currentPeriodEnd    DateTime
+  canceledAt          DateTime?
+  trialEnd            DateTime?
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  plan                PlatformPlan @relation(fields: [planId], references: [id])
+
+  @@unique([userId, planId])
+  @@index([userId])
+  @@index([status])
+  @@index([stripeSubscriptionId])
+}
+
+// ─── Phase 56: Step-Up Authentication ───────────────────────────────────
+model StepUpToken {
+  id        String    @id @default(cuid())
+  userId    String
+  scope     String    // withdrawal, cash_out, settings_change
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+// ─── Phase 58: Compliance / Sanctions ───────────────────────────────────
+model SanctionsCheck {
+  id        String   @id @default(cuid())
+  userId    String
+  fullName  String
+  country   String?
+  result    String   // clear, match, error
+  source    String   @default("manual") // ofac, eu, manual
+  matchData Json?
+  checkedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+// ─── Phase 132: Push Notification Tokens ─────────────────────────────
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  platform  String   // ios, android
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([token])
+}
+
+// ─── Phase 143: FX Promotions ────────────────────────────────────────
+model FxPromotion {
+  id            String   @id @default(cuid())
+  name          String
+  fromCurrency  String
+  toCurrency    String
+  discountBps   Int      // basis points discount on spread
+  bonusPct      Decimal? // optional bonus % on converted amount
+  minAmount     Decimal? // minimum transfer amount to qualify
+  maxAmount     Decimal? // maximum amount the promo applies to
+  code          String?  @unique // optional promo code
+  corridor      String?  // e.g. "US_HT", "CA_HT"
+  maxUses       Int?     // null = unlimited
+  usedCount     Int      @default(0)
+  startsAt      DateTime
+  endsAt        DateTime
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  redemptions FxPromoRedemption[]
+
+  @@index([fromCurrency, toCurrency])
+  @@index([code])
+  @@index([startsAt, endsAt])
+}
+
+model FxPromoRedemption {
+  id           String   @id @default(cuid())
+  promotionId  String
+  userId       String
+  transferId   String?
+  savedAmount  Decimal  // how much user saved in destination currency
+  createdAt    DateTime @default(now())
+
+  promotion FxPromotion @relation(fields: [promotionId], references: [id])
+
+  @@index([promotionId])
+  @@index([userId])
+}
+
+// ─── Phase 151: Distributor Recharge ─────────────────────────────────
+model DistributorRecharge {
+  id              String   @id @default(cuid())
+  distributorId   String
+  amount          Decimal
+  currency        String   @default("HTG")
+  method          String   // bank_transfer, mobile_money, cash_deposit
+  reference       String?  // external payment reference
+  proofUrl        String?  // uploaded receipt/proof
+  status          String   @default("pending") // pending, approved, rejected
+  reviewedBy      String?  // admin userId who reviewed
+  reviewNote      String?
+  reviewedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  distributor Distributor @relation(fields: [distributorId], references: [id])
+
+  @@index([distributorId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ─── Phase 159: AML Flags ────────────────────────────────────────────
+model AmlFlag {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // velocity, structuring, sanctioned_country, large_cash, pattern, manual
+  severity    String   @default("medium") // low, medium, high, critical
+  description String
+  ruleId      String?  // which AML rule triggered
+  transferId  String?  // related transfer if any
+  status      String   @default("open") // open, investigating, escalated, resolved, false_positive
+  resolvedBy  String?  // admin userId
+  resolvedAt  DateTime?
+  resolveNote String?
+  metadata    Json?    // additional context (amounts, patterns, etc.)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([severity])
+  @@index([type])
+  @@index([createdAt])
 }

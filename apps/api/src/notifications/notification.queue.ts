@@ -1,6 +1,8 @@
 import { Queue, Worker, Job } from "bullmq";
 import IORedis from "ioredis";
 import { sendSMS, isTwilioConfigured } from "./sms.service";
+import { sendEmail, isEmailConfigured } from "./email.service";
+import { notifyUser as pushNotifyUser } from "../push/push.service";
 import {
   logNotificationQueued,
   markNotificationSent,
@@ -99,9 +101,20 @@ async function processNotification(job: Job<NotificationJob>): Promise<void> {
         console.log(`[SMS-DRY] → ${to}: ${body}`);
       }
     } else if (channel === "email") {
-      console.log(`[EMAIL-STUB] → ${to}: ${body}`);
+      if (isEmailConfigured()) {
+        await sendEmail(to, type, body);
+      } else {
+        console.log(`[EMAIL-DEV] → ${to}: ${body}`);
+      }
     } else if (channel === "push") {
-      console.log(`[PUSH-STUB] → ${to}: ${body}`);
+      // `to` holds the userId for push notifications
+      const userId = job.data.userId ?? to;
+      if (userId) {
+        const result = await pushNotifyUser(userId, { title: type, body });
+        console.log(`[PUSH] → userId=${userId}: sent=${result.sent}, failed=${result.failed}`);
+      } else {
+        console.warn(`[PUSH] No userId for push notification, skipping: ${body}`);
+      }
     } else {
       console.warn(`[Notification Worker] Unknown channel: ${channel}`);
     }

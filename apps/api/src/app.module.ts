@@ -95,6 +95,18 @@ import { AdminTreasuryController } from "./admin/admin-treasury.controller";
 import { AdminMerchantFeeController } from "./admin/admin-merchant-fee.controller";
 import { AdminPosAnalyticsController } from "./admin/admin-pos-analytics.controller";
 import { AdminCatalogController } from "./admin/admin-catalog.controller";
+import { StepUpController } from "./auth/stepup.controller";
+import { DevicesController } from "./security/devices.controller";
+import { AdminDevicesController } from "./admin/admin-devices.controller";
+import { LockdownController } from "./security/lockdown.controller";
+import { AdminComplianceController } from "./admin/admin-compliance.controller";
+import { KycUploadController } from "./kyc/kyc-upload.controller";
+import { BillingController } from "./billing/billing.controller";
+import { AdminPlansController } from "./admin/admin-plans.controller";
+import { PushController } from "./push/push.controller";
+import { FxPromoController, AdminFxPromoController } from "./fx/fx-promo.controller";
+import { DistributorRechargeController, AdminRechargeController } from "./distributor/recharge.controller";
+import { AmlController } from "./aml/aml.controller";
 
 @Module({
   imports: [
@@ -185,6 +197,20 @@ import { AdminCatalogController } from "./admin/admin-catalog.controller";
     AdminMerchantFeeController,
     AdminPosAnalyticsController,
     AdminCatalogController,
+    StepUpController,
+    DevicesController,
+    AdminDevicesController,
+    LockdownController,
+    AdminComplianceController,
+    KycUploadController,
+    BillingController,
+    AdminPlansController,
+    PushController,
+    FxPromoController,
+    AdminFxPromoController,
+    DistributorRechargeController,
+    AdminRechargeController,
+    AmlController,
   ],
   providers: [StripeService, AuditService],
 })

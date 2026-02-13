@@ -36,3 +36,13 @@ export function kkPatch<T>(path: string, body?: unknown): Promise<T> {
     body: body ? JSON.stringify(body) : undefined,
   });
 }
+
+export function kkDelete<T>(path: string): Promise<T> {
+  return apiFetch<T>(path, {
+    method: "DELETE",
+  });
+}
+
+/* Aliases so legacy imports from "@/lib/api" still resolve */
+export const apiGet = kkGet;
+export const apiPost = kkPost;

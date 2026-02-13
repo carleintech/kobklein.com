@@ -8,7 +8,7 @@ import {
   getNotificationById,
   resetNotificationForRetry,
 } from "../notifications/notification-log.service";
-import { enqueueNotification, NotificationJob } from "../notifications/notification.queue";
+import { enqueueNotification, NotificationJob, getNotificationQueue } from "../notifications/notification.queue";
 
 @Controller("admin/notifications")
 @UseGuards(Auth0Guard, RolesGuard)
@@ -75,18 +75,11 @@ export class NotificationsAdminController {
       attempt: log.attempts + 1,
       logId: id,
     };
-    await enqueueNotification({ ...job, logId: undefined }); // new job gets its own log? No — reuse existing log
-    // Actually, directly enqueue without creating a new log:
-    const { Queue } = await import("bullmq");
-    const IORedis = (await import("ioredis")).default;
-    const redisUrl = process.env.REDIS_URL ?? "redis://localhost:6379";
-    const conn = new IORedis(redisUrl, { maxRetriesPerRequest: null });
-    const q = new Queue("notifications", { connection: conn });
+    // Re-queue directly using the shared BullMQ queue (reuses existing Redis connection)
+    const q = getNotificationQueue();
     await q.add(log.type, { ...job, logId: id }, {
       priority: log.channel === "sms" ? 1 : 5,
     });
-    await q.close();
-    await conn.quit();
 
     return { ok: true, message: "Notification re-queued for delivery" };
   }

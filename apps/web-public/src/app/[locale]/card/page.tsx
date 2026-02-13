@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import { trackEvent } from "@/lib/gtag";
 import { motion, type Variants } from "framer-motion";
 import {
   CreditCard,
@@ -68,6 +69,47 @@ const merchants = [
 
 export default function CardPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [waitlistPosition, setWaitlistPosition] = useState<number | null>(null);
+
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
+
+  async function handleWaitlistSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSubmitting(true);
+    setFormError("");
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const fullName = formData.get("fullName") as string;
+    const phone = formData.get("phone") as string;
+
+    try {
+      const res = await fetch(`${API_BASE}/v1/kcard/waitlist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName, phone }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Submission failed");
+      }
+
+      const data = await res.json();
+      if (data.alreadyJoined) {
+        setFormError("You're already on the waitlist!");
+      }
+      setWaitlistPosition(data.position);
+      setSubmitted(true);
+      trackEvent("waitlist_signup", "engagement", "kcard_waitlist", 1);
+    } catch (err: any) {
+      setFormError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <>
@@ -346,35 +388,40 @@ export default function CardPage() {
                   <p className="text-sm text-kob-muted mt-2">
                     We&apos;ll notify you when K-Card is ready for you.
                   </p>
+                  {waitlistPosition && (
+                    <p className="text-xs text-kob-gold mt-3 font-medium">
+                      Position #{waitlistPosition}
+                    </p>
+                  )}
                 </div>
               ) : (
                 <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    setSubmitted(true);
-                  }}
+                  onSubmit={handleWaitlistSubmit}
                   className="space-y-4"
                 >
                   <input
+                    name="fullName"
                     required
                     type="text"
                     placeholder="Full name"
                     className="w-full px-4 py-3 rounded-xl border border-white/6 bg-kob-black text-kob-text text-sm placeholder:text-kob-muted focus:outline-none focus:border-kob-gold/40 transition-colors duration-200"
                   />
                   <input
-                    required
-                    type="email"
-                    placeholder="Email address"
-                    className="w-full px-4 py-3 rounded-xl border border-white/6 bg-kob-black text-kob-text text-sm placeholder:text-kob-muted focus:outline-none focus:border-kob-gold/40 transition-colors duration-200"
-                  />
-                  <input
+                    name="phone"
                     required
                     type="tel"
                     placeholder="Phone number"
                     className="w-full px-4 py-3 rounded-xl border border-white/6 bg-kob-black text-kob-text text-sm placeholder:text-kob-muted focus:outline-none focus:border-kob-gold/40 transition-colors duration-200"
                   />
-                  <button type="submit" className="w-full btn-gold py-3 text-sm">
-                    Join Waitlist
+                  {formError && (
+                    <p className="text-xs text-kob-danger">{formError}</p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full btn-gold py-3 text-sm disabled:opacity-60"
+                  >
+                    {submitting ? "Submitting..." : "Join Waitlist"}
                   </button>
                 </form>
               )}

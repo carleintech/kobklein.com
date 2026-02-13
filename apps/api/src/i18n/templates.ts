@@ -105,6 +105,63 @@ export const templates: Record<string, Record<Lang, TemplateFn>> = {
     }),
   },
 
+  subscription_charged: {
+    en: (p) => ({
+      title: "Subscription Charged",
+      body: `Your ${p.merchant} subscription ($${p.amountUsd}) was charged successfully. Next billing: ${p.nextBilling}.`,
+    }),
+    fr: (p) => ({
+      title: "Abonnement facturé",
+      body: `Votre abonnement ${p.merchant} ($${p.amountUsd}) a été facturé. Prochaine facturation : ${p.nextBilling}.`,
+    }),
+    ht: (p) => ({
+      title: "Abònman chaje",
+      body: `Abònman ${p.merchant} ou ($${p.amountUsd}) chaje avèk siksè. Pwochen faktirasyon: ${p.nextBilling}.`,
+    }),
+    es: (p) => ({
+      title: "Suscripción cobrada",
+      body: `Tu suscripción de ${p.merchant} ($${p.amountUsd}) fue cobrada. Próxima facturación: ${p.nextBilling}.`,
+    }),
+  },
+
+  subscription_resumed: {
+    en: (p) => ({
+      title: "Subscription Resumed",
+      body: `Your ${p.merchant} subscription is active again. Next charge: $${p.amountUsd} on ${p.nextBilling}.`,
+    }),
+    fr: (p) => ({
+      title: "Abonnement repris",
+      body: `Votre abonnement ${p.merchant} est à nouveau actif. Prochain paiement : $${p.amountUsd} le ${p.nextBilling}.`,
+    }),
+    ht: (p) => ({
+      title: "Abònman reprann",
+      body: `Abònman ${p.merchant} ou aktif ankò. Pwochen peman: $${p.amountUsd} nan ${p.nextBilling}.`,
+    }),
+    es: (p) => ({
+      title: "Suscripción reanudada",
+      body: `Tu suscripción de ${p.merchant} está activa de nuevo. Próximo cobro: $${p.amountUsd} el ${p.nextBilling}.`,
+    }),
+  },
+
+  subscription_auto_resumed: {
+    en: (p) => ({
+      title: "Subscription Auto-Resumed",
+      body: `Good news! Your ${p.merchant} subscription has been automatically resumed after your balance was replenished.`,
+    }),
+    fr: (p) => ({
+      title: "Abonnement repris automatiquement",
+      body: `Bonne nouvelle ! Votre abonnement ${p.merchant} a été repris automatiquement après le rechargement de votre solde.`,
+    }),
+    ht: (p) => ({
+      title: "Abònman reprann otomatikman",
+      body: `Bon nouvèl! Abònman ${p.merchant} ou reprann otomatikman apre ou mete lajan nan bous ou.`,
+    }),
+    es: (p) => ({
+      title: "Suscripción reanudada automáticamente",
+      body: `¡Buenas noticias! Tu suscripción de ${p.merchant} se reanudó automáticamente después de recargar tu saldo.`,
+    }),
+  },
+
   subscription_suspended: {
     en: (p) => ({
       title: "Subscription Suspended",
@@ -393,6 +450,226 @@ export const templates: Record<string, Record<Lang, TemplateFn>> = {
     es: () => ({
       title: "Completa tu KYC",
       body: "Completa tu verificación KYC para desbloquear límites de transacción más altos.",
+    }),
+  },
+
+  // ─── Step-Up OTP (Phase 56) ─────────────────────────────────────────
+  stepup_otp: {
+    en: (p) => ({
+      title: "Verification Code",
+      body: `Your KobKlein verification code is ${p.code}. Valid for 5 minutes. Do not share this code.`,
+    }),
+    fr: (p) => ({
+      title: "Code de vérification",
+      body: `Votre code de vérification KobKlein est ${p.code}. Valide pendant 5 minutes. Ne partagez pas ce code.`,
+    }),
+    ht: (p) => ({
+      title: "Kòd verifikasyon",
+      body: `Kòd verifikasyon KobKlein ou se ${p.code}. Li valab pou 5 minit. Pa pataje kòd sa a.`,
+    }),
+    es: (p) => ({
+      title: "Código de verificación",
+      body: `Tu código de verificación KobKlein es ${p.code}. Válido por 5 minutos. No compartas este código.`,
+    }),
+  },
+
+  stepup_email_subject: {
+    en: () => ({ title: "KobKlein Security Verification", body: "" }),
+    fr: () => ({ title: "Vérification de sécurité KobKlein", body: "" }),
+    ht: () => ({ title: "Verifikasyon sekirite KobKlein", body: "" }),
+    es: () => ({ title: "Verificación de seguridad KobKlein", body: "" }),
+  },
+
+  // ─── Security / Devices (Phase 57) ──────────────────────────────────
+  security_new_device: {
+    en: (p) => ({
+      title: "New Device Detected",
+      body: `A new device accessed your account from IP ${p.ip}. If this wasn't you, lock your account immediately.`,
+    }),
+    fr: (p) => ({
+      title: "Nouvel appareil détecté",
+      body: `Un nouvel appareil a accédé à votre compte depuis l'IP ${p.ip}. Si ce n'était pas vous, verrouillez votre compte immédiatement.`,
+    }),
+    ht: (p) => ({
+      title: "Nouvo aparèy detekte",
+      body: `Yon nouvo aparèy antre nan kont ou soti nan IP ${p.ip}. Si se pa ou, fèmen kont ou imedyatman.`,
+    }),
+    es: (p) => ({
+      title: "Nuevo dispositivo detectado",
+      body: `Un nuevo dispositivo accedió a tu cuenta desde la IP ${p.ip}. Si no fuiste tú, bloquea tu cuenta inmediatamente.`,
+    }),
+  },
+
+  security_lockdown: {
+    en: () => ({
+      title: "Account Locked",
+      body: "Your account has been locked for security. All sessions were revoked. Contact support to unlock.",
+    }),
+    fr: () => ({
+      title: "Compte verrouillé",
+      body: "Votre compte a été verrouillé pour sécurité. Toutes les sessions ont été révoquées. Contactez le support.",
+    }),
+    ht: () => ({
+      title: "Kont fèmen",
+      body: "Kont ou fèmen pou sekirite. Tout sesyon revoke. Kontakte sipò pou debloke.",
+    }),
+    es: () => ({
+      title: "Cuenta bloqueada",
+      body: "Tu cuenta fue bloqueada por seguridad. Todas las sesiones revocadas. Contacta soporte para desbloquear.",
+    }),
+  },
+
+  security_device_revoked: {
+    en: () => ({
+      title: "Device Removed",
+      body: "A device has been removed from your account. If this wasn't you, secure your account immediately.",
+    }),
+    fr: () => ({
+      title: "Appareil supprimé",
+      body: "Un appareil a été supprimé de votre compte. Si ce n'était pas vous, sécurisez votre compte.",
+    }),
+    ht: () => ({
+      title: "Aparèy retire",
+      body: "Yo retire yon aparèy nan kont ou. Si se pa ou, pwoteje kont ou imedyatman.",
+    }),
+    es: () => ({
+      title: "Dispositivo eliminado",
+      body: "Un dispositivo fue eliminado de tu cuenta. Si no fuiste tú, asegura tu cuenta inmediatamente.",
+    }),
+  },
+
+  // ─── Compliance (Phase 58) ──────────────────────────────────────────
+  compliance_flag: {
+    en: (p) => ({
+      title: "Transaction Under Review",
+      body: `Your transaction of ${p.amount} ${p.currency} is under compliance review. You'll be notified once resolved.`,
+    }),
+    fr: (p) => ({
+      title: "Transaction en examen",
+      body: `Votre transaction de ${p.amount} ${p.currency} est en cours d'examen de conformité.`,
+    }),
+    ht: (p) => ({
+      title: "Tranzaksyon ap revize",
+      body: `Tranzaksyon ${p.amount} ${p.currency} ou ap revize pou konfòmite. Nou pral avèti ou lè li rezoud.`,
+    }),
+    es: (p) => ({
+      title: "Transacción en revisión",
+      body: `Tu transacción de ${p.amount} ${p.currency} está bajo revisión de cumplimiento.`,
+    }),
+  },
+
+  kyc_approved: {
+    en: () => ({
+      title: "KYC Approved",
+      body: "Your identity verification has been approved. Your transaction limits have been upgraded.",
+    }),
+    fr: () => ({
+      title: "KYC approuvé",
+      body: "Votre vérification d'identité a été approuvée. Vos limites ont été augmentées.",
+    }),
+    ht: () => ({
+      title: "KYC apwouve",
+      body: "Verifikasyon idantite ou apwouve. Limit tranzaksyon ou ogmante.",
+    }),
+    es: () => ({
+      title: "KYC aprobado",
+      body: "Tu verificación de identidad fue aprobada. Tus límites han sido actualizados.",
+    }),
+  },
+
+  // ─── Platform Plans (Phases 61-64) ──────────────────────────────────
+  plan_activated: {
+    en: (p) => ({
+      title: "Plan Activated",
+      body: `Your ${p.planName} plan is now active. Enjoy your upgraded features!`,
+    }),
+    fr: (p) => ({
+      title: "Forfait activé",
+      body: `Votre forfait ${p.planName} est maintenant actif. Profitez de vos fonctionnalités améliorées !`,
+    }),
+    ht: (p) => ({
+      title: "Plan aktive",
+      body: `Plan ${p.planName} ou aktive kounye a. Jwi fonksyon amelyore ou yo!`,
+    }),
+    es: (p) => ({
+      title: "Plan activado",
+      body: `Tu plan ${p.planName} está activo. ¡Disfruta de tus funciones mejoradas!`,
+    }),
+  },
+
+  plan_canceled: {
+    en: (p) => ({
+      title: "Plan Canceled",
+      body: `Your ${p.planName} subscription has been canceled. You'll keep access until the end of your billing period.`,
+    }),
+    fr: (p) => ({
+      title: "Forfait annulé",
+      body: `Votre abonnement ${p.planName} a été annulé. Vous gardez l'accès jusqu'à la fin de votre période de facturation.`,
+    }),
+    ht: (p) => ({
+      title: "Plan anile",
+      body: `Abònman ${p.planName} ou anile. Ou ap kenbe aksè jiska fen peryòd faktirasyon ou an.`,
+    }),
+    es: (p) => ({
+      title: "Plan cancelado",
+      body: `Tu suscripción ${p.planName} ha sido cancelada. Mantendrás acceso hasta el final de tu período de facturación.`,
+    }),
+  },
+
+  plan_payment_failed: {
+    en: (p) => ({
+      title: "Payment Failed",
+      body: `Your ${p.planName} payment could not be processed. Please update your payment method to keep your plan active.`,
+    }),
+    fr: (p) => ({
+      title: "Échec du paiement",
+      body: `Le paiement de votre forfait ${p.planName} n'a pas pu être traité. Mettez à jour votre méthode de paiement.`,
+    }),
+    ht: (p) => ({
+      title: "Peman echwe",
+      body: `Peman plan ${p.planName} ou pa t ka trete. Tanpri mete ajou metòd peman ou.`,
+    }),
+    es: (p) => ({
+      title: "Pago fallido",
+      body: `No se pudo procesar el pago de tu plan ${p.planName}. Actualiza tu método de pago.`,
+    }),
+  },
+
+  kyc_upload_received: {
+    en: (p) => ({
+      title: "Document Received",
+      body: `Your ${p.docType} has been uploaded successfully. We'll review it shortly.`,
+    }),
+    fr: (p) => ({
+      title: "Document reçu",
+      body: `Votre ${p.docType} a été téléchargé avec succès. Nous le vérifierons bientôt.`,
+    }),
+    ht: (p) => ({
+      title: "Dokiman resevwa",
+      body: `${p.docType} ou telechaje avèk siksè. Nou pral revize li byento.`,
+    }),
+    es: (p) => ({
+      title: "Documento recibido",
+      body: `Tu ${p.docType} se ha cargado correctamente. Lo revisaremos pronto.`,
+    }),
+  },
+
+  kyc_rejected: {
+    en: (p) => ({
+      title: "KYC Rejected",
+      body: `Your identity verification was rejected: ${p.reason}. Please resubmit your documents.`,
+    }),
+    fr: (p) => ({
+      title: "KYC rejeté",
+      body: `Votre vérification d'identité a été rejetée : ${p.reason}. Veuillez soumettre à nouveau vos documents.`,
+    }),
+    ht: (p) => ({
+      title: "KYC rejte",
+      body: `Verifikasyon idantite ou rejte: ${p.reason}. Tanpri soumèt dokiman ou ankò.`,
+    }),
+    es: (p) => ({
+      title: "KYC rechazado",
+      body: `Tu verificación fue rechazada: ${p.reason}. Vuelve a enviar tus documentos.`,
     }),
   },
 };

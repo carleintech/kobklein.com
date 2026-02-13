@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "KobKlein",
+    "slug": "kobklein",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/icon.png",
+    "scheme": "kobklein",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./src/assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#080B14"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.kobklein.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "KobKlein needs camera access to scan QR codes for payments.",
+        "NSFaceIDUsageDescription": "KobKlein uses Face ID to secure your wallet."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/adaptive-icon.png",
+        "backgroundColor": "#080B14"
+      },
+      "package": "com.kobklein.app",
+      "permissions": ["CAMERA"]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./src/assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow KobKlein to scan QR codes for payments."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

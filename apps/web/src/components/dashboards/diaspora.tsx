@@ -3,27 +3,44 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { apiGet } from "@/lib/api";
-import { kkPost } from "@/lib/kobklein-api";
+import { kkPost, kkPatch } from "@/lib/kobklein-api";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/toast";
 import {
   ArrowUpRight,
   Bell,
+  Calendar,
+  CheckCircle2,
+  Crown,
   Globe,
   Heart,
   Plus,
   Send,
+  Shield,
+  Star,
   Users,
   Wallet,
 } from "lucide-react";
 
 type Props = {
-  profile: { id: string; firstName?: string; handle?: string; kycTier: number };
+  profile: {
+    id: string;
+    firstName?: string;
+    handle?: string;
+    kycTier: number;
+    kycStatus?: string;
+    planSlug?: string;
+    planName?: string;
+    planTier?: number;
+  };
 };
 
 type FamilyMember = {
   id: string;
   nickname?: string;
   relationship?: string;
+  isFavorite?: boolean;
   familyUser: {
     id: string;
     firstName?: string;
@@ -43,6 +60,7 @@ type DashboardData = {
 
 export function DiasporaDashboard({ profile }: Props) {
   const router = useRouter();
+  const toast = useToast();
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [family, setFamily] = useState<FamilyMember[]>([]);
   const [notifCount, setNotifCount] = useState(0);
@@ -82,9 +100,10 @@ export function DiasporaDashboard({ profile }: Props) {
       setAddPhone("");
       setAddNickname("");
       setAddRelationship("");
+      toast.show("Family member added!", "success");
       load();
     } catch (e: any) {
-      alert(e.message || "Failed to add family member");
+      toast.show(e.message || "Failed to add family member", "error");
     }
   }
 
@@ -101,6 +120,43 @@ export function DiasporaDashboard({ profile }: Props) {
     other: "Fanmi",
   };
 
+  const FAMILY_EMOJIS: Record<string, string> = {
+    parent: "👩",
+    child: "👧",
+    sibling: "🧑",
+    spouse: "💑",
+    cousin: "🤝",
+    other: "👤",
+  };
+
+  // Sort: favorites first, then alphabetical
+  const sortedFamily = [...family].sort((a, b) => {
+    if (a.isFavorite && !b.isFavorite) return -1;
+    if (!a.isFavorite && b.isFavorite) return 1;
+    const nameA = a.nickname || a.familyUser.firstName || "";
+    const nameB = b.nickname || b.familyUser.firstName || "";
+    return nameA.localeCompare(nameB);
+  });
+
+  async function handleToggleFavorite(member: FamilyMember) {
+    try {
+      await kkPatch(`v1/family/${member.id}`, {
+        isFavorite: !member.isFavorite,
+      });
+      setFamily((prev) =>
+        prev.map((m) =>
+          m.id === member.id ? { ...m, isFavorite: !m.isFavorite } : m
+        )
+      );
+      toast.show(
+        member.isFavorite ? "Removed from favorites" : "Added to favorites!",
+        "success"
+      );
+    } catch (e: any) {
+      toast.show(e.message || "Failed to update", "error");
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -110,6 +166,27 @@ export function DiasporaDashboard({ profile }: Props) {
             <Globe className="h-3 w-3" /> KobKlein Diaspora
           </div>
           <div className="text-xl font-semibold">{greeting}</div>
+          {/* Plan & KYC Badges */}
+          <div className="flex items-center gap-1.5 mt-1">
+            {profile.planName ? (
+              <Badge variant="default" className="text-[10px] gap-0.5">
+                <Crown className="h-2.5 w-2.5" />
+                {profile.planName}
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="text-[10px]">Free</Badge>
+            )}
+            {profile.kycTier >= 2 ? (
+              <Badge variant="success" className="text-[10px] gap-0.5">
+                <CheckCircle2 className="h-2.5 w-2.5" />
+                Verified
+              </Badge>
+            ) : profile.kycTier === 1 ? (
+              <Badge variant="warning" className="text-[10px]">KYC Pending</Badge>
+            ) : (
+              <Badge variant="destructive" className="text-[10px]">Unverified</Badge>
+            )}
+          </div>
         </div>
         <button type="button" className="relative" onClick={() => router.push("/notifications")}>
           <Bell className="h-5 w-5 text-muted-foreground" />
@@ -239,12 +316,30 @@ export function DiasporaDashboard({ profile }: Props) {
           </Card>
         ) : (
           <div className="space-y-2">
-            {family.map((member) => (
+            {sortedFamily.map((member) => (
               <Card key={member.id} className="rounded-xl">
-                <CardContent className="p-3 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Heart className="h-5 w-5 text-primary" />
+                <CardContent className="p-3 flex items-center gap-2">
+                  {/* Emoji Avatar */}
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-lg">
+                    {FAMILY_EMOJIS[member.relationship || "other"] || "👤"}
                   </div>
+                  {/* Star Toggle */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleFavorite(member);
+                    }}
+                    className="shrink-0"
+                  >
+                    <Star
+                      className={`h-4 w-4 ${
+                        member.isFavorite
+                          ? "text-[#C6A756] fill-[#C6A756]"
+                          : "text-muted-foreground"
+                      }`}
+                    />
+                  </button>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm">
@@ -267,7 +362,13 @@ export function DiasporaDashboard({ profile }: Props) {
                   </div>
                   <button
                     type="button"
-                    onClick={() => router.push("/send")}
+                    onClick={() =>
+                      router.push(
+                        `/send?recipientId=${member.familyUser.id}&name=${encodeURIComponent(
+                          member.nickname || member.familyUser.firstName || "Family"
+                        )}`
+                      )
+                    }
                     className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium shrink-0"
                   >
                     <Send className="h-3 w-3 inline mr-1" />
@@ -280,10 +381,49 @@ export function DiasporaDashboard({ profile }: Props) {
         )}
       </div>
 
+      {/* KYC Banner */}
+      {profile.kycTier < 2 && (
+        <button type="button" onClick={() => router.push("/verify")} className="w-full text-left">
+          <Card className="rounded-2xl border-primary/30 bg-primary/5">
+            <CardContent className="p-4 flex items-center gap-3">
+              <Shield className="h-8 w-8 text-primary shrink-0" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold">
+                  {profile.kycTier === 0 ? "Verify Your Identity" : "Complete Full Verification"}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Unlock higher remittance limits
+                </div>
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-primary shrink-0" />
+            </CardContent>
+          </Card>
+        </button>
+      )}
+
+      {/* Plan Upgrade Banner */}
+      {!profile.planSlug && (
+        <button type="button" onClick={() => router.push("/settings/plan")} className="w-full text-left">
+          <Card className="rounded-2xl border-[#C6A756]/30 bg-[#C6A756]/5">
+            <CardContent className="p-4 flex items-center gap-3">
+              <Crown className="h-8 w-8 text-[#C6A756] shrink-0" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold">Diaspora Plus</div>
+                <div className="text-xs text-muted-foreground">
+                  Lower FX fees, priority support & more
+                </div>
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-[#C6A756] shrink-0" />
+            </CardContent>
+          </Card>
+        </button>
+      )}
+
       {/* Quick Nav */}
       <div className="space-y-2">
         {[
           { label: "K-Pay Send", sub: "Send to anyone instantly", href: "/send", icon: Send },
+          { label: "Scheduled Transfers", sub: "Recurring family remittances", href: "/recurring", icon: Calendar },
           { label: "Wallet", sub: "Balance & history", href: "/wallet", icon: Wallet },
         ].map((item) => (
           <a

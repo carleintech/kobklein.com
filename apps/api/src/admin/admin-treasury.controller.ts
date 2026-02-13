@@ -96,6 +96,7 @@ export class AdminTreasuryController {
       // fx_profit — FX spread revenue
       // cash_out_fee — distributor cash-out fees
       // commission — distributor commissions
+      // subscription_revenue — K-Pay subscription charges
     };
   }
 }

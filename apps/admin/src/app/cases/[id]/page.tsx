@@ -1,9 +1,13 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { apiGet, apiPost } from "@/lib/api";
-import { ArrowLeft, User, MessageSquare, Activity } from "lucide-react";
+import { kkGet, kkPost } from "@/lib/kobklein-api";
+import { ArrowLeft, MessageSquare, Activity, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 const caseTypeLabels: Record<string, string> = {
   wrong_recipient: "Wrong Recipient",
@@ -44,9 +48,78 @@ function timeAgo(d: string) {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
-export default async function CaseDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const caseData = await apiGet<any>(`/admin/cases/${id}`, {});
+export default function CaseDetailPage() {
+  const params = useParams<{ id: string }>();
+  const caseId = params.id;
+
+  const [caseData, setCaseData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState("");
+  const [resolutionText, setResolutionText] = useState("");
+  const [rejectReasonText, setRejectReasonText] = useState("");
+  const [showResolveInput, setShowResolveInput] = useState(false);
+  const [showRejectInput, setShowRejectInput] = useState(false);
+
+  const fetchCase = useCallback(async () => {
+    try {
+      const data = await kkGet<any>(`v1/admin/cases/${caseId}`);
+      setCaseData(data);
+    } catch (e: any) {
+      console.error("Failed to load case:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, [caseId]);
+
+  useEffect(() => {
+    fetchCase();
+  }, [fetchCase]);
+
+  async function handleAction(
+    action: string,
+    endpoint: string,
+    body?: Record<string, unknown>,
+  ) {
+    setActionLoading(action);
+    setActionMessage("");
+    try {
+      await kkPost(endpoint, body ?? {});
+      setActionMessage(`${action} completed successfully`);
+      setShowResolveInput(false);
+      setShowRejectInput(false);
+      setResolutionText("");
+      setRejectReasonText("");
+      await fetchCase();
+    } catch (e: any) {
+      setActionMessage(`Error: ${e.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-[#C6A756]" />
+        <span className="ml-2 text-sm text-[#7A8394]">Loading case...</span>
+      </div>
+    );
+  }
+
+  if (!caseData) {
+    return (
+      <div className="space-y-6">
+        <Link href="/cases">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Cases
+          </Button>
+        </Link>
+        <p className="text-sm text-red-400">Failed to load case data.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -107,7 +180,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
 
               <div>
                 <span className="text-sm font-medium">Description:</span>
-                <p className="text-sm mt-1 p-3 bg-gray-50 rounded">{caseData.description}</p>
+                <p className="text-sm mt-1 p-3 bg-[#151B2E] rounded">{caseData.description}</p>
               </div>
             </div>
           </Card>
@@ -122,21 +195,21 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
 
               <div className="space-y-3">
                 {caseData.messages?.map((message: any) => (
-                  <div key={message.id} className="border-l-2 border-gray-200 pl-4">
+                  <div key={message.id} className="border-l-2 border-[#C6A756]/30 pl-4">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-medium capitalize">{message.authorRole}</span>
                       {message.authorUserId && (
-                        <span className="font-mono text-xs text-gray-500">
-                          {message.authorUserId.slice(0, 8)}…
+                        <span className="font-mono text-xs text-[#7A8394]">
+                          {message.authorUserId.slice(0, 8)}...
                         </span>
                       )}
-                      <span className="text-xs text-gray-500">{timeAgo(message.createdAt)}</span>
+                      <span className="text-xs text-[#7A8394]">{timeAgo(message.createdAt)}</span>
                     </div>
                     <p className="text-sm">{message.message}</p>
                   </div>
                 ))}
                 {(!caseData.messages || caseData.messages.length === 0) && (
-                  <p className="text-sm text-gray-500">No messages yet</p>
+                  <p className="text-sm text-[#7A8394]">No messages yet</p>
                 )}
               </div>
             </div>
@@ -154,20 +227,161 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
 
               <div className="space-y-2">
                 {caseData.caseType === "unauthorized" && caseData.status === "open" && (
-                  <Button className="w-full" variant="destructive">
-                    Freeze Account
+                  <Button
+                    className="w-full"
+                    variant="destructive"
+                    disabled={actionLoading !== null}
+                    onClick={() =>
+                      handleAction(
+                        "Freeze Account",
+                        `v1/admin/cases/${caseId}/freeze`,
+                      )
+                    }
+                  >
+                    {actionLoading === "Freeze Account" ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Freezing...</>
+                    ) : (
+                      "Freeze Account"
+                    )}
                   </Button>
                 )}
-                <Button className="w-full" variant="outline">
-                  Request Info
+
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  disabled={actionLoading !== null}
+                  onClick={() =>
+                    handleAction(
+                      "Request Info",
+                      `v1/admin/cases/${caseId}/request-info`,
+                    )
+                  }
+                >
+                  {actionLoading === "Request Info" ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Requesting...</>
+                  ) : (
+                    "Request Info"
+                  )}
                 </Button>
-                <Button className="w-full" variant="outline">
-                  Resolve Case
-                </Button>
-                <Button className="w-full" variant="outline">
-                  Reject Case
-                </Button>
+
+                {/* Resolve Case */}
+                {!showResolveInput ? (
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    disabled={actionLoading !== null}
+                    onClick={() => {
+                      setShowResolveInput(true);
+                      setShowRejectInput(false);
+                    }}
+                  >
+                    Resolve Case
+                  </Button>
+                ) : (
+                  <div className="space-y-2 p-3 rounded-lg border border-emerald-600/40 bg-emerald-950/20">
+                    <label className="text-xs text-[#C4C7CF] block">Resolution</label>
+                    <textarea
+                      value={resolutionText}
+                      onChange={(e) => setResolutionText(e.target.value)}
+                      placeholder="Describe the resolution..."
+                      className="w-full h-20 rounded-md border border-input bg-[#151B2E] px-3 py-2 text-sm text-[#F2F2F2] placeholder:text-[#7A8394] resize-none focus:outline-none focus:ring-1 focus:ring-[#C6A756]"
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-emerald-700 hover:bg-emerald-600 text-white"
+                        disabled={actionLoading !== null || !resolutionText.trim()}
+                        onClick={() =>
+                          handleAction(
+                            "Resolve Case",
+                            `v1/admin/cases/${caseId}/resolve`,
+                            { resolution: resolutionText.trim() },
+                          )
+                        }
+                      >
+                        {actionLoading === "Resolve Case" ? (
+                          <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Resolving...</>
+                        ) : (
+                          "Confirm Resolve"
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setShowResolveInput(false);
+                          setResolutionText("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Reject Case */}
+                {!showRejectInput ? (
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    disabled={actionLoading !== null}
+                    onClick={() => {
+                      setShowRejectInput(true);
+                      setShowResolveInput(false);
+                    }}
+                  >
+                    Reject Case
+                  </Button>
+                ) : (
+                  <div className="space-y-2 p-3 rounded-lg border border-red-600/40 bg-red-950/20">
+                    <label className="text-xs text-[#C4C7CF] block">Rejection Reason</label>
+                    <textarea
+                      value={rejectReasonText}
+                      onChange={(e) => setRejectReasonText(e.target.value)}
+                      placeholder="Describe the reason for rejection..."
+                      className="w-full h-20 rounded-md border border-input bg-[#151B2E] px-3 py-2 text-sm text-[#F2F2F2] placeholder:text-[#7A8394] resize-none focus:outline-none focus:ring-1 focus:ring-[#C6A756]"
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="flex-1"
+                        disabled={actionLoading !== null || !rejectReasonText.trim()}
+                        onClick={() =>
+                          handleAction(
+                            "Reject Case",
+                            `v1/admin/cases/${caseId}/reject`,
+                            { reason: rejectReasonText.trim() },
+                          )
+                        }
+                      >
+                        {actionLoading === "Reject Case" ? (
+                          <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Rejecting...</>
+                        ) : (
+                          "Confirm Reject"
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setShowRejectInput(false);
+                          setRejectReasonText("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Action Feedback */}
+              {actionMessage && (
+                <p className={`text-sm ${actionMessage.startsWith("Error") ? "text-red-400" : "text-emerald-400"}`}>
+                  {actionMessage}
+                </p>
+              )}
             </div>
           </Card>
 
@@ -182,21 +396,21 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
                     <div className="font-medium">
                       {actionTypeLabels[action.actionType] || action.actionType}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-[#7A8394]">
                       {timeAgo(action.createdAt)}
                       {action.actorUserId && (
-                        <span className="ml-2 font-mono">{action.actorUserId.slice(0, 8)}…</span>
+                        <span className="ml-2 font-mono">{action.actorUserId.slice(0, 8)}...</span>
                       )}
                     </div>
                     {action.meta && (
-                      <div className="text-xs text-gray-600 mt-1">
+                      <div className="text-xs text-[#C4C7CF] mt-1">
                         {JSON.stringify(action.meta, null, 2)}
                       </div>
                     )}
                   </div>
                 ))}
                 {(!caseData.actions || caseData.actions.length === 0) && (
-                  <p className="text-sm text-gray-500">No actions yet</p>
+                  <p className="text-sm text-[#7A8394]">No actions yet</p>
                 )}
               </div>
             </div>

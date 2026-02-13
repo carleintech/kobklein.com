@@ -21,6 +21,7 @@ export function Navbar({
     { href: `/${locale}/about`, label: dict.nav.about },
     { href: `/${locale}/how-it-works`, label: dict.nav.howItWorks },
     { href: `/${locale}/card`, label: dict.nav.kcard },
+    { href: `/${locale}/diaspora`, label: "Diaspora" },
     { href: `/${locale}/compliance`, label: dict.nav.compliance },
     { href: `/${locale}/distributor`, label: dict.nav.distributor },
   ];

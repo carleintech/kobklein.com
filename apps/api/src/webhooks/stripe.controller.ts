@@ -5,6 +5,7 @@ import { StripeService } from "../services/stripe.service";
 import { pool } from "../db/pool";
 import { postDeposit } from "../wallets/deposit.service";
 import { createChargebackCase } from "../cases/case.service";
+import { handleSubscriptionEvent } from "../billing/plan-billing.service";
 
 @Controller("webhooks/stripe")
 export class StripeWebhookController {
@@ -127,6 +128,26 @@ export class StripeWebhookController {
         ["stripe", eventId],
       );
       return { received: true, processed: true, caseCreated: true };
+    }
+
+    // ── Subscription events (Platform Plans: Diaspora/Merchant/Distributor) ──
+    if (
+      eventType === "customer.subscription.created" ||
+      eventType === "customer.subscription.updated" ||
+      eventType === "customer.subscription.deleted" ||
+      eventType === "invoice.payment_failed"
+    ) {
+      try {
+        await handleSubscriptionEvent(event);
+      } catch (err: any) {
+        console.error(`[WEBHOOK] Subscription event error:`, err.message);
+      }
+
+      await pool.query(
+        `UPDATE "WebhookEvent" SET status = 'processed', "processedAt" = now() WHERE provider = $1 AND "eventId" = $2`,
+        ["stripe", eventId],
+      );
+      return { received: true, processed: true };
     }
 
     // Unhandled events: mark processed so they don't pile up

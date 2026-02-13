@@ -174,7 +174,7 @@ export class FamilyController {
   async updateLink(
     @Req() req: any,
     @Param("linkId") linkId: string,
-    @Body() body: { nickname?: string; relationship?: string },
+    @Body() body: { nickname?: string; relationship?: string; isFavorite?: boolean },
   ) {
     const diasporaUserId = req.localUser?.id || req.user?.sub;
 
@@ -189,6 +189,7 @@ export class FamilyController {
       data: {
         nickname: body.nickname ?? link.nickname,
         relationship: body.relationship ?? link.relationship,
+        isFavorite: body.isFavorite ?? link.isFavorite,
       },
     });
 

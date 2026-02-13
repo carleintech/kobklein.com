@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { Auth0Guard } from "../auth/auth0.guard";
+import { StepUpGuard } from "../auth/stepup.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { requestWithdrawal, approveWithdrawal } from "./withdrawal.service";
@@ -9,8 +10,8 @@ import { AuditService } from "../audit/audit.service";
 @Controller()
 export class WithdrawalsController {
   constructor(private auditService: AuditService) {}
-  // Client: request cash-out
-  @UseGuards(Auth0Guard)
+  // Client: request cash-out (step-up required — trusted device bypass or OTP)
+  @UseGuards(Auth0Guard, StepUpGuard)
   @Post("v1/withdrawals")
   async request(@Req() req: any, @Body() body: any) {
     const ip = req.ip || req.headers["x-forwarded-for"]?.toString();

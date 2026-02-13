@@ -6,6 +6,7 @@ import { apiGet } from "@/lib/api";
 import { kkPost } from "@/lib/kobklein-api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/toast";
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -87,6 +88,7 @@ const typeConfig: Record<
 
 export default function WalletPage() {
   const router = useRouter();
+  const toast = useToast();
   const [balances, setBalances] = useState<BalanceInfo[]>([]);
   const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [walletId, setWalletId] = useState<string | null>(null);
@@ -137,10 +139,10 @@ export default function WalletPage() {
   const lockAccount = async () => {
     try {
       await kkPost("security/freeze", {});
-      alert("Account locked successfully");
+      toast.show("Account locked successfully", "success");
     } catch (e) {
       console.error("Failed to lock account:", e);
-      alert("Failed to lock account");
+      toast.show("Failed to lock account", "error");
     }
   };
 

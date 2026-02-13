@@ -13,6 +13,10 @@ type UserProfile = {
   firstName?: string;
   handle?: string;
   kycTier: number;
+  kycStatus?: string;
+  planSlug?: string;
+  planName?: string;
+  planTier?: number;
 };
 
 export default function HomePage() {
@@ -20,10 +24,25 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiGet<UserProfile>("v1/users/me")
-      .then(setProfile)
-      .catch(() => setProfile(null))
-      .finally(() => setLoading(false));
+    async function init() {
+      try {
+        const [user, plan] = await Promise.all([
+          apiGet<UserProfile>("v1/users/me"),
+          apiGet<{ plan: { slug: string; name: string; tier: number } } | null>("v1/billing/my-plan").catch(() => null),
+        ]);
+        setProfile({
+          ...user,
+          planSlug: plan?.plan?.slug,
+          planName: plan?.plan?.name,
+          planTier: plan?.plan?.tier ?? 0,
+        });
+      } catch {
+        setProfile(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    init();
   }, []);
 
   if (loading) {

@@ -2,6 +2,18 @@ import { prisma } from "../db/prisma";
 import { computeWalletBalance, invalidateBalance } from "../wallets/balance.service";
 import { emitEvent } from "../services/event-bus.service";
 import { createNotification } from "../notifications/notification.service";
+import { renderTemplate, toLang } from "../i18n/render";
+
+/**
+ * Resolve a user's preferred language for i18n notifications.
+ */
+async function getUserLang(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { preferredLang: true },
+  });
+  return toLang(user?.preferredLang);
+}
 
 /**
  * Create a new subscription proxy (e.g. Netflix, Spotify).
@@ -94,12 +106,12 @@ export async function createSubscription(params: {
     amountUsd,
   });
 
-  await createNotification(
-    userId,
-    "Subscription Active",
-    `Your ${merchant.toUpperCase()} subscription ($${amountUsd}/mo) is now active.`,
-    "system",
-  );
+  const lang = await getUserLang(userId);
+  const msg = renderTemplate("subscription_active", lang, {
+    merchant: merchant.toUpperCase(),
+    amountUsd,
+  });
+  await createNotification(userId, msg.title, msg.body, "system");
 
   return {
     subscription,
@@ -142,7 +154,7 @@ export async function chargeSubscription(params: {
       throw new Error("Insufficient balance for subscription charge");
     }
 
-    // Debit the wallet
+    // Debit the user's wallet
     const entry = await tx.ledgerEntry.create({
       data: {
         walletId,
@@ -151,6 +163,22 @@ export async function chargeSubscription(params: {
         reference: referenceNote || `sub:${merchant}`,
       },
     });
+
+    // Credit the treasury wallet (revenue from subscription)
+    const treasuryWallet = await tx.wallet.findFirst({
+      where: { type: "TREASURY", currency: "USD" },
+    });
+
+    if (treasuryWallet) {
+      await tx.ledgerEntry.create({
+        data: {
+          walletId: treasuryWallet.id,
+          amount: amountUsd,
+          type: "subscription_revenue",
+          reference: referenceNote || `sub:${merchant}`,
+        },
+      });
+    }
 
     return { ledgerEntryId: entry.id };
   });
@@ -174,12 +202,9 @@ export async function pauseSubscription(subscriptionId: string, userId: string) 
     data: { status: "paused" },
   });
 
-  await createNotification(
-    userId,
-    "Subscription Paused",
-    `Your ${sub.merchant} subscription has been paused. No further charges will occur until resumed.`,
-    "system",
-  );
+  const lang = await getUserLang(userId);
+  const msg = renderTemplate("subscription_paused", lang, { merchant: sub.merchant });
+  await createNotification(userId, msg.title, msg.body, "system");
 
   return { ok: true, status: "paused" };
 }
@@ -202,12 +227,13 @@ export async function resumeSubscription(subscriptionId: string, userId: string)
     data: { status: "active", nextBilling, failureCount: 0 },
   });
 
-  await createNotification(
-    userId,
-    "Subscription Resumed",
-    `Your ${sub.merchant} subscription is active again. Next charge: $${sub.amountUsd} on ${nextBilling.toLocaleDateString()}.`,
-    "system",
-  );
+  const lang = await getUserLang(userId);
+  const msg = renderTemplate("subscription_resumed", lang, {
+    merchant: sub.merchant,
+    amountUsd: Number(sub.amountUsd),
+    nextBilling: nextBilling.toLocaleDateString(),
+  });
+  await createNotification(userId, msg.title, msg.body, "system");
 
   return { ok: true, status: "active", nextBilling };
 }
@@ -226,12 +252,9 @@ export async function cancelSubscription(subscriptionId: string, userId: string)
     data: { status: "canceled" },
   });
 
-  await createNotification(
-    userId,
-    "Subscription Canceled",
-    `Your ${sub.merchant} subscription has been canceled.`,
-    "system",
-  );
+  const lang = await getUserLang(userId);
+  const msg = renderTemplate("subscription_canceled", lang, { merchant: sub.merchant });
+  await createNotification(userId, msg.title, msg.body, "system");
 
   await emitEvent("subscription.canceled", {
     subscriptionId,

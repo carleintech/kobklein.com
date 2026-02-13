@@ -48,6 +48,8 @@ export function Footer({ dict, locale }: { dict: Dictionary; locale?: Locale }) 
               <li><Link href={`/${loc}/card`} className="hover:text-kob-gold transition-colors duration-200">K-Card</Link></li>
               <li><Link href={`/${loc}/app`} className="hover:text-kob-gold transition-colors duration-200">{dict.nav.download}</Link></li>
               <li><Link href={`/${loc}/help`} className="hover:text-kob-gold transition-colors duration-200">{dict.footer.faq}</Link></li>
+              <li><Link href={`/${loc}/diaspora`} className="hover:text-kob-gold transition-colors duration-200">Diaspora</Link></li>
+              <li><Link href={`/${loc}/fx-calculator`} className="hover:text-kob-gold transition-colors duration-200">FX Calculator</Link></li>
             </ul>
           </div>
 
@@ -61,6 +63,7 @@ export function Footer({ dict, locale }: { dict: Dictionary; locale?: Locale }) 
               <li><Link href={`/${loc}/careers`} className="hover:text-kob-gold transition-colors duration-200">{dict.footer.careers}</Link></li>
               <li><Link href={`/${loc}/team`} className="hover:text-kob-gold transition-colors duration-200">Team</Link></li>
               <li><Link href={`/${loc}/contact`} className="hover:text-kob-gold transition-colors duration-200">{dict.footer.contact}</Link></li>
+              <li><Link href={`/${loc}/institutional`} className="hover:text-kob-gold transition-colors duration-200">Institutional</Link></li>
             </ul>
           </div>
 
@@ -74,6 +77,8 @@ export function Footer({ dict, locale }: { dict: Dictionary; locale?: Locale }) 
               <li><Link href={`/${loc}/privacy`} className="hover:text-kob-gold transition-colors duration-200">{dict.footer.privacy}</Link></li>
               <li><Link href={`/${loc}/compliance`} className="hover:text-kob-gold transition-colors duration-200">{dict.footer.compliance}</Link></li>
               <li><Link href={`/${loc}/security`} className="hover:text-kob-gold transition-colors duration-200">Security</Link></li>
+              <li><Link href={`/${loc}/risk-disclosure`} className="hover:text-kob-gold transition-colors duration-200">Risk Disclosure</Link></li>
+              <li><Link href={`/${loc}/acceptable-use`} className="hover:text-kob-gold transition-colors duration-200">Acceptable Use</Link></li>
             </ul>
           </div>
         </div>

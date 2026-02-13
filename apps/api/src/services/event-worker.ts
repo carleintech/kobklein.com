@@ -1,5 +1,5 @@
 import { pullQueuedEvents, markEventHandled, markEventFailed } from "./event-bus.service";
-import { notifyFloatLow, notifyFraudAlert } from "../notifications/notification.service";
+import { notifyFloatLow, notifyFraudAlert, notifyDepositSuccess } from "../notifications/notification.service";
 import { pool } from "../db/pool";
 
 /**
@@ -54,7 +54,31 @@ async function handleEvent(name: string, payload: any) {
   }
 
   if (name === "webhook.stripe.payment_intent.succeeded") {
-    // TODO: convert into Deposit, etc. (later)
+    // Deposit is already created by the Stripe webhook controller.
+    // Here we send a deposit-success notification to the wallet owner.
+    try {
+      const walletId = payload.walletId;
+      const amount = payload.amount ?? 0;
+      if (walletId) {
+        const walletResult = await pool.query(
+          `SELECT w."userId" FROM "Wallet" w WHERE w.id = $1`,
+          [walletId],
+        );
+        const userId = walletResult.rows[0]?.userId;
+        if (userId) {
+          const userResult = await pool.query(
+            `SELECT phone FROM "User" WHERE id = $1`,
+            [userId],
+          );
+          const phone = userResult.rows[0]?.phone;
+          if (phone) {
+            await notifyDepositSuccess(phone, amount);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Event worker payment_intent.succeeded notification failed:", e);
+    }
     return;
   }
 
