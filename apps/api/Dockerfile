@@ -1,28 +1,24 @@
 # ─── KobKlein API — Production Dockerfile ─────────────────────────────
-# Multi-stage build for minimal image size
+# Self-contained build (no monorepo lockfile needed)
 
 # Stage 1: Install dependencies
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-RUN npm install -g pnpm@9
-
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json ./
 COPY prisma ./prisma/
 
-RUN pnpm install --frozen-lockfile --prod=false
+RUN npm install --include=dev
 
 # Stage 2: Build
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-RUN npm install -g pnpm@9
-
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 RUN npx prisma generate
-RUN pnpm build
+RUN npx nest build
 
 # Stage 3: Production
 FROM node:20-alpine AS runner
@@ -39,12 +35,12 @@ COPY --from=builder /app/prisma ./prisma
 
 USER nestjs
 
-EXPOSE 3000
+EXPOSE 3001
 
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=3001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health || exit 1
 
 CMD ["node", "dist/main.js"]

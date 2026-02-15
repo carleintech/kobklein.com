@@ -16,16 +16,21 @@ async function bootstrap() {
   // Security headers
   app.use(helmet());
 
-  // CORS — allow web, admin, web-public origins
+  // CORS — allow web, admin, web-public origins + dynamic CORS_ORIGINS env var
+  const extraOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
+    : [];
+
   app.enableCors({
     origin: [
       "http://localhost:3003", // web (dev)
-      "http://localhost:3004", // web-public (dev)
-      "http://localhost:3005", // admin (dev)
+      "http://localhost:3000", // web-public (dev)
+      "http://localhost:3002", // admin (dev)
       "https://kobklein.com",
       "https://www.kobklein.com",
       "https://app.kobklein.com",
       "https://admin.kobklein.com",
+      ...extraOrigins,
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -35,7 +40,7 @@ async function bootstrap() {
   // Global exception filter — consistent error JSON
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  const port = process.env.PORT ?? 3000;
+  const port = process.env.PORT ?? 3001;
   await app.listen(port);
   console.log(`KobKlein API running on port ${port}`);
 }
