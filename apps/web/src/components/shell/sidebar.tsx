@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -120,12 +120,14 @@ export function Sidebar({
   const [collapsed, setCollapsed] = useState(false);
 
   const toggle = useCallback(() => {
-    setCollapsed((c) => {
-      const next = !c;
-      onCollapsedChange?.(next);
-      return next;
-    });
-  }, [onCollapsedChange]);
+    setCollapsed((c) => !c);
+  }, []);
+
+  // Notify parent after every collapsed change — safe, runs after render
+  useEffect(() => {
+    onCollapsedChange?.(collapsed);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [collapsed]);
 
   async function handleSignOut() {
     const supabase = createBrowserSupabase();
@@ -149,23 +151,34 @@ export function Sidebar({
                     ${collapsed ? "justify-center px-0" : "px-4"}`}
       >
         {collapsed ? (
-          /* Collapsed: gold "K" mark */
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C9A84C] to-[#9F7F2C] flex items-center justify-center shadow-lg shadow-[#C9A84C]/20 shrink-0">
-            <span className="text-white font-black text-base leading-none">K</span>
-          </div>
+          /* Collapsed: K icon only */
+          <Image
+            src="/images/logos/logo.png"
+            alt="KobKlein"
+            width={36}
+            height={36}
+            className="object-contain rounded-lg shrink-0"
+            priority
+            unoptimized
+          />
         ) : (
-          /* Expanded: real logo image */
-          <div className="flex items-center gap-2 min-w-0">
+          /* Expanded: full logo (gold+teal on transparent — shows on dark bg) */
+          <div className="flex items-center gap-2.5 min-w-0">
             <Image
-              src="/images/kobklein-logo.png"
+              src="/images/logos/logo.png"
               alt="KobKlein"
-              width={140}
-              height={36}
-              className="object-contain max-h-9 w-auto"
-              style={{ filter: "brightness(0) invert(1)" }} /* make logo white on dark bg */
+              width={32}
+              height={32}
+              className="object-contain rounded-lg shrink-0"
               priority
               unoptimized
             />
+            <span
+              className="text-sm font-bold text-[#F0F1F5] tracking-wide whitespace-nowrap"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              KobKlein
+            </span>
           </div>
         )}
       </div>

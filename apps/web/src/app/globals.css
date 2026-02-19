@@ -58,6 +58,7 @@
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #060D1F; }
 ::-webkit-scrollbar-thumb { background: #1a2840; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #253352; }
 
 /* ═══ SELECTION ═══ */
 ::selection {
@@ -74,4 +75,69 @@ select option {
 /* ═══ LAYOUT ═══ */
 .safe-area-pb {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ═══ SHELL BACKGROUND — web-bg.png behind the authenticated layout ═══ */
+.shell-bg {
+  background-image: url('/images/web-bg.png');
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+  /* Dark overlay so the bg doesn't overpower the UI */
+  background-blend-mode: luminosity;
+  background-color: #060D1F;
+}
+
+/* ═══ GLASS CARD UTILITY ═══ */
+.glass-card {
+  background: rgba(13, 21, 37, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* ═══ GOLD GLOW UTILITY ═══ */
+.gold-glow {
+  box-shadow: 0 0 40px -8px rgba(201, 168, 76, 0.25),
+              0 4px 24px -4px rgba(0, 0, 0, 0.5);
+}
+
+/* ═══ SCROLLBAR NONE ═══ */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* ═══ SHIMMER LOADING ═══ */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.0) 0%,
+    rgba(201,168,76,0.06) 50%,
+    rgba(255,255,255,0.0) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+/* ═══ CARD HOVER LIFT ═══ */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.4),
+              0 0 20px -4px rgba(201, 168, 76, 0.1);
+}
+
+/* ═══ GRADIENT TEXT ═══ */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #E2CA6E 0%, #C9A84C 50%, #9F7F2C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
