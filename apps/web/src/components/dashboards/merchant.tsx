@@ -35,8 +35,9 @@ export function MerchantDashboard({ profile }: Props) {
         apiGet<MerchantStats>("v1/merchant/stats").catch(() => null),
         apiGet<any>("v1/wallets/balance").catch(() => null),
       ]);
-      setStats(s);
-      setBalance(b);
+      // API returns { error: "..." } with HTTP 200 when merchant not set up yet
+      setStats(s && !("error" in s) ? s : null);
+      setBalance(b && !("error" in b) ? b : null);
     } catch {}
   }, []);
 
