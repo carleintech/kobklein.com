@@ -51,19 +51,13 @@ async function handler(
     // getSession() reads the session from cookies (chunked cookie support via getAll).
     // This is the recommended approach for Route Handlers — getUser() would make
     // an extra network call to Supabase on every proxied request.
-    const allCookies = cookieStore.getAll();
-    const authCookies = allCookies.filter(c => c.name.includes("auth-token") || c.name.includes("sb-"));
-    console.log(`[Proxy] ${req.method} ${segments} | ${allCookies.length} cookies, ${authCookies.length} auth: [${authCookies.map(c => c.name).join(", ")}]`);
-
     const { data: { session } } = await supabase.auth.getSession();
     const serverToken = session?.access_token;
-    console.log(`[Proxy] session: ${session ? "found" : "null"} | token: ${serverToken ? "present" : "missing"}`);
 
     // Prefer the server-derived token; fall back to whatever the client sent
     // (covers edge cases like server action calls that already have a token)
     const clientToken = req.headers.get("authorization")?.replace("Bearer ", "");
     const bearerToken = serverToken || clientToken || "";
-    if (!bearerToken) console.warn(`[Proxy] No bearer token for ${req.method} ${segments}`);
 
     const headers: Record<string, string> = {
       "Content-Type": req.headers.get("content-type") || "application/json",
