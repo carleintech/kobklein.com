@@ -316,7 +316,21 @@ export class CashOperationsController {
     const distributor = await prisma.distributor.findFirst({
       where: { userId },
     });
-    if (!distributor) throw new Error("Not a distributor");
+    if (!distributor) {
+      // User has distributor role but hasn't been onboarded yet.
+      // Return a safe empty state so the dashboard renders a "pending setup" UI.
+      return {
+        distributorId: null,
+        businessName: null,
+        status: "pending",
+        floatBalance: 0,
+        totalFloat: 0,
+        todayTransactions: 0,
+        todayCommissions: 0,
+        commissionRate: 0,
+        settlements: [],
+      };
+    }
 
     const agentWallet = await prisma.wallet.findFirst({
       where: { userId, type: "DISTRIBUTOR" },
