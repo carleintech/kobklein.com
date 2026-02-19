@@ -15,13 +15,13 @@ import {
   Res,
   UseGuards,
 } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { prisma } from "../db/prisma";
 import { uploadKycDocument } from "../storage/storage.service";
 import { AuditService } from "../audit/audit.service";
 
 @Controller("v1/kyc/upload")
-@UseGuards(Auth0Guard)
+@UseGuards(SupabaseGuard)
 export class KycUploadController {
   constructor(private auditService: AuditService) {}
 

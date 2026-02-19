@@ -99,7 +99,7 @@ export default function DeveloperResourcesPage() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden bg-kob-black gold-dust">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(198,167,86,0.10),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(201,168,76,0.10),transparent)]" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 pb-24 text-center">
           <motion.div
             variants={fadeUp}
@@ -375,7 +375,7 @@ export default function DeveloperResourcesPage() {
             custom={0}
             className="card-sovereign p-12 md:p-16 text-center relative overflow-hidden"
           >
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,rgba(198,167,86,0.06),transparent)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,rgba(201,168,76,0.06),transparent)]" />
             <div className="relative z-10">
               <Headphones className="h-12 w-12 text-kob-gold mx-auto mb-6" />
               <h2 className="font-serif-luxury text-3xl md:text-4xl font-bold text-kob-text mb-4">

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { kkGet, kkPost } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { kkGet, kkPost, ApiError } from "@/lib/kobklein-api";
+import { ApiUnavailableBanner } from "@/components/api-status-banner";
+import { Card, CardContent } from "@kobklein/ui/card";
+import { Button } from "@kobklein/ui/button";
+import { Input } from "@kobklein/ui/input";
+import { Badge } from "@kobklein/ui/badge";
 import {
   Search,
   UserCog,
@@ -29,6 +30,7 @@ export default function UsersPage() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<UserResult[]>([]);
   const [searching, setSearching] = useState(false);
+  const [apiDown, setApiDown] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserResult | null>(null);
   const [newRole, setNewRole] = useState("");
   const [roleMessage, setRoleMessage] = useState("");
@@ -40,10 +42,12 @@ export default function UsersPage() {
     e.preventDefault();
     if (query.length < 2) return;
     setSearching(true);
+    setApiDown(false);
     try {
       const data = await kkGet<any>(`v1/admin/users/search?q=${encodeURIComponent(query)}`);
       setResults(data?.users || []);
     } catch (e: any) {
+      if (e instanceof ApiError && e.isApiUnavailable) setApiDown(true);
       console.error("Search failed:", e);
     } finally {
       setSearching(false);
@@ -104,6 +108,8 @@ export default function UsersPage() {
         <h1 className="text-xl font-semibold">User Management</h1>
         <p className="text-sm text-muted-foreground">Search users by K-ID, phone, handle, or name</p>
       </div>
+
+      {apiDown && <ApiUnavailableBanner />}
 
       {/* Search */}
       <Card className="rounded-2xl">
@@ -223,10 +229,10 @@ export default function UsersPage() {
 
       {/* Role Change Modal */}
       {selectedUser && (
-        <Card className="rounded-2xl border-[#C6A756]/30">
+        <Card className="rounded-2xl border-[#C9A84C]/30">
           <CardContent className="p-5">
             <h2 className="font-medium mb-3 flex items-center gap-2">
-              <UserCog className="h-4 w-4 text-[#C6A756]" />
+              <UserCog className="h-4 w-4 text-[#C9A84C]" />
               Change Role — {selectedUser.firstName} {selectedUser.lastName}
             </h2>
             <div className="flex gap-3 items-end max-w-md">
@@ -244,7 +250,7 @@ export default function UsersPage() {
                   <option value="admin">Admin</option>
                 </select>
               </div>
-              <Button onClick={handleSetRole} disabled={roleLoading} className="bg-[#C6A756] hover:bg-[#E1C97A] text-[#080B14] font-semibold">
+              <Button onClick={handleSetRole} disabled={roleLoading} className="bg-[#C9A84C] hover:bg-[#E2CA6E] text-[#060D1F] font-semibold">
                 {roleLoading ? "Saving..." : "Update Role"}
               </Button>
               <Button variant="ghost" onClick={() => setSelectedUser(null)}>Cancel</Button>

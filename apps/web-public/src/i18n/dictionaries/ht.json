@@ -15,11 +15,11 @@
   },
   "hero": {
     "badge": "Lavni Finans Dijital an Ayiti",
-    "title": "Lavni Libète Finansyè Dijital",
-    "subtitle": "Voye lajan touswit. Pa bezwen bank.",
+    "title": "Lajan Ou. Pouvwa Ou. San Bank.",
+    "subtitle": "Bous dijital ki an sekirite ki konekte Ayiti ak dyaspora li. Voye, peye, epi grandi — touswit.",
     "description": "Yon sistèm bous dijital ki an sekirite, san lajan kach, fèt pou Ayisyen ak fanmi yo toupatou nan mond lan.",
     "cta": "Kòmanse",
-    "ctaSecondary": "Vini Distribitè",
+    "ctaSecondary": "Gade Kijan li Mache",
     "stats": {
       "users": "100K+",
       "usersLabel": "Itilizatè Aktif",
@@ -29,6 +29,20 @@
       "countriesLabel": "Peyi",
       "uptime": "99.9%",
       "uptimeLabel": "Disponibilite"
+    },
+    "features": {
+      "security": {
+        "title": "Sekirite Nivo Bank",
+        "description": "Ankripte pwofesyonèl ak prevansyon fwod an tan reyèl pwoteje chak tranzaksyon ou fè."
+      },
+      "instant": {
+        "title": "Tretman Enstantane",
+        "description": "Tranzaksyon an tan reyèl ki rive nan segonn, pa jou. Fanmi ou jwenn lajan lè yo bezwen li."
+      },
+      "fees": {
+        "title": "Zero Frè Kache",
+        "description": "Tarif transparan san sipriz. Transfè P2P gratis epi sèlman $1.99 pou voye lajan entènasyonal."
+      }
     }
   },
   "features": {
@@ -209,6 +223,40 @@
     "title": "Pare pou Rejwenn Revolisyon an?",
     "subtitle": "Telechaje KobKlein jodi a epi fè eksperyans lavni peman dijital pou Ayiti.",
     "button": "Kòmanse Gratis"
+  },
+  "about": {
+    "badge": "Istwa Nou",
+    "title": "Peman San Fwontyè pou Ayiti",
+    "subtitle": "Nap bati pon ant Ayiti ak dyaspora li toupatou nan mond lan — yon tranzaksyon enstantane ak sekirize alafwa.",
+    "founding": {
+      "title": "Poukisa Nou Kreye KobKlein",
+      "p1": "Ayiti gen youn nan to enklizyon finansyè ki pi ba nan emisfè oksidantal la. Plis pase 80% popilasyon an rete san bank, yo konte sou lajan kach pou prèske chak tranzaksyon. Anmenmtan, dyaspora ayisyen an voye plis pase 4 milya dola nan remitans chak ane — souvan yo peye frè eksòbitant.",
+      "p2": "KobKlein te fonde pou chanje sa. Nou kwè chak Ayisyen merite aksè a zouti finansye dijital modèn, ki an sekirite ak abòdab — kit yo rete Pòtoprens, Miami, Montreal, oswa Pari.",
+      "p3": "Platfòm nou an fè pon ant Ayiti ak dyaspora mondyal li, pèmèt transfè enstantane, peman san lajan kach, ak yon chemen pou rive nan vre endepandans finansyè.",
+      "problem": { "label": "Pwoblèm nan", "text": "80%+ san bank, frè remitans $12+, pa gen enfrastrikti peman dijital" },
+      "solution": { "label": "Solisyon Nou", "text": "Bous dijital mobil ak transfè enstantane, remitans $1.99, rezo K-Ajan" },
+      "reach": { "label": "Pòte Nou", "text": "Ap sèvi Ayiti, USA, Kanada, Lafrans, ak 15+ peyi kote Ayisyen ap viv ak travay" }
+    },
+    "stats": {
+      "users": { "value": "100K+", "label": "Itilizatè Aktif" },
+      "transfers": { "value": "$50M+", "label": "Lajan Transfere" },
+      "countries": { "value": "15+", "label": "Peyi" },
+      "uptime": { "value": "99.9%", "label": "Disponibilite" }
+    },
+    "missionCard": "Bay chak Ayisyen zouti finansye dijital ki an sekirite, aksesib ak abòdab — kreye yon chemen soti nan depandans lajan kach pou rive nan vre souverènte finansyè.",
+    "journey": {
+      "title": "Vwayaj Nou",
+      "subtitle": "Etap kle nan istwa KobKlein",
+      "m1": { "year": "2024", "title": "Fonde nan Virginia Beach", "description": "KobKlein fèt ak yon lide senp: Ayisyen merite menm zouti finansye dijital tankou rès mond lan." },
+      "m2": { "year": "2024", "title": "Lansman Platfòm", "description": "Transfè enstantane K-Pay, rezo distribitè K-Ajan, ak premye panèl fanmi K-Link lanse an Ayiti." },
+      "m3": { "year": "2025", "title": "Ekspansyon Dyaspora", "description": "Operasyon yo elaji pou sèvi dyaspora ayisyen an nan USA, Kanada ak Lafrans ak remitans transfwontalyè." },
+      "m4": { "year": "2025", "title": "K-Card & Motè FX", "description": "Lansman kat Visa vityèl K-Card ak motè chanj an tan reyèl pou konvèsyon konpetitif." }
+    },
+    "team": {
+      "title": "Rankontre Ekip la",
+      "subtitle": "Yon ekip pasyone enjenyè, konseptè, ak pwofesyonèl finansye ki angaje nan transfòmasyon dijital Ayiti.",
+      "cta": "Gade Ekip Nou"
+    }
   },
   "distributor": {
     "title": "Vin yon K-Ajan",

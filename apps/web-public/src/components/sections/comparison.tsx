@@ -61,19 +61,22 @@ export function ComparisonSection({ dict }: { dict: Dictionary }) {
 					transition={{ duration: 0.6, delay: 0.2 }}
 					className="overflow-x-auto rounded-2xl border border-white/[0.06]"
 				>
-					<table className="w-full text-sm min-w-[500px]">
+					<table className="w-full text-sm">
+						<caption className="sr-only">
+							Fee comparison between Western Union, MoneyGram, and KobKlein
+						</caption>
 						<thead>
 							<tr className="bg-kob-panel/80">
-								<th className="text-left px-6 py-4 text-kob-muted font-medium">
+								<th scope="col" className="text-left px-3 sm:px-6 py-3 sm:py-4 text-kob-muted font-medium text-xs sm:text-sm">
 									{dict.comparison.route}
 								</th>
-								<th className="px-6 py-4 text-kob-muted font-medium text-center">
+								<th scope="col" className="px-3 sm:px-6 py-3 sm:py-4 text-kob-muted font-medium text-center text-xs sm:text-sm">
 									{dict.comparison.westernUnion}
 								</th>
-								<th className="px-6 py-4 text-kob-muted font-medium text-center">
+								<th scope="col" className="px-3 sm:px-6 py-3 sm:py-4 text-kob-muted font-medium text-center text-xs sm:text-sm">
 									{dict.comparison.moneyGram}
 								</th>
-								<th className="px-6 py-4 font-bold text-center relative">
+								<th scope="col" className="px-3 sm:px-6 py-3 sm:py-4 font-bold text-center relative text-xs sm:text-sm">
 									<div className="absolute inset-0 bg-kob-gold/[0.06]" />
 									<span className="relative text-kob-gold font-semibold">
 										{dict.comparison.kobklein}
@@ -91,9 +94,9 @@ export function ComparisonSection({ dict }: { dict: Dictionary }) {
 											: "bg-kob-panel/30"
 									}
 								>
-									<td className="px-6 py-4 text-kob-body font-medium">
+									<th scope="row" className="px-6 py-4 text-kob-body font-medium text-left">
 										{route.label}
-									</td>
+									</th>
 									<td className="px-6 py-4 text-center text-kob-muted">
 										{route.wu ?? (
 											<X className="h-4 w-4 mx-auto text-kob-muted/40" />

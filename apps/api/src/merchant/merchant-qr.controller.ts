@@ -1,11 +1,11 @@
 import { Controller, Get, UseGuards, Req } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { generateMerchantQR } from "./merchant-qr.service";
 
 @Controller("merchant")
 export class MerchantQRController {
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("qr")
   async getQR(@Req() req: any) {
     const merchant = await prisma.merchant.findFirst({

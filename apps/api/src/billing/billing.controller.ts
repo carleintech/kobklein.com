@@ -15,7 +15,7 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { prisma } from "../db/prisma";
 import {
   createCheckoutSession,
@@ -24,7 +24,7 @@ import {
 } from "./plan-billing.service";
 
 @Controller("v1/billing")
-@UseGuards(Auth0Guard)
+@UseGuards(SupabaseGuard)
 export class BillingController {
   /**
    * POST /v1/billing/checkout
@@ -132,8 +132,8 @@ export class BillingController {
         status: { in: ["active", "trialing"] },
         currentPeriodEnd: { gte: new Date() },
       },
-      include: { plan: true },
-      orderBy: { plan: { tier: "desc" } },
+      include: { PlatformPlan: true },
+      orderBy: { PlatformPlan: { tier: "desc" } },
     });
 
     if (!userPlan) {
@@ -141,13 +141,13 @@ export class BillingController {
     }
 
     return {
-      plan: {
-        slug: userPlan.plan.slug,
-        tier: userPlan.plan.tier,
-        name: userPlan.plan.nameEn,
-        priceUsd: userPlan.plan.priceUsd,
-        interval: userPlan.plan.interval,
-        features: userPlan.plan.features,
+      PlatformPlan: {
+        slug: userPlan.PlatformPlan.slug,
+        tier: userPlan.PlatformPlan.tier,
+        name: userPlan.PlatformPlan.nameEn,
+        priceUsd: userPlan.PlatformPlan.priceUsd,
+        interval: userPlan.PlatformPlan.interval,
+        features: userPlan.PlatformPlan.features,
       },
       status: userPlan.status,
       currentPeriodEnd: userPlan.currentPeriodEnd,

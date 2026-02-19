@@ -4,6 +4,7 @@ import { initSentry } from "./monitoring/sentry";
 initSentry();
 
 import { NestFactory } from "@nestjs/core";
+import { ValidationPipe } from "@nestjs/common";
 import { AppModule } from "./app.module";
 import { GlobalExceptionFilter } from "./filters/http-exception.filter";
 import helmet from "helmet";
@@ -15,6 +16,15 @@ async function bootstrap() {
 
   // Security headers
   app.use(helmet());
+
+  // Enable global validation (class-validator DTOs)
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,          // Strip properties not in DTO
+      forbidNonWhitelisted: true, // Throw error on unknown properties
+      transform: true,           // Auto-transform payloads to DTO instances
+    })
+  );
 
   // CORS — allow web, admin, web-public origins + dynamic CORS_ORIGINS env var
   const extraOrigins = process.env.CORS_ORIGINS

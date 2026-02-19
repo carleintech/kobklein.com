@@ -19,13 +19,13 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { RolesGuard } from "../policies/roles.guard";
 import { Roles } from "../policies/roles.decorator";
 import { prisma } from "../db/prisma";
 
 @Controller("v1/admin/plans")
-@UseGuards(Auth0Guard, RolesGuard)
+@UseGuards(SupabaseGuard, RolesGuard)
 @Roles("admin")
 export class AdminPlansController {
   /**
@@ -36,7 +36,7 @@ export class AdminPlansController {
     const plans = await prisma.platformPlan.findMany({
       orderBy: [{ role: "asc" }, { tier: "asc" }],
       include: {
-        _count: { select: { userPlans: true } },
+        _count: { select: { UserPlan: true } },
       },
     });
     return { plans };
@@ -115,7 +115,7 @@ export class AdminPlansController {
     const subs = await prisma.userPlan.findMany({
       where,
       include: {
-        plan: { select: { slug: true, nameEn: true, role: true, tier: true, priceUsd: true } },
+        PlatformPlan: { select: { slug: true, nameEn: true, role: true, tier: true, priceUsd: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 100,
@@ -135,7 +135,7 @@ export class AdminPlansController {
     }));
 
     // Filter by role if specified
-    const filtered = role ? result.filter((r) => r.plan.role === role) : result;
+    const filtered = role ? result.filter((r) => r.PlatformPlan.role === role) : result;
 
     return { subscribers: filtered, total: filtered.length };
   }

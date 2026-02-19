@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { prisma } from "../db/prisma";
@@ -20,7 +20,7 @@ export class AdminUsersController {
    * POST /v1/admin/users/set-role
    * Change a user's role (admin-only).
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("set-role")
   async setRole(
@@ -57,7 +57,7 @@ export class AdminUsersController {
    * GET /v1/admin/users/search?q=KP-XXXXX
    * Search users by K-ID, phone, handle, or name.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("search")
   async searchUsers(@Query("q") q?: string) {

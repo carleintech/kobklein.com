@@ -1,12 +1,12 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { pool } from "../db/pool";
 
 @Controller("admin/risk")
 export class RiskAdminController {
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("flags")
   async flags() {
@@ -16,7 +16,7 @@ export class RiskAdminController {
     return result.rows;
   }
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("signals")
   async signals() {
@@ -100,7 +100,7 @@ export class RiskAdminController {
     };
   }
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("recent-flags")
   async recentFlags() {

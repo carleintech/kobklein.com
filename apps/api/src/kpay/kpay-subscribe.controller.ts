@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 import { AuditService } from "../audit/audit.service";
 import { prisma } from "../db/prisma";
@@ -18,7 +18,7 @@ export class KpaySubscribeController {
    * POST /v1/kpay/subscribe
    * Body: { planKey: "NETFLIX_STANDARD", externalAccountRef?: "user@email.com" }
    */
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post("subscribe")
   async subscribe(
     @Req() req: any,

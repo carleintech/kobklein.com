@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 import { computeWalletBalance, invalidateBalance } from "../wallets/balance.service";
 import { calculateMerchantFee } from "../fees/fee.service";
@@ -24,7 +24,7 @@ export class PayPosController {
    * Body: { requestId, merchantId, amount, currency, signature }
    * (all fields come from the scanned QR code)
    */
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post("pos")
   async payPosRequest(
     @Req() req: any,
@@ -55,7 +55,7 @@ export class PayPosController {
     // ── 2. Load and validate the POS request ───────────────────
     const posRequest = await prisma.merchantPosRequest.findUnique({
       where: { id: body.requestId },
-      include: { merchant: true },
+      include: { Merchant: true },
     });
 
     if (!posRequest) throw new Error("Payment request not found");
@@ -79,7 +79,7 @@ export class PayPosController {
     }
 
     // Prevent merchant from paying their own request
-    if (posRequest.merchant.userId === userId) {
+    if (posRequest.Merchant.userId === userId) {
       throw new Error("Cannot pay your own POS request");
     }
 
@@ -91,7 +91,7 @@ export class PayPosController {
     if (!customerWallet) throw new Error("Wallet not found");
 
     const merchantWallet = await prisma.wallet.findFirst({
-      where: { userId: posRequest.merchant.userId, type: "MERCHANT", currency: body.currency },
+      where: { userId: posRequest.Merchant.userId, type: "MERCHANT", currency: body.currency },
     });
 
     if (!merchantWallet) throw new Error("Merchant wallet not found");
@@ -176,12 +176,12 @@ export class PayPosController {
     await createNotification(
       userId,
       "Payment Sent",
-      `You paid ${body.amount} ${body.currency} to ${posRequest.merchant.businessName}`,
+      `You paid ${body.amount} ${body.currency} to ${posRequest.Merchant.businessName}`,
       "merchant",
     );
 
     await createNotification(
-      posRequest.merchant.userId,
+      posRequest.Merchant.userId,
       "Payment Received",
       `You received ${net} ${body.currency} from a customer (fee: ${fee})`,
       "merchant",
@@ -201,7 +201,7 @@ export class PayPosController {
       meta: {
         posRequestId: posRequest.id,
         merchantId: posRequest.merchantId,
-        merchantName: posRequest.merchant.businessName,
+        merchantName: posRequest.Merchant.businessName,
         fee,
         net,
       },
@@ -212,7 +212,7 @@ export class PayPosController {
       ok: true,
       receipt: {
         requestId: posRequest.id,
-        merchant: posRequest.merchant.businessName,
+        merchant: posRequest.Merchant.businessName,
         amount: body.amount,
         currency: body.currency,
         fee,

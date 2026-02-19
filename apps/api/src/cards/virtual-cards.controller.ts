@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { AuditService } from "../audit/audit.service";
 import { generateCardNumber, generateCvv, last4 } from "./generate";
 import { encryptCardNumber, sha256, hashCvv } from "./crypto";
@@ -20,7 +20,7 @@ export class VirtualCardsController {
   /**
    * Issue a new virtual card for the authenticated user.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post()
   async create(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -109,7 +109,7 @@ export class VirtualCardsController {
   /**
    * List user's virtual cards (masked — no full number or CVV).
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get()
   async list(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -133,7 +133,7 @@ export class VirtualCardsController {
   /**
    * Get a single card (masked).
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get(":id")
   async getOne(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -162,7 +162,7 @@ export class VirtualCardsController {
   /**
    * Freeze or unfreeze a card.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post(":id/freeze")
   async freeze(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -191,7 +191,7 @@ export class VirtualCardsController {
   /**
    * Cancel a card permanently.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post(":id/cancel")
   async cancel(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;

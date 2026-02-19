@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Patch, Post, Query, UseGuards, Req } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { renderTemplate, toLang } from "../i18n/render";
 
 @Controller("notifications")
@@ -13,7 +13,7 @@ export class NotificationController {
    *
    * Query: ?limit=30
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get()
   async list(@Req() req: any, @Query("limit") limit?: string) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -70,7 +70,7 @@ export class NotificationController {
   /**
    * Mark a single notification as read.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post(":id/read")
   async markRead(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -89,7 +89,7 @@ export class NotificationController {
   /**
    * Mark all notifications as read.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Patch("read-all")
   async readAll(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;

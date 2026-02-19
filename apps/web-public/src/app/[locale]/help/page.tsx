@@ -153,7 +153,7 @@ export default function HelpPage() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden bg-kob-black gold-dust">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(198,167,86,0.10),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(201,168,76,0.10),transparent)]" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 pb-24 text-center">
           <motion.div
             variants={fadeUp}

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../../../packages/ui/src";
 
 /* ═══════════════════════════════════════════════════════
    KOBKLEIN — COMMAND CENTER DESIGN SYSTEM
@@ -20,6 +21,8 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent-ui);
+  --color-accent-foreground: var(--accent-ui-foreground);
   --color-accent-ui: var(--accent-ui);
   --color-accent-ui-foreground: var(--accent-ui-foreground);
   --color-destructive: var(--destructive);
@@ -27,21 +30,26 @@
   --color-border: var(--ui-border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-success: #1F6F4A;
+  --color-warning: #C9A84C;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
   /* KobKlein Swiss Institutional tokens */
-  --color-kob-black: #080B14;
-  --color-kob-navy: #0F1626;
-  --color-kob-panel: #151B2E;
-  --color-kob-gold: #C6A756;
-  --color-kob-gold-light: #E1C97A;
-  --color-kob-gold-dark: #9F7F2C;
-  --color-kob-text: #F2F2F2;
-  --color-kob-body: #C4C7CF;
-  --color-kob-muted: #7A8394;
+  --color-kob-black: #060D1F;
+  --color-kob-navy: #0A1628;
+  --color-kob-panel: #0F1D35;
+  --color-kob-gold: #C9A84C;
+  --color-kob-gold-light: #E2CA6E;
+  --color-kob-gold-dark: #A07E2E;
+  --color-kob-teal: #0E8B78;
+  --color-kob-teal-light: #14B8A0;
+  --color-kob-teal-dark: #086B5C;
+  --color-kob-text: #F0F1F5;
+  --color-kob-body: #B8BCC8;
+  --color-kob-muted: #6B7489;
   --color-kob-danger: #DC2626;
 }
 
@@ -50,27 +58,27 @@
   --radius: 0.75rem;
 
   /* Darker than user app — military grade */
-  --background: #080B14;
-  --foreground: #F2F2F2;
-  --card: #151B2E;
-  --card-foreground: #F2F2F2;
-  --popover: #151B2E;
-  --popover-foreground: #F2F2F2;
+  --background: #060D1F;
+  --foreground: #F0F1F5;
+  --card: #0F1D35;
+  --card-foreground: #F0F1F5;
+  --popover: #0F1D35;
+  --popover-foreground: #F0F1F5;
 
   /* Imperial Gold as primary */
-  --primary: #C6A756;
-  --primary-foreground: #080B14;
-  --secondary: #151B2E;
-  --secondary-foreground: #C4C7CF;
-  --muted: #151B2E;
-  --muted-foreground: #7A8394;
-  --accent-ui: #151B2E;
-  --accent-ui-foreground: #F2F2F2;
+  --primary: #C9A84C;
+  --primary-foreground: #060D1F;
+  --secondary: #0F1D35;
+  --secondary-foreground: #B8BCC8;
+  --muted: #0F1D35;
+  --muted-foreground: #6B7489;
+  --accent-ui: #0F1D35;
+  --accent-ui-foreground: #F0F1F5;
   --destructive: #DC2626;
-  --destructive-foreground: #F2F2F2;
+  --destructive-foreground: #F0F1F5;
   --ui-border: rgba(255, 255, 255, 0.05);
   --input: rgba(255, 255, 255, 0.05);
-  --ring: #C6A756;
+  --ring: #C9A84C;
 
   /* Layout tokens */
   --sidebar-w: 240px;
@@ -97,11 +105,11 @@ body {
 /* ═══ SCROLLBAR ═══ */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2a3148; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #C6A756; }
+::-webkit-scrollbar-thumb { background: #1a2840; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #C9A84C; }
 
 /* ═══ SELECTION ═══ */
 ::selection {
-  background: rgba(198, 167, 86, 0.3);
-  color: #F2F2F2;
+  background: rgba(201, 168, 76, 0.3);
+  color: #F0F1F5;
 }

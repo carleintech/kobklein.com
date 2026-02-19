@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 import { withIdempotency } from "../idempotency/idempotency.service";
 import { executeFxTransfer } from "../transfers/fx-transfer.service";
@@ -18,7 +18,7 @@ export class DiasporaSendController {
    *   3. Execute cross-currency transfer
    *   4. Return receipt with FX details
    */
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post("send")
   async sendToFamily(
     @Req() req: any,
@@ -39,7 +39,7 @@ export class DiasporaSendController {
     const link = await prisma.familyLink.findFirst({
       where: { id: body.familyLinkId, diasporaUserId },
       include: {
-        familyUser: {
+        User_FamilyLink_familyUserIdToUser: {
           select: { id: true, firstName: true, handle: true },
         },
       },
@@ -69,8 +69,8 @@ export class DiasporaSendController {
           receivedHtg: transfer.receivedHtg,
           recipientName:
             link.nickname ||
-            link.familyUser.firstName ||
-            link.familyUser.handle,
+            link.User_FamilyLink_familyUserIdToUser.firstName ||
+            link.User_FamilyLink_familyUserIdToUser.handle,
         };
       },
     });
@@ -82,7 +82,7 @@ export class DiasporaSendController {
    * Preview FX conversion before sending.
    * Shows the user exactly how much HTG their USD will become.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("send/preview")
   async previewSend(
     @Req() req: any,

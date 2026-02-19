@@ -5,7 +5,7 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { AuditService } from "../audit/audit.service";
 import {
   pauseSubscription,
@@ -20,7 +20,7 @@ export class SubscriptionControlsController {
   /**
    * Pause a subscription — stops future billing until resumed.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post(":id/pause")
   async pause(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -39,7 +39,7 @@ export class SubscriptionControlsController {
   /**
    * Resume a paused subscription.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post(":id/resume")
   async resume(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -58,7 +58,7 @@ export class SubscriptionControlsController {
   /**
    * Cancel a subscription permanently.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post(":id/cancel")
   async cancel(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;

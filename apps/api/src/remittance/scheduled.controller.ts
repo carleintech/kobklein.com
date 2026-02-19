@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 
 const VALID_FREQUENCIES = ["weekly", "biweekly", "monthly"];
@@ -26,7 +26,7 @@ export class ScheduledRemittanceController {
    * POST /v1/remittance/schedule
    * Create a new recurring remittance.
    */
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post("schedule")
   async createSchedule(
     @Req() req: any,
@@ -109,7 +109,7 @@ export class ScheduledRemittanceController {
    * GET /v1/remittance/schedules
    * List all scheduled remittances for the current user.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("schedules")
   async listSchedules(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -118,7 +118,7 @@ export class ScheduledRemittanceController {
       where: { senderUserId: userId },
       orderBy: { nextRunAt: "asc" },
       include: {
-        recipient: {
+        User_ScheduledTransfer_recipientUserIdToUser: {
           select: {
             id: true,
             firstName: true,
@@ -141,7 +141,7 @@ export class ScheduledRemittanceController {
         lastRunAt: s.lastRunAt,
         failureCount: s.failureCount,
         note: s.note,
-        recipient: s.recipient,
+        User_ScheduledTransfer_recipientUserIdToUser: s.User_ScheduledTransfer_recipientUserIdToUser,
         createdAt: s.createdAt,
       })),
     };
@@ -151,7 +151,7 @@ export class ScheduledRemittanceController {
    * POST /v1/remittance/schedule/:id/pause
    * Pause an active schedule.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("schedule/:id/pause")
   async pauseSchedule(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -175,7 +175,7 @@ export class ScheduledRemittanceController {
    * POST /v1/remittance/schedule/:id/resume
    * Resume a paused schedule.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("schedule/:id/resume")
   async resumeSchedule(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -202,7 +202,7 @@ export class ScheduledRemittanceController {
    * POST /v1/remittance/schedule/:id/cancel
    * Cancel a schedule permanently.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("schedule/:id/cancel")
   async cancelSchedule(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;

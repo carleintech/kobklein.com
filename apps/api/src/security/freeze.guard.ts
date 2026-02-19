@@ -5,7 +5,7 @@ import { prisma } from "../db/prisma";
 export class FreezeGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const req = context.switchToHttp().getRequest();
-    const userId = req.user?.sub;
+    const userId = req.localUser?.id;
 
     if (!userId) return true;
 

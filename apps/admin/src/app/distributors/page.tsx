@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { kkGet, kkPost } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { kkGet, kkPost, ApiError } from "@/lib/kobklein-api";
+import { ApiUnavailableBanner } from "@/components/api-status-banner";
+import { Card, CardContent } from "@kobklein/ui/card";
+import { Button } from "@kobklein/ui/button";
+import { Input } from "@kobklein/ui/input";
+import { Badge } from "@kobklein/ui/badge";
 import {
   Users,
   UserPlus,
@@ -69,6 +70,7 @@ export default function DistributorsPage() {
   const [distributors, setDistributors] = useState<Distributor[]>([]);
   const [stats, setStats] = useState<DistributorStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [apiDown, setApiDown] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState("");
 
@@ -89,6 +91,7 @@ export default function DistributorsPage() {
 
   async function fetchAll() {
     setLoading(true);
+    setApiDown(false);
     try {
       const [distData, statsData] = await Promise.all([
         kkGet<any>("v1/admin/distributors"),
@@ -97,6 +100,7 @@ export default function DistributorsPage() {
       setDistributors(distData?.distributors || []);
       setStats(statsData || null);
     } catch (e: any) {
+      if (e instanceof ApiError && e.isApiUnavailable) setApiDown(true);
       console.error("Failed to load distributors:", e);
     } finally {
       setLoading(false);
@@ -163,15 +167,17 @@ export default function DistributorsPage() {
         <p className="text-sm text-muted-foreground">Onboard, monitor, and manage distributors</p>
       </div>
 
+      {apiDown && <ApiUnavailableBanner />}
+
       {/* Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="rounded-2xl">
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <Users className="h-5 w-5 text-[#C6A756]" />
+              <Users className="h-5 w-5 text-[#C9A84C]" />
               <div>
-                <p className="text-xs text-[#7A8394]">Total Distributors</p>
-                <p className="text-lg font-semibold text-[#F2F2F2]">{stats?.total ?? "..."}</p>
+                <p className="text-xs text-[#6B7489]">Total Distributors</p>
+                <p className="text-lg font-semibold text-[#F0F1F5]">{stats?.total ?? "..."}</p>
               </div>
             </div>
           </CardContent>
@@ -181,7 +187,7 @@ export default function DistributorsPage() {
             <div className="flex items-center gap-3">
               <ShieldCheck className="h-5 w-5 text-emerald-400" />
               <div>
-                <p className="text-xs text-[#7A8394]">Active</p>
+                <p className="text-xs text-[#6B7489]">Active</p>
                 <p className="text-lg font-semibold text-emerald-400">{stats?.active ?? "..."}</p>
               </div>
             </div>
@@ -192,7 +198,7 @@ export default function DistributorsPage() {
             <div className="flex items-center gap-3">
               <ShieldX className="h-5 w-5 text-red-400" />
               <div>
-                <p className="text-xs text-[#7A8394]">Suspended</p>
+                <p className="text-xs text-[#6B7489]">Suspended</p>
                 <p className="text-lg font-semibold text-red-400">{stats?.suspended ?? "..."}</p>
               </div>
             </div>
@@ -203,7 +209,7 @@ export default function DistributorsPage() {
             <div className="flex items-center gap-3">
               <Loader2 className="h-5 w-5 text-yellow-400" />
               <div>
-                <p className="text-xs text-[#7A8394]">Pending Onboarding</p>
+                <p className="text-xs text-[#6B7489]">Pending Onboarding</p>
                 <p className="text-lg font-semibold text-yellow-400">{stats?.pending ?? "..."}</p>
               </div>
             </div>
@@ -212,18 +218,18 @@ export default function DistributorsPage() {
       </div>
 
       {/* Onboard New Distributor */}
-      <Card className="rounded-2xl border-[#C6A756]/30">
+      <Card className="rounded-2xl border-[#C9A84C]/30">
         <CardContent className="p-5">
           <button
             onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-2 w-full text-left"
           >
-            <UserPlus className="h-4 w-4 text-[#C6A756]" />
-            <span className="font-medium text-[#F2F2F2]">Onboard New Distributor</span>
+            <UserPlus className="h-4 w-4 text-[#C9A84C]" />
+            <span className="font-medium text-[#F0F1F5]">Onboard New Distributor</span>
             {showForm ? (
-              <ChevronUp className="h-4 w-4 text-[#7A8394] ml-auto" />
+              <ChevronUp className="h-4 w-4 text-[#6B7489] ml-auto" />
             ) : (
-              <ChevronDown className="h-4 w-4 text-[#7A8394] ml-auto" />
+              <ChevronDown className="h-4 w-4 text-[#6B7489] ml-auto" />
             )}
           </button>
 
@@ -231,7 +237,7 @@ export default function DistributorsPage() {
             <form onSubmit={handleOnboard} className="mt-4 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-[#7A8394] mb-1 block">Full Name *</label>
+                  <label className="text-xs text-[#6B7489] mb-1 block">Full Name *</label>
                   <Input
                     placeholder="Full name"
                     value={form.name}
@@ -240,7 +246,7 @@ export default function DistributorsPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#7A8394] mb-1 block">Phone *</label>
+                  <label className="text-xs text-[#6B7489] mb-1 block">Phone *</label>
                   <Input
                     placeholder="+509 ..."
                     value={form.phone}
@@ -249,7 +255,7 @@ export default function DistributorsPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#7A8394] mb-1 block">Email</label>
+                  <label className="text-xs text-[#6B7489] mb-1 block">Email</label>
                   <Input
                     placeholder="email@example.com"
                     type="email"
@@ -258,7 +264,7 @@ export default function DistributorsPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#7A8394] mb-1 block">City *</label>
+                  <label className="text-xs text-[#6B7489] mb-1 block">City *</label>
                   <Input
                     placeholder="Port-au-Prince"
                     value={form.city}
@@ -267,7 +273,7 @@ export default function DistributorsPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#7A8394] mb-1 block">Commission Rate (%) *</label>
+                  <label className="text-xs text-[#6B7489] mb-1 block">Commission Rate (%) *</label>
                   <Input
                     placeholder="2.5"
                     type="number"
@@ -280,7 +286,7 @@ export default function DistributorsPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#7A8394] mb-1 block">Initial Float (USD) *</label>
+                  <label className="text-xs text-[#6B7489] mb-1 block">Initial Float (USD) *</label>
                   <Input
                     placeholder="5000.00"
                     type="number"
@@ -296,7 +302,7 @@ export default function DistributorsPage() {
                 <Button
                   type="submit"
                   disabled={formLoading}
-                  className="bg-[#C6A756] hover:bg-[#E1C97A] text-[#080B14] font-semibold gap-2"
+                  className="bg-[#C9A84C] hover:bg-[#E2CA6E] text-[#060D1F] font-semibold gap-2"
                 >
                   <UserPlus className="h-4 w-4" />
                   {formLoading ? "Creating..." : "Create Distributor"}
@@ -326,20 +332,20 @@ export default function DistributorsPage() {
       {/* Distributors Table */}
       <Card className="rounded-2xl">
         <CardContent className="p-5">
-          <h2 className="font-medium mb-4 text-[#F2F2F2]">All Distributors</h2>
+          <h2 className="font-medium mb-4 text-[#F0F1F5]">All Distributors</h2>
 
           {loading ? (
-            <div className="flex items-center gap-2 text-[#7A8394] py-8 justify-center">
+            <div className="flex items-center gap-2 text-[#6B7489] py-8 justify-center">
               <Loader2 className="h-4 w-4 animate-spin" />
               Loading distributors...
             </div>
           ) : distributors.length === 0 ? (
-            <p className="text-sm text-[#7A8394] text-center py-8">No distributors found</p>
+            <p className="text-sm text-[#6B7489] text-center py-8">No distributors found</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[#151B2E] text-[#7A8394] text-xs uppercase tracking-wider">
+                  <tr className="border-b border-[#0F1D35] text-[#6B7489] text-xs uppercase tracking-wider">
                     <th className="text-left py-3 px-2 font-medium">Name</th>
                     <th className="text-left py-3 px-2 font-medium">Phone</th>
                     <th className="text-left py-3 px-2 font-medium">City</th>
@@ -354,11 +360,11 @@ export default function DistributorsPage() {
                   {distributors.map((dist) => (
                     <tr
                       key={dist.id}
-                      className="border-b border-[#151B2E]/50 hover:bg-[#151B2E]/30 transition-colors"
+                      className="border-b border-[#0F1D35]/50 hover:bg-[#0F1D35]/30 transition-colors"
                     >
-                      <td className="py-3 px-2 font-medium text-[#F2F2F2]">{dist.name}</td>
-                      <td className="py-3 px-2 text-[#C4C7CF]">{dist.phone}</td>
-                      <td className="py-3 px-2 text-[#C4C7CF]">{dist.city}</td>
+                      <td className="py-3 px-2 font-medium text-[#F0F1F5]">{dist.name}</td>
+                      <td className="py-3 px-2 text-[#B8BCC8]">{dist.phone}</td>
+                      <td className="py-3 px-2 text-[#B8BCC8]">{dist.city}</td>
                       <td className="py-3 px-2">
                         <Badge
                           variant="outline"
@@ -367,13 +373,13 @@ export default function DistributorsPage() {
                           {dist.status}
                         </Badge>
                       </td>
-                      <td className="py-3 px-2 text-right font-mono tabular-nums text-[#C4C7CF]">
+                      <td className="py-3 px-2 text-right font-mono tabular-nums text-[#B8BCC8]">
                         {fmtCurrency(dist.floatBalance)}
                       </td>
-                      <td className="py-3 px-2 text-right font-mono tabular-nums text-[#C4C7CF]">
+                      <td className="py-3 px-2 text-right font-mono tabular-nums text-[#B8BCC8]">
                         {dist.commissionRate}%
                       </td>
-                      <td className="py-3 px-2 text-[#7A8394]">{fmtDate(dist.joinedAt)}</td>
+                      <td className="py-3 px-2 text-[#6B7489]">{fmtDate(dist.joinedAt)}</td>
                       <td className="py-3 px-2 text-right">
                         <div className="flex gap-2 justify-end">
                           <Button variant="outline" size="sm" className="gap-1 text-xs">

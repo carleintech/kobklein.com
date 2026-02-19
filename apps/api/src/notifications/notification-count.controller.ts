@@ -1,10 +1,10 @@
 import { Controller, Get, UseGuards, Req } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 
 @Controller("notifications")
 export class NotificationCountController {
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("count")
   async count(@Req() req: any) {
     const c = await prisma.notification.count({

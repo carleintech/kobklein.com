@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@kobklein/ui/card";
+import { Badge } from "@kobklein/ui/badge";
 
 type FxPreviewData = {
   baseRate?: number;

@@ -2,7 +2,7 @@
   "name": "KobKlein",
   "short_name": "KobKlein",
   "description": "Lajan dijital ou, an sekirite. Digital wallet for Haiti.",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#080B14",
   "theme_color": "#080B14",

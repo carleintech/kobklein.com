@@ -8,6 +8,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "KobKlein Admin",
   description: "Operations Command Center",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

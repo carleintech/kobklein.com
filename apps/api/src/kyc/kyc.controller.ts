@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { AuditService } from "../audit/audit.service";
@@ -13,7 +13,7 @@ export class KycController {
   /**
    * Level 1: Submit basic identity info (name, DOB, country, address).
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("level1")
   async submitLevel1(
     @Req() req: any,
@@ -62,7 +62,7 @@ export class KycController {
   /**
    * Level 2: Submit ID document + selfie for full verification.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("level2")
   async submitLevel2(
     @Req() req: any,
@@ -110,7 +110,7 @@ export class KycController {
   /**
    * Get my KYC status.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("status")
   async status(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -137,16 +137,16 @@ export class KycController {
 
   // ── Admin Review Endpoints ──────────────────────────────────
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("admin/pending")
   async pendingReviews() {
     return prisma.kycProfile.findMany({
       where: {
-        user: { kycStatus: "pending" },
+        User: { kycStatus: "pending" },
       },
       include: {
-        user: {
+        User: {
           select: { id: true, firstName: true, phone: true, kycTier: true, kycStatus: true },
         },
       },
@@ -155,7 +155,7 @@ export class KycController {
     });
   }
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Patch("admin/:userId/approve")
   async approve(@Req() req: any, @Param("userId") userId: string) {
@@ -187,7 +187,7 @@ export class KycController {
     return { ok: true };
   }
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Patch("admin/:userId/reject")
   async reject(

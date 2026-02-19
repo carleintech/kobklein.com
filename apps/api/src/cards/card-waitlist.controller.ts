@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 
@@ -68,7 +68,7 @@ export class CardWaitlistController {
   /**
    * Admin: View full waitlist.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("waitlist/admin")
   async adminWaitlist() {

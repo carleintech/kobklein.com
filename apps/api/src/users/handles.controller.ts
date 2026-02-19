@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { AuditService } from "../audit/audit.service";
 
 const RESERVED_HANDLES = [
@@ -41,7 +41,7 @@ export class HandlesController {
   /**
    * Set or update the user's handle.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post()
   async setHandle(
     @Req() req: any,

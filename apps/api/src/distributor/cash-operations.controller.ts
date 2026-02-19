@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 import { computeWalletBalance, invalidateBalance } from "../wallets/balance.service";
 import { AuditService } from "../audit/audit.service";
@@ -15,7 +15,7 @@ export class CashOperationsController {
    * CASH-IN: Customer gives cash to agent, agent credits their KobKlein wallet.
    * Distributor's float is debited, customer's wallet is credited.
    */
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post("cash-in")
   async cashIn(
     @Req() req: any,
@@ -155,7 +155,7 @@ export class CashOperationsController {
    * CASH-OUT: Customer requests cash, agent pays them and debits their wallet.
    * Customer's wallet is debited, agent's float is credited.
    */
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post("cash-out")
   async cashOut(
     @Req() req: any,
@@ -308,7 +308,7 @@ export class CashOperationsController {
   /**
    * Agent dashboard stats: float balance, today's transactions, commissions.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("dashboard")
   async dashboard(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -369,7 +369,7 @@ export class CashOperationsController {
   /**
    * Agent transaction history.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("transactions")
   async transactions(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;

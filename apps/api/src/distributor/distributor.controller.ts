@@ -1,10 +1,10 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 
 @Controller("v1/distributor")
 export class DistributorController {
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("apply")
   async apply(
     @Req() req: any,

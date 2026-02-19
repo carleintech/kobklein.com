@@ -1,9 +1,4 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+export { cn } from "@kobklein/ui";
 
 export function fmtMoney(amount: number, currency = "HTG") {
   return new Intl.NumberFormat("en-US", {

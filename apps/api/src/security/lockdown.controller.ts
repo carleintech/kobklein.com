@@ -1,5 +1,5 @@
 import { Controller, Post, Req, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { prisma } from "../db/prisma";
 import { revokeAllDevices } from "./device.service";
 import { createNotification } from "../notifications/notification.service";
@@ -15,7 +15,7 @@ export class LockdownController {
    * - Invalidates all active StepUpTokens
    * - Sends security notification
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("lockdown")
   async lockdown(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;

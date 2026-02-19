@@ -1,10 +1,10 @@
 import { Controller, Post, Body, UseGuards, Req } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 
 @Controller("security")
 export class UnlockRequestController {
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("request-unlock")
   async request(@Req() req: any, @Body() body: { reason?: string }) {
     const userId = req.user.sub;

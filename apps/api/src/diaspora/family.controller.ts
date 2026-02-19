@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 import { executeTransfer } from "../transfers/transfer-execution.service";
 import { withIdempotency } from "../idempotency/idempotency.service";
@@ -21,7 +21,7 @@ export class FamilyController {
   /**
    * K-Link: Add a family member by phone or handle.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("link")
   async addFamilyMember(
     @Req() req: any,
@@ -98,7 +98,7 @@ export class FamilyController {
   /**
    * Get all linked family members.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("members")
   async getMembers(@Req() req: any) {
     const diasporaUserId = req.localUser?.id || req.user?.sub;
@@ -106,7 +106,7 @@ export class FamilyController {
     const links = await prisma.familyLink.findMany({
       where: { diasporaUserId },
       include: {
-        familyUser: {
+        User_FamilyLink_familyUserIdToUser: {
           select: {
             id: true,
             firstName: true,
@@ -155,8 +155,9 @@ export class FamilyController {
           id: link.id,
           nickname: link.nickname,
           relationship: link.relationship,
+          isFavorite: link.isFavorite,
           createdAt: link.createdAt,
-          familyUser: link.familyUser,
+          familyUser: link.User_FamilyLink_familyUserIdToUser,
           recentTransfers,
           walletId: wallet?.id,
         };
@@ -169,7 +170,7 @@ export class FamilyController {
   /**
    * Update a family link (nickname, relationship).
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Patch(":linkId")
   async updateLink(
     @Req() req: any,
@@ -199,7 +200,7 @@ export class FamilyController {
   /**
    * Remove a family link.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Delete(":linkId")
   async removeLink(@Req() req: any, @Param("linkId") linkId: string) {
     const diasporaUserId = req.localUser?.id || req.user?.sub;
@@ -219,7 +220,7 @@ export class FamilyController {
    * Quick send to family member (K-Link transfer).
    * Lower friction than regular send — skips recipient search.
    */
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post("send")
   async sendToFamily(
     @Req() req: any,
@@ -236,7 +237,7 @@ export class FamilyController {
     const link = await prisma.familyLink.findFirst({
       where: { id: body.familyLinkId, diasporaUserId },
       include: {
-        familyUser: {
+        User_FamilyLink_familyUserIdToUser: {
           select: { id: true, firstName: true, handle: true },
         },
       },
@@ -263,8 +264,9 @@ export class FamilyController {
           transferId: transfer.transferId,
           recipientName:
             link.nickname ||
-            link.familyUser.firstName ||
-            link.familyUser.handle,
+            link.User_FamilyLink_familyUserIdToUser?.firstName ||
+            link.User_FamilyLink_familyUserIdToUser?.handle ||
+            "Family",
         };
       },
     });
@@ -275,7 +277,7 @@ export class FamilyController {
   /**
    * Diaspora dashboard: summary of family, recent activity, total sent.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("dashboard")
   async diasporaDashboard(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -360,12 +362,21 @@ export class FamilyController {
         requesterId: { in: familyIds },
       },
       include: {
-        requester: {
+        User_PaymentRequest_requesterIdToUser: {
           select: { id: true, firstName: true, handle: true },
         },
       },
       take: 10,
     });
+
+    // Map Prisma relation names to clean frontend-friendly field names
+    const mappedRequests = pendingRequests.map(r => ({
+      id: r.id,
+      amount: Number(r.amount),
+      status: r.status,
+      createdAt: r.createdAt,
+      requester: r.User_PaymentRequest_requesterIdToUser,
+    }));
 
     return {
       familyCount,
@@ -373,7 +384,7 @@ export class FamilyController {
       totalSentToFamily,
       walletId: wallet?.id,
       recentTransfers,
-      pendingRequests,
+      pendingRequests: mappedRequests,
     };
   }
 }

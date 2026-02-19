@@ -6,416 +6,132 @@ datasource db {
   provider = "postgresql"
 }
 
-enum WalletType {
-  USER
-  DISTRIBUTOR
-  MERCHANT
-  SYSTEM
-  TREASURY
-}
-
-model User {
-  id           String   @id @default(uuid())
-  auth0Id      String   @unique
-  phone        String?
-  role         String   // user, merchant, distributor, admin, diaspora
-  firstName    String?
-  lastName     String?
-  email        String?
-  handle       String?  @unique
-  kId          String?  @unique  // KP-XXXXXX — KobKlein Platform ID
-  kycTier      Int      @default(0)
-  kycStatus    String   @default("none") // none, pending, approved, rejected
-  isFrozen     Boolean  @default(false)
-  freezeReason String?
-  frozenAt     DateTime?
-  createdAt    DateTime @default(now())
-  dailyTransferLimit Decimal @default(5000)
-  preferredLang      String  @default("en") // en | fr | ht | es
-
-  wallets             Wallet[]
-  distributor         Distributor?
-  merchant            Merchant?
-  contacts            TransferContact[]   @relation("userContacts")
-  contactOf           TransferContact[]   @relation("contactUser")
-  deviceSessions      DeviceSession[]
-  notifications       Notification[]
-  sentRequests        PaymentRequest[]    @relation("requester")
-  receivedRequests    PaymentRequest[]    @relation("requestee")
-  receiveCodes        ReceiveCode[]
-  kycProfile          KycProfile?
-  familyLinksAsOwner  FamilyLink[]        @relation("diasporaOwner")
-  familyLinksAsMember FamilyLink[]        @relation("familyMember")
-  unlockRequests      UnlockRequest[]
-  auditLogs           AuditLog[]
-  scheduledSent       ScheduledTransfer[] @relation("scheduledSender")
-  scheduledReceived   ScheduledTransfer[] @relation("scheduledRecipient")
-  stepUpTokens        StepUpToken[]
-  sanctionsChecks     SanctionsCheck[]
-  pushTokens          PushToken[]
-  amlFlags            AmlFlag[]
-}
-
-model Distributor {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id])
-  displayName    String?
-  businessName   String?
-  phonePublic    String?  // optional public phone for customers (NOT required)
-  locationText   String?  // "Port-au-Prince, Delmas 33" (no formal address needed)
-  status         String   @default("pending") // pending | active | suspended | rejected
-
-  tier           String   @default("agent") // agent (future: master)
-  commissionIn   Decimal  @default(0.01)    // 1% cash-in
-  commissionOut  Decimal  @default(0.02)    // 2% cash-out
-
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  recharges      DistributorRecharge[]
-
-  @@index([status])
-}
-
-model DistributorTxn {
-  id              String   @id @default(cuid())
-  distributorId   String
-  type            String   // cash_in | cash_out | float_refill | float_withdraw
-  status          String   @default("completed") // completed | reversed | failed
-
-  clientUserId    String?
-  clientWalletId  String?
-  distributorWalletId String?
-
-  amount          Decimal
-  currency        String
-
-  commission      Decimal  @default(0)
-  referenceId     String?  // links to transfer/ledger reference
-  meta            Json?
-
-  createdAt       DateTime @default(now())
-
-  @@index([distributorId])
-  @@index([type])
-  @@index([createdAt])
-}
-
-model DistributorCommission {
-  id            String   @id @default(cuid())
-  distributorId String
-  txnId         String
-  amount        Decimal
-  currency      String
-  status        String   @default("earned") // earned | paid_out | reversed
-  createdAt     DateTime @default(now())
-
-  @@index([distributorId])
-  @@index([status])
-}
-
-model Wallet {
-  id        String     @id @default(uuid())
-  userId    String
-  user      User       @relation(fields: [userId], references: [id])
-  currency  String     // HTG, USD
-  type      WalletType @default(USER)
-  createdAt DateTime   @default(now())
-  entries   LedgerEntry[]
-
-  @@unique([userId, currency])
-}
-
-model LedgerEntry {
-  id         String   @id @default(uuid())
-  walletId   String
-  wallet     Wallet   @relation(fields: [walletId], references: [id])
-  amount     Decimal  @db.Decimal(18, 2) // + or -
-  type       String   // transfer_debit, transfer_credit, deposit, fee, hold_debit, hold_release, hold_seize
-  transferId String?
-  reference  String?  // generic reference (caseId for holds, etc.)
-  createdAt  DateTime @default(now())
-}
-
-model Transfer {
-  id             String   @id @default(uuid())
-  fromWalletId   String
-  toWalletId     String
-  amount         Decimal  @db.Decimal(18, 2)
-  currency       String
-  status         String   @default("posted") // posted, completed, pending_review, blocked, reversed
-  senderUserId   String
-  idempotencyKey String   @unique
-  riskEventId    String?  // links to RiskEvent that flagged this transfer
-  reviewedBy     String?  // admin userId who approved/rejected
-  reviewedAt     DateTime?
-  reviewNote     String?
-  createdAt      DateTime @default(now())
-
-  @@index([status])
-}
-
-model Deposit {
-  id             String   @id @default(uuid())
-  walletId       String
-  amount         Decimal  @db.Decimal(18, 2)
-  currency       String
-  source         String   // stripe, distributor, manual, migration
-  reference      String?
-  idempotencyKey String   @unique
-  createdAt      DateTime @default(now())
-}
-
-model Withdrawal {
-  id            String   @id @default(uuid())
-  userId        String
-  walletId      String
-  distributorId String?
-  amount        Decimal  @db.Decimal(18, 2)
-  currency      String
-  status        String   @default("pending") // pending, approved, rejected, completed
-  code          String   @unique
-  expiresAt     DateTime
-  feeAmount     Decimal? @db.Decimal(18, 2)
-  netAmount     Decimal? @db.Decimal(18, 2)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model DistributorSettlement {
-  id            String   @id @default(uuid())
-  distributorId String
-  amount        Decimal  @db.Decimal(18, 2)
-  currency      String
-  type          String // float_topup, reconciliation
-
-  createdAt DateTime @default(now())
-}
-
-model LimitConfig {
-  id          String  @id @default(uuid())
-  tier        Int     @unique
-  dailySend   Decimal @db.Decimal(18, 2)
-  monthlySend Decimal @db.Decimal(18, 2)
-}
-
-// ── Phase 43: Role-Based Limit Engine ───────────────────────────────
-
-model RoleLimitProfile {
-  id            String   @id @default(cuid())
-  role          String   // user | diaspora | merchant | distributor
-  currency      String   // USD | HTG
-  dailyLimit    Decimal  @db.Decimal(18, 2)
-  monthlyLimit  Decimal  @db.Decimal(18, 2)
-  createdAt     DateTime @default(now())
-
-  @@unique([role, currency])
-}
-
-model LimitUsage {
-  id             String   @id @default(cuid())
-  userId         String
-  currency       String
-  dailyUsed      Decimal  @db.Decimal(18, 2) @default(0)
-  monthlyUsed    Decimal  @db.Decimal(18, 2) @default(0)
-  dailyResetAt   DateTime
-  monthlyResetAt DateTime
-  updatedAt      DateTime @updatedAt
-
-  @@unique([userId, currency])
-}
-
-model RiskFlag {
-  id         String   @id @default(uuid())
+model AccountFlag {
+  id         String    @id @default(cuid())
   userId     String
-  type       String   // velocity, failed_attempts, suspicious_pattern
-  severity   Int      // 1=low, 2=med, 3=high, 4=critical
-  details    Json?
-  createdAt  DateTime @default(now())
+  flagType   String
+  reason     String?
+  severity   Int       @default(2)
+  addedBy    String?
   resolvedAt DateTime?
+  resolvedBy String?
+  createdAt  DateTime  @default(now())
+
+  @@index([flagType])
+  @@index([resolvedAt])
+  @@index([userId])
+}
+
+model AmlFlag {
+  id          String    @id @default(cuid())
+  userId      String
+  type        String
+  severity    String    @default("medium")
+  description String
+  ruleId      String?
+  transferId  String?
+  status      String    @default("open")
+  resolvedBy  String?
+  resolvedAt  DateTime?
+  resolveNote String?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime @updatedAt
+  User        User      @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([severity])
+  @@index([status])
+  @@index([type])
+  @@index([userId])
 }
 
 model AuditLog {
   id           String   @id @default(cuid())
-  actorUserId  String?
-  eventType    String
-  amount       Decimal?
-  currency     String?
-  fromWalletId String?
-  toWalletId   String?
-  referenceId  String?
+  createdAt    DateTime @default(now())
   ip           String?
   userAgent    String?
+  actorUserId  String?
+  amount       Decimal?
+  currency     String?
+  eventType    String
+  fromWalletId String?
   meta         Json?
-  createdAt    DateTime @default(now())
-
-  // Relations
-  actorUser    User?    @relation(fields: [actorUserId], references: [id])
+  referenceId  String?
+  toWalletId   String?
+  User         User?    @relation(fields: [actorUserId], references: [id])
 
   @@index([actorUserId])
-  @@index([eventType])
   @@index([createdAt])
+  @@index([eventType])
 }
 
-model WebhookEvent {
-  id          String   @id @default(uuid())
-  provider    String   // stripe, twilio, kyc, internal
-  eventId     String   // provider unique id (e.g. stripe evt_...)
-  type        String   // event type string
-  payload     Json
-  receivedAt  DateTime @default(now())
-  processedAt DateTime?
-  status      String   @default("received") // received, processed, failed
-  error       String?
-
-  @@unique([provider, eventId])
-}
-
-model DomainEvent {
-  id         String   @id @default(uuid())
-  name       String   // transfer.posted, deposit.posted, kyc.approved...
-  payload    Json
-  createdAt  DateTime @default(now())
-  handledAt  DateTime?
-  status     String   @default("queued") // queued, handled, failed
-  error      String?
-}
-
-model ReconciliationRun {
-  id         String    @id @default(uuid())
-  startedAt  DateTime  @default(now())
-  finishedAt DateTime?
-  status     String    @default("running") // running, success, failed
-  summary    Json?
-  error      String?
-}
-
-model Reversal {
-  id             String   @id @default(uuid())
-  targetType     String   // transfer, deposit, withdrawal
-  targetId       String
-  reason         String
-  idempotencyKey String   @unique
-  createdAt      DateTime @default(now())
+model CardWaitlist {
+  id        String   @id @default(cuid())
+  fullName  String
+  phone     String   @unique
+  city      String?
+  interest  String   @default("both")
+  userId    String?
+  createdAt DateTime @default(now())
 }
 
 model Case {
-  id            String   @id @default(cuid())
-  caseType      String   // wrong_recipient | unauthorized | merchant_dispute
-  status        String   @default("open") // open | investigating | pending_user | pending_admin | resolved | rejected
-  priority      String   @default("normal") // low | normal | high | critical
-
+  id             String        @id @default(cuid())
+  caseType       String
+  status         String        @default("open")
+  priority       String        @default("normal")
   reporterUserId String?
-  subject       String?
-  description   String?
+  subject        String?
+  description    String?
+  referenceType  String?
+  referenceId    String?
+  auditLogId     String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime @updatedAt
+  closedAt       DateTime?
+  CaseAction     CaseAction[]
+  CaseMessage    CaseMessage[]
 
-  // Link to financial truth
-  referenceType String?  // transfer | merchant_payment | cashout | deposit
-  referenceId   String?  // transferId / audit referenceId
-  auditLogId    String?  // optional direct pointer
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  closedAt      DateTime?
-
-  messages CaseMessage[]
-  actions  CaseAction[]
-
-  @@index([reporterUserId])
-  @@index([status])
   @@index([caseType])
   @@index([referenceId])
-}
-
-model CaseMessage {
-  id        String   @id @default(cuid())
-  caseId    String
-  case      Case     @relation(fields: [caseId], references: [id])
-  authorRole String  // user | admin | system
-  authorUserId String?
-  message   String
-  createdAt DateTime @default(now())
-
-  @@index([caseId])
+  @@index([reporterUserId])
+  @@index([status])
 }
 
 model CaseAction {
-  id         String   @id @default(cuid())
-  caseId     String
-  case       Case     @relation(fields: [caseId], references: [id])
-  actionType String   // freeze_account | unfreeze_account | request_info | mark_fraud | refund_recommendation | close_case
+  id          String   @id @default(cuid())
+  caseId      String
+  actionType  String
   actorUserId String?
-  meta       Json?
-  createdAt  DateTime @default(now())
+  meta        Json?
+  createdAt   DateTime @default(now())
+  Case        Case     @relation(fields: [caseId], references: [id])
 
   @@index([caseId])
 }
 
-// ── New models ──────────────────────────────────────────────────────
-
-model TransferContact {
-  id            String   @id @default(uuid())
-  userId        String
-  contactUserId String
-  nickname      String?
-  isFavorite    Boolean  @default(false)
-  transferCount Int      @default(1)
-  lastTransferAt DateTime @default(now())
-  createdAt     DateTime @default(now())
-
-  user        User @relation("userContacts", fields: [userId], references: [id])
-  contactUser User @relation("contactUser", fields: [contactUserId], references: [id])
-
-  @@unique([userId, contactUserId])
-}
-
-model OtpCode {
-  id        String   @id @default(uuid())
-  userId    String?
-  phone     String
-  code      String
-  purpose   String   // login, transfer, freeze, unlock
-  attempts  Int      @default(0)
-  maxAttempts Int    @default(5)
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime @default(now())
-}
-
-model Merchant {
-  id           String   @id @default(uuid())
-  userId       String   @unique
-  businessName String
-  paymentCode  String   @unique
-  logoUrl      String?
-  phone        String
-  category     String?
-  kycStatus    String   @default("pending") // pending, approved, rejected
-  status       String   @default("active")  // active, suspended
+model CaseMessage {
+  id           String   @id @default(cuid())
+  caseId       String
+  authorRole   String
+  authorUserId String?
+  message      String
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  Case         Case     @relation(fields: [caseId], references: [id])
 
-  user        User @relation(fields: [userId], references: [id])
-  withdrawals MerchantWithdrawal[]
-  posRequests MerchantPosRequest[]
-  feeProfile  MerchantFeeProfile?
+  @@index([caseId])
 }
 
-model MerchantWithdrawal {
-  id            String   @id @default(uuid())
-  merchantId    String
-  walletId      String
-  amount        Decimal
-  currency      String
-  code          String   @unique
-  status        String   @default("pending")
-  distributorId String?
-  createdAt     DateTime @default(now())
-  completedAt   DateTime?
-
-  merchant Merchant @relation(fields: [merchantId], references: [id])
+model Deposit {
+  id             String   @id @default(cuid())
+  walletId       String
+  amount         Decimal  @db.Decimal(18, 2)
+  currency       String
+  source         String
+  reference      String?
+  idempotencyKey String   @unique
+  createdAt      DateTime @default(now())
 }
 
 model DeviceSession {
@@ -424,95 +140,146 @@ model DeviceSession {
   fingerprint String
   ip          String
   userAgent   String
-  trusted     Boolean   @default(false)
-  label       String?
-  revokedAt   DateTime?
   lastSeenAt  DateTime  @default(now())
   createdAt   DateTime  @default(now())
-
-  user User @relation(fields: [userId], references: [id])
+  label       String?
+  revokedAt   DateTime?
+  trusted     Boolean   @default(false)
+  User        User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
 
-model Notification {
-  id          String   @id @default(uuid())
-  userId      String
-  title       String   // Fallback / default-language text
-  body        String   // Fallback / default-language text
-  type        String   // transfer, deposit, withdrawal, security, merchant, system, subscription_due, low_balance
-  read        Boolean  @default(false)
-  data        Json?
-  templateKey String?  // i18n template key (e.g. "subscription_due") — optional, new notifications use this
-  params      Json?    // Template params for i18n rendering
-  createdAt   DateTime @default(now())
+model DiasporaProfile {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  countryOfResidence String?
+  city               String?
+  stateProvince      String?
+  postalCode         String?
+  taxResidence       String?
+  remittancePurpose  String?
+  estimatedMonthly   Decimal? @db.Decimal(18, 2)
+  preferredCurrency  String   @default("USD")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  User               User     @relation(fields: [userId], references: [id])
 
-  user User @relation(fields: [userId], references: [id])
+  @@index([userId])
 }
 
-model PaymentRequest {
-  id          String   @id @default(uuid())
-  requesterId String
-  requesteeId String
-  amount      Decimal  @db.Decimal(18, 2)
-  currency    String   @default("HTG")
-  note        String?
-  status      String   @default("pending") // pending, paid, declined, expired
-  paidAt      DateTime?
-  createdAt   DateTime @default(now())
+model Distributor {
+  id                  String                @id @default(cuid())
+  userId              String                @unique
+  businessName        String?
+  status              String                @default("pending")
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime @updatedAt
+  commissionIn        Decimal               @default(0.01)
+  commissionOut       Decimal               @default(0.02)
+  displayName         String?
+  locationText        String?
+  phonePublic         String?
+  tier                String                @default("agent")
+  User                User                  @relation(fields: [userId], references: [id])
+  DistributorRecharge DistributorRecharge[]
 
-  requester User @relation("requester", fields: [requesterId], references: [id])
-  requestee User @relation("requestee", fields: [requesteeId], references: [id])
+  @@index([status])
 }
 
-model ReceiveCode {
-  id        String   @id @default(uuid())
-  userId    String
-  code      String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+model DistributorCommission {
+  id            String   @id @default(cuid())
+  distributorId String
+  txnId         String
+  amount        Decimal
+  currency      String
+  status        String   @default("earned")
+  createdAt     DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  @@index([distributorId])
+  @@index([status])
 }
 
-model RecipientInteraction {
-  id              String   @id @default(uuid())
-  userId          String
-  recipientUserId String
-  interactionType String   // send, receive, request
-  amount          Decimal  @db.Decimal(18, 2)
-  createdAt       DateTime @default(now())
+model DistributorRecharge {
+  id            String      @id @default(cuid())
+  distributorId String
+  amount        Decimal
+  currency      String      @default("HTG")
+  method        String
+  reference     String?
+  proofUrl      String?
+  status        String      @default("pending")
+  reviewedBy    String?
+  reviewNote    String?
+  reviewedAt    DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime @updatedAt
+  Distributor   Distributor @relation(fields: [distributorId], references: [id])
 
-  @@index([userId, recipientUserId])
+  @@index([createdAt])
+  @@index([distributorId])
+  @@index([status])
 }
 
-model KycProfile {
-  id             String   @id @default(uuid())
-  userId         String   @unique
-  fullName       String?
-  dob            DateTime?
-  country        String?
-  address        String?
-  documentType   String?  // national_id, passport, drivers_license
-  idNumber       String?
-  documentUrl    String?
-  selfieUrl      String?
-  addressProof   String?
-  submittedAt    DateTime?
-  reviewedAt     DateTime?
-  reviewedBy     String?
-  rejectionReason String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+model DistributorSettlement {
+  id            String   @id @default(cuid())
+  distributorId String
+  amount        Decimal  @db.Decimal(18, 2)
+  currency      String
+  type          String
+  createdAt     DateTime @default(now())
+}
 
-  user User @relation(fields: [userId], references: [id])
+model DistributorTxn {
+  id                  String   @id @default(cuid())
+  distributorId       String
+  type                String
+  status              String   @default("completed")
+  clientUserId        String?
+  clientWalletId      String?
+  distributorWalletId String?
+  amount              Decimal
+  currency            String
+  commission          Decimal  @default(0)
+  referenceId         String?
+  meta                Json?
+  createdAt           DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([distributorId])
+  @@index([type])
+}
+
+model DomainEvent {
+  id        String    @id @default(cuid())
+  name      String
+  payload   Json
+  createdAt DateTime  @default(now())
+  handledAt DateTime?
+  status    String    @default("queued")
+  error     String?
+}
+
+model FamilyLink {
+  id                                   String   @id @default(cuid())
+  diasporaUserId                       String
+  familyUserId                         String
+  nickname                             String?
+  relationship                         String?
+  createdAt                            DateTime @default(now())
+  isFavorite                           Boolean  @default(false)
+  User_FamilyLink_diasporaUserIdToUser User     @relation("FamilyLink_diasporaUserIdToUser", fields: [diasporaUserId], references: [id])
+  User_FamilyLink_familyUserIdToUser   User     @relation("FamilyLink_familyUserIdToUser", fields: [familyUserId], references: [id])
+
+  @@unique([diasporaUserId, familyUserId])
+  @@index([diasporaUserId])
 }
 
 model FeeConfig {
-  id        String   @id @default(uuid())
-  type      String   // merchant_payment, withdrawal, transfer, deposit
-  percent   Decimal  @db.Decimal(8, 4) @default(0)
-  flat      Decimal  @db.Decimal(18, 2) @default(0)
+  id        String   @id @default(cuid())
+  type      String
+  percent   Decimal  @default(0) @db.Decimal(8, 4)
+  flat      Decimal  @default(0) @db.Decimal(18, 2)
   currency  String   @default("HTG")
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -521,17 +288,17 @@ model FeeConfig {
 }
 
 model FloatRefillLog {
-  id            String   @id @default(uuid())
+  id            String   @id @default(cuid())
   distributorId String
   amount        Decimal  @db.Decimal(18, 2)
   currency      String
-  performedBy   String   // admin userId
+  performedBy   String
   note          String?
   createdAt     DateTime @default(now())
 }
 
 model FloatTransfer {
-  id                String   @id @default(uuid())
+  id                String   @id @default(cuid())
   fromDistributorId String
   toDistributorId   String
   amount            Decimal  @db.Decimal(18, 2)
@@ -540,48 +307,75 @@ model FloatTransfer {
   createdAt         DateTime @default(now())
 }
 
-model OtpChallenge {
-  id         String   @id @default(uuid())
-  userId     String
-  transferId String?
-  reason     String   // high_amount, new_device, new_recipient, risk_score
-  otpCode    String
-  purpose    String   @default("transfer") // transfer, merchant_payment, cashout
-  payload    Json?    // pending transaction details (IDs + amounts only)
-  status     String   @default("pending") // pending, used, expired
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
+model FxConversion {
+  id           String   @id @default(cuid())
+  userId       String
+  fromCurrency String
+  toCurrency   String
+  fromAmount   Decimal  @db.Decimal(18, 2)
+  toAmount     Decimal  @db.Decimal(18, 2)
+  rateUsed     Decimal  @db.Decimal(18, 6)
+  spreadBps    Int      @default(0)
+  profit       Decimal  @default(0) @db.Decimal(18, 2)
+  reference    String?
+  createdAt    DateTime @default(now())
 
+  @@index([createdAt])
   @@index([userId])
-  @@index([status])
 }
 
-model UnlockRequest {
-  id         String    @id @default(uuid())
-  userId     String
-  reason     String?
-  status     String    @default("pending") // pending, approved, rejected
-  reviewedBy String?
-  reviewedAt DateTime?
-  createdAt  DateTime  @default(now())
+model FxPromoRedemption {
+  id          String      @id @default(cuid())
+  promotionId String
+  userId      String
+  transferId  String?
+  savedAmount Decimal
+  createdAt   DateTime    @default(now())
+  FxPromotion FxPromotion @relation(fields: [promotionId], references: [id])
 
-  user User @relation(fields: [userId], references: [id])
+  @@index([promotionId])
+  @@index([userId])
 }
 
-model FamilyLink {
-  id              String   @id @default(cuid())
-  diasporaUserId  String
-  familyUserId    String
-  nickname        String?  // "Mom", "Cousin", "School"
-  relationship    String?  // "mother", "father", "cousin", "friend"
-  isFavorite      Boolean  @default(false)
-  createdAt       DateTime @default(now())
+model FxPromotion {
+  id                String              @id @default(cuid())
+  name              String
+  fromCurrency      String
+  toCurrency        String
+  discountBps       Int
+  bonusPct          Decimal?
+  minAmount         Decimal?
+  maxAmount         Decimal?
+  code              String?             @unique
+  corridor          String?
+  maxUses           Int?
+  usedCount         Int                 @default(0)
+  startsAt          DateTime
+  endsAt            DateTime
+  active            Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime @updatedAt
+  FxPromoRedemption FxPromoRedemption[]
 
-  diasporaUser    User     @relation("diasporaOwner", fields: [diasporaUserId], references: [id])
-  familyUser      User     @relation("familyMember", fields: [familyUserId], references: [id])
+  @@index([code])
+  @@index([fromCurrency, toCurrency])
+  @@index([startsAt, endsAt])
+}
 
-  @@unique([diasporaUserId, familyUserId])
-  @@index([diasporaUserId])
+model FxRate {
+  id           String   @id @default(cuid())
+  fromCurrency String
+  toCurrency   String
+  rate         Decimal
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  buy          Decimal? @db.Decimal(18, 6)
+  mid          Decimal? @db.Decimal(18, 6)
+  sell         Decimal? @db.Decimal(18, 6)
+  source       String   @default("manual")
+  spreadBps    Int      @default(0)
+
+  @@index([fromCurrency, toCurrency, active])
 }
 
 model IdempotencyKey {
@@ -591,21 +385,152 @@ model IdempotencyKey {
   route       String
   requestHash String
   response    Json
-  status      String   @default("completed") // completed | processing | failed
+  status      String   @default("completed")
   createdAt   DateTime @default(now())
 
   @@unique([key, route])
-  @@index([userId])
   @@index([createdAt])
+  @@index([userId])
+}
+
+model KycProfile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  documentType    String?
+  documentUrl     String?
+  selfieUrl       String?
+  addressProof    String?
+  submittedAt     DateTime?
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  rejectionReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime @updatedAt
+  address         String?
+  country         String?
+  dob             DateTime?
+  fullName        String?
+  idNumber        String?
+  User            User      @relation(fields: [userId], references: [id])
+}
+
+model LedgerEntry {
+  id         String   @id @default(cuid())
+  walletId   String
+  amount     Decimal  @db.Decimal(18, 2)
+  type       String
+  createdAt  DateTime @default(now())
+  transferId String?
+  reference  String?
+  Wallet     Wallet   @relation(fields: [walletId], references: [id])
+}
+
+model LimitConfig {
+  id          String  @id @default(cuid())
+  tier        Int     @unique
+  dailySend   Decimal @db.Decimal(18, 2)
+  monthlySend Decimal @db.Decimal(18, 2)
+}
+
+model LimitUsage {
+  id             String   @id @default(cuid())
+  userId         String
+  currency       String
+  dailyUsed      Decimal  @default(0) @db.Decimal(18, 2)
+  monthlyUsed    Decimal  @default(0) @db.Decimal(18, 2)
+  dailyResetAt   DateTime
+  monthlyResetAt DateTime
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, currency])
+}
+
+model Merchant {
+  id                 String               @id @default(cuid())
+  userId             String               @unique
+  businessName       String
+  paymentCode        String               @unique
+  logoUrl            String?
+  phone              String?
+  category           String?
+  kycStatus          String               @default("pending")
+  status             String               @default("pending")
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime @updatedAt
+  User               User                 @relation(fields: [userId], references: [id])
+  MerchantFeeProfile MerchantFeeProfile?
+  MerchantPosRequest MerchantPosRequest[]
+  MerchantWithdrawal MerchantWithdrawal[]
+}
+
+model MerchantFeeProfile {
+  id         String   @id @default(cuid())
+  merchantId String   @unique
+  mode       String   @default("percent")
+  percentBps Int      @default(75)
+  fixedFee   Decimal  @default(0) @db.Decimal(18, 2)
+  currency   String   @default("HTG")
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  Merchant   Merchant @relation(fields: [merchantId], references: [id])
+}
+
+model MerchantPosRequest {
+  id           String    @id @default(cuid())
+  merchantId   String
+  amount       Decimal   @db.Decimal(18, 2)
+  currency     String    @default("HTG")
+  note         String?
+  status       String    @default("pending")
+  signature    String
+  expiresAt    DateTime
+  paidByUserId String?
+  paidAt       DateTime?
+  transferId   String?
+  createdAt    DateTime  @default(now())
+  Merchant     Merchant  @relation(fields: [merchantId], references: [id])
+
+  @@index([expiresAt])
+  @@index([merchantId])
+  @@index([status])
+}
+
+model MerchantWithdrawal {
+  id            String    @id @default(cuid())
+  merchantId    String
+  walletId      String
+  amount        Decimal
+  currency      String
+  code          String    @unique
+  status        String    @default("pending")
+  distributorId String?
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
+  Merchant      Merchant  @relation(fields: [merchantId], references: [id])
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  body        String
+  type        String
+  read        Boolean  @default(false)
+  data        Json?
+  createdAt   DateTime @default(now())
+  params      Json?
+  templateKey String?
+  User        User     @relation(fields: [userId], references: [id])
 }
 
 model NotificationLog {
-  id        String    @id @default(uuid())
-  channel   String    @default("sms") // sms, push, email
+  id        String    @id @default(cuid())
+  channel   String    @default("sms")
   type      String
   to        String
   body      String
-  status    String    @default("queued") // queued, sent, failed
+  status    String    @default("queued")
   error     String?
   jobId     String?
   userId    String?
@@ -614,304 +539,58 @@ model NotificationLog {
   createdAt DateTime  @default(now())
 }
 
-model CardWaitlist {
-  id        String   @id @default(uuid())
-  fullName  String
-  phone     String
-  city      String?
-  interest  String   @default("both") // virtual, physical, both
-  userId    String?
-  createdAt DateTime @default(now())
-
-  @@unique([phone])
-}
-
-model FxRate {
-  id           String   @id @default(cuid())
-  fromCurrency String
-  toCurrency   String
-  rate         Decimal  // legacy field — kept for backward compat
-  mid          Decimal? @db.Decimal(18, 6) // market mid rate
-  buy          Decimal? @db.Decimal(18, 6) // platform buys quote (user receives)
-  sell         Decimal? @db.Decimal(18, 6) // platform sells quote
-  spreadBps    Int      @default(0)        // spread in basis points (250 = 2.5%)
-  source       String   @default("manual") // manual | api
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-
-  @@index([fromCurrency, toCurrency, active])
-}
-
-// ── Phase 44: FX Conversion Audit Trail ─────────────────────────────
-
-model FxConversion {
-  id          String   @id @default(cuid())
-  userId      String
-  fromCurrency String
-  toCurrency  String
-  fromAmount  Decimal  @db.Decimal(18, 2)
-  toAmount    Decimal  @db.Decimal(18, 2)
-  rateUsed    Decimal  @db.Decimal(18, 6)
-  spreadBps   Int      @default(0)
-  profit      Decimal  @db.Decimal(18, 2) @default(0) // platform profit from spread
-  reference   String?  // e.g., "transfer:xxx" or "schedule:xxx"
-  createdAt   DateTime @default(now())
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-// ── Phase 46: Per-Merchant Fee Profile ──────────────────────────────
-
-model MerchantFeeProfile {
-  id          String   @id @default(cuid())
-  merchantId  String   @unique
-  mode        String   @default("percent") // percent | fixed | hybrid | none
-  percentBps  Int      @default(75)        // 0.75% = 75 bps
-  fixedFee    Decimal  @db.Decimal(18, 2) @default(0)
-  currency    String   @default("HTG")
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  merchant    Merchant @relation(fields: [merchantId], references: [id])
-}
-
-// ── Phase 27: Virtual Card Engine ──────────────────────────────────
-
-model VirtualCard {
-  id            String   @id @default(cuid())
-  userId        String
-
-  cardNumberEnc String   // AES-256-GCM encrypted
-  fingerprint   String   @unique // SHA-256 of plaintext card number
-  last4         String
-  brand         String   @default("KOBKLEIN")
-
-  expiryMonth   Int
-  expiryYear    Int
-
-  cvvHash       String   // bcrypt hash — never store plaintext
-
-  currency      String   @default("USD")
-  status        String   @default("active") // active | frozen | canceled
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  transactions  VirtualCardTxn[]
-
-  @@index([userId])
-}
-
-model VirtualCardTxn {
-  id               String   @id @default(cuid())
-  cardId           String
-  userId           String
-
-  status           String   @default("authorized") // authorized | captured | reversed | declined
-  amount           Decimal  @db.Decimal(18, 2)
-  currency         String
-
-  merchantName     String?
-  merchantCategory String?
-  merchantCountry  String?
-
-  holdId           String?  // links to hold ledger entry
-  captureLedgerId  String?  // links to capture ledger entry
-
-  meta             Json?
-
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  card             VirtualCard @relation(fields: [cardId], references: [id])
-
-  @@index([cardId])
-  @@index([userId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-// ── Phase 28: K-Pay Subscription Proxy ─────────────────────────────
-
-model SubscriptionProxy {
-  id                 String   @id @default(cuid())
-  userId             String
-
-  merchant           String   // NETFLIX, SPOTIFY, etc.
-  externalAccountRef String?  // user's account email for that merchant
-
-  amountUsd          Decimal  @db.Decimal(18, 2)
-  currency           String   @default("USD")
-
-  status             String   @default("active") // active | paused | canceled | delinquent
-
-  nextBilling        DateTime
-  lastCharged        DateTime?
-  lastAttempt        DateTime?
-  failureCount       Int      @default(0)
-
-  meta               Json?
-
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  @@index([userId])
-  @@index([merchant])
-  @@index([status])
-  @@index([nextBilling])
-}
-
-// ── Phase 29: K-Pay Store (Subscription Catalog) ────────────────────
-
-model SubscriptionCatalogItem {
-  id          String   @id @default(cuid())
-
-  merchantKey String   @unique // "NETFLIX", "PRIME", "SPOTIFY"
-  category    String   // "streaming", "music", "education", "tools"
-
-  // Multilingual display
-  nameEn      String
-  nameFr      String
-  nameHt      String
-  nameEs      String
-
-  descEn      String?
-  descFr      String?
-  descHt      String?
-  descEs      String?
-
-  active      Boolean  @default(true)
-
-  plans       SubscriptionPlan[]
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model SubscriptionPlan {
-  id          String   @id @default(cuid())
-  itemId      String
-
-  item        SubscriptionCatalogItem @relation(fields: [itemId], references: [id])
-
-  planKey     String   @unique // "NETFLIX_STANDARD", etc.
-  amountUsd   Decimal  @db.Decimal(18, 2)
-  interval    String   @default("monthly") // monthly (v1)
-
-  // Multilingual labels
-  labelEn     String
-  labelFr     String
-  labelHt     String
-  labelEs     String
-
-  active      Boolean  @default(true)
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([itemId])
-}
-
-// ── Phase 32: Merchant POS Mode ─────────────────────────────────────
-
-model MerchantPosRequest {
-  id           String    @id @default(cuid())
-  merchantId   String
-  amount       Decimal   @db.Decimal(18, 2)
-  currency     String    @default("HTG")
-  note         String?
-  status       String    @default("pending") // pending | paid | expired | canceled
-  signature    String    // HMAC signature for QR integrity
-  expiresAt    DateTime
-  paidByUserId String?
-  paidAt       DateTime?
-  transferId   String?   // links to the ledger settlement
-  createdAt    DateTime  @default(now())
-
-  merchant     Merchant  @relation(fields: [merchantId], references: [id])
-
-  @@index([merchantId])
-  @@index([status])
-  @@index([expiresAt])
-}
-
-// ── Phase 40: Scheduled Remittance ──────────────────────────────────
-
-model ScheduledTransfer {
-  id              String    @id @default(cuid())
-  senderUserId    String
-  recipientUserId String
-  familyLinkId    String?   // optional — ties to FamilyLink if diaspora
-  amountUsd       Decimal   @db.Decimal(18, 2)
-  frequency       String    @default("monthly") // weekly | biweekly | monthly
-  nextRunAt       DateTime
-  lastRunAt       DateTime?
-  lastTransferId  String?   // last successful transfer ID
-  failureCount    Int       @default(0)
-  status          String    @default("active") // active | paused | canceled | failed
-  note            String?   // "Mom's monthly support"
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  sender          User      @relation("scheduledSender", fields: [senderUserId], references: [id])
-  recipient       User      @relation("scheduledRecipient", fields: [recipientUserId], references: [id])
-
-  @@index([senderUserId])
-  @@index([status, nextRunAt])
-}
-
-// ── Phase 41: Risk Scoring Engine ───────────────────────────────────
-
-model RiskEvent {
-  id          String   @id @default(cuid())
-  userId      String
-  eventType   String   // transfer_attempt | login | cash_out | merchant_payment
-  riskScore   Int      // 0-100
-  riskLevel   String   // low | medium | high
-  reasons     Json     // ["new_device", "high_velocity", ...]
-  action      String   // allowed | otp_required | blocked | frozen
-  transferId  String?  // if related to a specific transfer
-  ip          String?
-  userAgent   String?
-  meta        Json?    // extra context (amount, currency, etc.)
-  createdAt   DateTime @default(now())
-
-  @@index([userId])
-  @@index([riskLevel, createdAt])
-  @@index([eventType])
-}
-
-model AccountFlag {
-  id         String    @id @default(cuid())
+model OtpChallenge {
+  id         String   @id @default(cuid())
   userId     String
-  flagType   String    // high_risk | watchlist | velocity_abuse | fraud_confirmed | pep
-  reason     String?   // human-readable reason
-  severity   Int       @default(2) // 1=low, 2=med, 3=high, 4=critical
-  addedBy    String?   // admin userId or "system"
-  resolvedAt DateTime?
-  resolvedBy String?   // admin userId who resolved it
-  createdAt  DateTime  @default(now())
+  transferId String?
+  reason     String
+  otpCode    String
+  status     String   @default("pending")
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  payload    Json?
+  purpose    String   @default("transfer")
 
+  @@index([status])
   @@index([userId])
-  @@index([flagType])
-  @@index([resolvedAt])
 }
 
-// ─── Phases 61-64: Tier-Based Subscription Plans ────────────────────────
+model OtpCode {
+  id          String    @id @default(cuid())
+  userId      String?
+  phone       String
+  code        String
+  purpose     String
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model PaymentRequest {
+  id                                    String    @id @default(cuid())
+  requesterId                           String
+  requesteeId                           String
+  amount                                Decimal   @db.Decimal(18, 2)
+  currency                              String    @default("HTG")
+  note                                  String?
+  status                                String    @default("pending")
+  paidAt                                DateTime?
+  createdAt                             DateTime  @default(now())
+  User_PaymentRequest_requesteeIdToUser User      @relation("PaymentRequest_requesteeIdToUser", fields: [requesteeId], references: [id])
+  User_PaymentRequest_requesterIdToUser User      @relation("PaymentRequest_requesterIdToUser", fields: [requesterId], references: [id])
+}
 
 model PlatformPlan {
-  id            String   @id @default(cuid())
-  slug          String   @unique   // "diaspora_plus", "merchant_growth", "distributor_pro"
-  role          String              // "diaspora", "merchant", "distributor"
-  tier          Int      @default(1) // 0=free, 1=basic, 2=pro, 3=enterprise
-  priceUsd      Decimal  @db.Decimal(18, 2)
-  interval      String   @default("monthly") // monthly | yearly
-  stripePriceId String?  @unique   // Stripe Price ID for recurring billing
-  features      Json?    // { "sendLimit": 5000, "fxMarkup": 0.5, "kpayIncluded": true, ... }
-
-  // Multilingual
+  id            String     @id @default(cuid())
+  slug          String     @unique
+  role          String
+  tier          Int        @default(1)
+  priceUsd      Decimal    @db.Decimal(18, 2)
+  interval      String     @default("monthly")
+  stripePriceId String?    @unique
+  features      Json?
   nameEn        String
   nameFr        String
   nameHt        String
@@ -920,173 +599,417 @@ model PlatformPlan {
   descFr        String?
   descHt        String?
   descEs        String?
-
-  active        Boolean  @default(true)
-  createdAt     DateTime @default(now())
+  active        Boolean    @default(true)
+  createdAt     DateTime   @default(now())
   updatedAt     DateTime @updatedAt
-
-  userPlans     UserPlan[]
+  UserPlan      UserPlan[]
 
   @@index([role])
   @@index([tier])
 }
 
-model UserPlan {
-  id                  String    @id @default(cuid())
-  userId              String
-  planId              String
-  stripeSubscriptionId String?  @unique  // Stripe Subscription ID
-  stripeCustomerId    String?             // Stripe Customer ID
-
-  status              String    @default("active") // active | past_due | canceled | trialing
-  currentPeriodStart  DateTime
-  currentPeriodEnd    DateTime
-  canceledAt          DateTime?
-  trialEnd            DateTime?
-
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-
-  plan                PlatformPlan @relation(fields: [planId], references: [id])
-
-  @@unique([userId, planId])
-  @@index([userId])
-  @@index([status])
-  @@index([stripeSubscriptionId])
-}
-
-// ─── Phase 56: Step-Up Authentication ───────────────────────────────────
-model StepUpToken {
-  id        String    @id @default(cuid())
+model PushToken {
+  id        String   @id @default(cuid())
   userId    String
-  scope     String    // withdrawal, cash_out, settings_change
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
+  token     String   @unique
+  platform  String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User     @relation(fields: [userId], references: [id])
 
-  user User @relation(fields: [userId], references: [id])
-
+  @@index([token])
   @@index([userId])
 }
 
-// ─── Phase 58: Compliance / Sanctions ───────────────────────────────────
+model ReceiveCode {
+  id        String   @id @default(cuid())
+  userId    String
+  code      String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id])
+}
+
+model RecipientInteraction {
+  id              String   @id @default(cuid())
+  userId          String
+  recipientUserId String
+  interactionType String
+  amount          Decimal  @db.Decimal(18, 2)
+  createdAt       DateTime @default(now())
+
+  @@index([userId, recipientUserId])
+}
+
+model ReconciliationRun {
+  id         String    @id @default(cuid())
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  status     String    @default("running")
+  summary    Json?
+  error      String?
+}
+
+model Reversal {
+  id             String   @id @default(cuid())
+  targetType     String
+  targetId       String
+  reason         String
+  idempotencyKey String   @unique
+  createdAt      DateTime @default(now())
+}
+
+model RiskEvent {
+  id         String   @id @default(cuid())
+  userId     String
+  eventType  String
+  riskScore  Int
+  riskLevel  String
+  reasons    Json
+  action     String
+  transferId String?
+  ip         String?
+  userAgent  String?
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  @@index([eventType])
+  @@index([riskLevel, createdAt])
+  @@index([userId])
+}
+
+model RiskFlag {
+  id         String    @id @default(cuid())
+  userId     String
+  type       String
+  severity   Int
+  details    Json?
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+}
+
+model RoleLimitProfile {
+  id           String   @id @default(cuid())
+  role         String
+  currency     String
+  dailyLimit   Decimal  @db.Decimal(18, 2)
+  monthlyLimit Decimal  @db.Decimal(18, 2)
+  createdAt    DateTime @default(now())
+
+  @@unique([role, currency])
+}
+
 model SanctionsCheck {
   id        String   @id @default(cuid())
   userId    String
   fullName  String
   country   String?
-  result    String   // clear, match, error
-  source    String   @default("manual") // ofac, eu, manual
+  result    String
+  source    String   @default("manual")
   matchData Json?
   checkedAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
+  User      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
 
-// ─── Phase 132: Push Notification Tokens ─────────────────────────────
-model PushToken {
-  id        String   @id @default(cuid())
+model ScheduledTransfer {
+  id                                           String    @id @default(cuid())
+  senderUserId                                 String
+  recipientUserId                              String
+  familyLinkId                                 String?
+  amountUsd                                    Decimal   @db.Decimal(18, 2)
+  frequency                                    String    @default("monthly")
+  nextRunAt                                    DateTime
+  lastRunAt                                    DateTime?
+  lastTransferId                               String?
+  failureCount                                 Int       @default(0)
+  status                                       String    @default("active")
+  note                                         String?
+  createdAt                                    DateTime  @default(now())
+  updatedAt                                    DateTime @updatedAt
+  User_ScheduledTransfer_recipientUserIdToUser User      @relation("ScheduledTransfer_recipientUserIdToUser", fields: [recipientUserId], references: [id])
+  User_ScheduledTransfer_senderUserIdToUser    User      @relation("ScheduledTransfer_senderUserIdToUser", fields: [senderUserId], references: [id])
+
+  @@index([senderUserId])
+  @@index([status, nextRunAt])
+}
+
+model StepUpToken {
+  id        String    @id @default(cuid())
   userId    String
-  token     String   @unique
-  platform  String   // ios, android
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
+  scope     String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  User      User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
-  @@index([token])
 }
 
-// ─── Phase 143: FX Promotions ────────────────────────────────────────
-model FxPromotion {
+model SubscriptionCatalogItem {
+  id               String             @id @default(cuid())
+  merchantKey      String             @unique
+  category         String
+  nameEn           String
+  nameFr           String
+  nameHt           String
+  nameEs           String
+  descEn           String?
+  descFr           String?
+  descHt           String?
+  descEs           String?
+  active           Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime @updatedAt
+  SubscriptionPlan SubscriptionPlan[]
+}
+
+model SubscriptionPlan {
+  id                      String                  @id @default(cuid())
+  itemId                  String
+  planKey                 String                  @unique
+  amountUsd               Decimal                 @db.Decimal(18, 2)
+  interval                String                  @default("monthly")
+  labelEn                 String
+  labelFr                 String
+  labelHt                 String
+  labelEs                 String
+  active                  Boolean                 @default(true)
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime @updatedAt
+  SubscriptionCatalogItem SubscriptionCatalogItem @relation(fields: [itemId], references: [id])
+
+  @@index([itemId])
+}
+
+model SubscriptionProxy {
+  id                 String    @id @default(cuid())
+  userId             String
+  merchant           String
+  externalAccountRef String?
+  amountUsd          Decimal   @db.Decimal(18, 2)
+  currency           String    @default("USD")
+  status             String    @default("active")
+  nextBilling        DateTime
+  lastCharged        DateTime?
+  lastAttempt        DateTime?
+  failureCount       Int       @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime @updatedAt
+  meta               Json?
+
+  @@index([merchant])
+  @@index([nextBilling])
+  @@index([status])
+  @@index([userId])
+}
+
+model Transfer {
+  id             String    @id @default(cuid())
+  amount         Decimal   @db.Decimal(18, 2)
+  createdAt      DateTime  @default(now())
+  currency       String
+  fromWalletId   String
+  idempotencyKey String    @unique
+  status         String    @default("posted")
+  toWalletId     String
+  senderUserId   String
+  reviewNote     String?
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  riskEventId    String?
+
+  @@index([status])
+}
+
+model TransferContact {
+  id                                       String   @id @default(cuid())
+  userId                                   String
+  contactUserId                            String
+  nickname                                 String?
+  transferCount                            Int      @default(1)
+  lastTransferAt                           DateTime @default(now())
+  createdAt                                DateTime @default(now())
+  isFavorite                               Boolean  @default(false)
+  User_TransferContact_contactUserIdToUser User     @relation("TransferContact_contactUserIdToUser", fields: [contactUserId], references: [id])
+  User_TransferContact_userIdToUser        User     @relation("TransferContact_userIdToUser", fields: [userId], references: [id])
+
+  @@unique([userId, contactUserId])
+}
+
+model UnlockRequest {
+  id         String    @id @default(cuid())
+  userId     String
+  reason     String?
+  status     String    @default("pending")
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime  @default(now())
+  User       User      @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id                                                        String              @id @default(cuid())
+  phone                                                     String?
+  role                                                      String
+  createdAt                                                 DateTime            @default(now())
+  auth0Id                                                   String?             @unique
+  kycTier                                                   Int                 @default(0)
+  dailyTransferLimit                                        Decimal             @default(5000)
+  email                                                     String?
+  firstName                                                 String?
+  freezeReason                                              String?
+  frozenAt                                                  DateTime?
+  handle                                                    String?             @unique
+  isFrozen                                                  Boolean             @default(false)
+  kycStatus                                                 String              @default("none")
+  lastName                                                  String?
+  preferredLang                                             String              @default("en")
+  kId                                                       String?             @unique
+  supabaseId                                                String?             @unique
+  country                                                   String?
+  dateOfBirth                                               DateTime?
+  onboardingComplete                                        Boolean             @default(false)
+  phoneVerified                                             Boolean             @default(false)
+  profileComplete                                           Boolean             @default(false)
+  profilePhotoUrl                                           String?
+  transactionPinHash                                        String?
+  updatedAt                                                 DateTime            @updatedAt
+  AmlFlag                                                   AmlFlag[]
+  AuditLog                                                  AuditLog[]
+  DeviceSession                                             DeviceSession[]
+  DiasporaProfile                                           DiasporaProfile?
+  Distributor                                               Distributor?
+  FamilyLink_FamilyLink_diasporaUserIdToUser                FamilyLink[]        @relation("FamilyLink_diasporaUserIdToUser")
+  FamilyLink_FamilyLink_familyUserIdToUser                  FamilyLink[]        @relation("FamilyLink_familyUserIdToUser")
+  KycProfile                                                KycProfile?
+  Merchant                                                  Merchant?
+  Notification                                              Notification[]
+  PaymentRequest_PaymentRequest_requesteeIdToUser           PaymentRequest[]    @relation("PaymentRequest_requesteeIdToUser")
+  PaymentRequest_PaymentRequest_requesterIdToUser           PaymentRequest[]    @relation("PaymentRequest_requesterIdToUser")
+  PushToken                                                 PushToken[]
+  ReceiveCode                                               ReceiveCode[]
+  SanctionsCheck                                            SanctionsCheck[]
+  ScheduledTransfer_ScheduledTransfer_recipientUserIdToUser ScheduledTransfer[] @relation("ScheduledTransfer_recipientUserIdToUser")
+  ScheduledTransfer_ScheduledTransfer_senderUserIdToUser    ScheduledTransfer[] @relation("ScheduledTransfer_senderUserIdToUser")
+  StepUpToken                                               StepUpToken[]
+  TransferContact_TransferContact_contactUserIdToUser       TransferContact[]   @relation("TransferContact_contactUserIdToUser")
+  TransferContact_TransferContact_userIdToUser              TransferContact[]   @relation("TransferContact_userIdToUser")
+  UnlockRequest                                             UnlockRequest[]
+  Wallet                                                    Wallet[]
+}
+
+model UserPlan {
+  id                   String       @id @default(cuid())
+  userId               String
+  planId               String
+  stripeSubscriptionId String?      @unique
+  stripeCustomerId     String?
+  status               String       @default("active")
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  canceledAt           DateTime?
+  trialEnd             DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime @updatedAt
+  PlatformPlan         PlatformPlan @relation(fields: [planId], references: [id])
+
+  @@unique([userId, planId])
+  @@index([status])
+  @@index([stripeSubscriptionId])
+  @@index([userId])
+}
+
+model VirtualCard {
+  id             String           @id @default(cuid())
+  userId         String
+  cardNumberEnc  String
+  fingerprint    String           @unique
+  last4          String
+  brand          String           @default("KOBKLEIN")
+  expiryMonth    Int
+  expiryYear     Int
+  cvvHash        String
+  currency       String           @default("USD")
+  status         String           @default("active")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime @updatedAt
+  VirtualCardTxn VirtualCardTxn[]
+
+  @@index([userId])
+}
+
+model VirtualCardTxn {
+  id               String      @id @default(cuid())
+  cardId           String
+  userId           String
+  status           String      @default("authorized")
+  amount           Decimal     @db.Decimal(18, 2)
+  currency         String
+  merchantName     String?
+  merchantCategory String?
+  merchantCountry  String?
+  holdId           String?
+  captureLedgerId  String?
+  meta             Json?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime @updatedAt
+  VirtualCard      VirtualCard @relation(fields: [cardId], references: [id])
+
+  @@index([cardId])
+  @@index([createdAt])
+  @@index([status])
+  @@index([userId])
+}
+
+model Wallet {
+  id          String        @id @default(cuid())
+  userId      String
+  currency    String
+  createdAt   DateTime      @default(now())
+  type        WalletType    @default(USER)
+  LedgerEntry LedgerEntry[]
+  User        User          @relation(fields: [userId], references: [id])
+
+  @@unique([userId, currency])
+}
+
+model WebhookEvent {
+  id          String    @id @default(cuid())
+  provider    String
+  eventId     String
+  type        String
+  payload     Json
+  receivedAt  DateTime  @default(now())
+  processedAt DateTime?
+  status      String    @default("received")
+  error       String?
+
+  @@unique([provider, eventId])
+}
+
+model Withdrawal {
   id            String   @id @default(cuid())
-  name          String
-  fromCurrency  String
-  toCurrency    String
-  discountBps   Int      // basis points discount on spread
-  bonusPct      Decimal? // optional bonus % on converted amount
-  minAmount     Decimal? // minimum transfer amount to qualify
-  maxAmount     Decimal? // maximum amount the promo applies to
-  code          String?  @unique // optional promo code
-  corridor      String?  // e.g. "US_HT", "CA_HT"
-  maxUses       Int?     // null = unlimited
-  usedCount     Int      @default(0)
-  startsAt      DateTime
-  endsAt        DateTime
-  active        Boolean  @default(true)
+  userId        String
+  walletId      String
+  distributorId String?
+  amount        Decimal  @db.Decimal(18, 2)
+  currency      String
+  status        String   @default("pending")
+  code          String   @unique
+  expiresAt     DateTime
+  feeAmount     Decimal? @db.Decimal(18, 2)
+  netAmount     Decimal? @db.Decimal(18, 2)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
-  redemptions FxPromoRedemption[]
-
-  @@index([fromCurrency, toCurrency])
-  @@index([code])
-  @@index([startsAt, endsAt])
 }
 
-model FxPromoRedemption {
-  id           String   @id @default(cuid())
-  promotionId  String
-  userId       String
-  transferId   String?
-  savedAmount  Decimal  // how much user saved in destination currency
-  createdAt    DateTime @default(now())
-
-  promotion FxPromotion @relation(fields: [promotionId], references: [id])
-
-  @@index([promotionId])
-  @@index([userId])
-}
-
-// ─── Phase 151: Distributor Recharge ─────────────────────────────────
-model DistributorRecharge {
-  id              String   @id @default(cuid())
-  distributorId   String
-  amount          Decimal
-  currency        String   @default("HTG")
-  method          String   // bank_transfer, mobile_money, cash_deposit
-  reference       String?  // external payment reference
-  proofUrl        String?  // uploaded receipt/proof
-  status          String   @default("pending") // pending, approved, rejected
-  reviewedBy      String?  // admin userId who reviewed
-  reviewNote      String?
-  reviewedAt      DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  distributor Distributor @relation(fields: [distributorId], references: [id])
-
-  @@index([distributorId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-// ─── Phase 159: AML Flags ────────────────────────────────────────────
-model AmlFlag {
-  id          String   @id @default(cuid())
-  userId      String
-  type        String   // velocity, structuring, sanctioned_country, large_cash, pattern, manual
-  severity    String   @default("medium") // low, medium, high, critical
-  description String
-  ruleId      String?  // which AML rule triggered
-  transferId  String?  // related transfer if any
-  status      String   @default("open") // open, investigating, escalated, resolved, false_positive
-  resolvedBy  String?  // admin userId
-  resolvedAt  DateTime?
-  resolveNote String?
-  metadata    Json?    // additional context (amounts, patterns, etc.)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([status])
-  @@index([severity])
-  @@index([type])
-  @@index([createdAt])
+enum WalletType {
+  USER
+  DISTRIBUTOR
+  MERCHANT
+  SYSTEM
+  TREASURY
 }

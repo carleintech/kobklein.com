@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { AuditService } from "../audit/audit.service";
 import { authorizeCardTransaction, reverseAuthorization } from "./authorize.service";
 import { captureCardTransaction } from "./capture.service";
@@ -24,7 +24,7 @@ export class VirtualCardPaymentsController {
    * In production this endpoint is called by the card network processor,
    * not the end user. For MVP, the client simulates merchant charges.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post(":cardId/authorize")
   async authorize(
     @Req() req: any,
@@ -78,7 +78,7 @@ export class VirtualCardPaymentsController {
   /**
    * Capture (settle) a previously authorized transaction.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post(":cardId/transactions/:txnId/capture")
   async capture(
     @Req() req: any,
@@ -113,7 +113,7 @@ export class VirtualCardPaymentsController {
   /**
    * Reverse an authorized hold.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post(":cardId/transactions/:txnId/reverse")
   async reverse(
     @Req() req: any,
@@ -143,7 +143,7 @@ export class VirtualCardPaymentsController {
   /**
    * List transactions for a card.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get(":cardId/transactions")
   async listTransactions(
     @Req() req: any,

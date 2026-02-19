@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { createReceiveCode, resolveReceiveCode } from "./receive-code.service";
 import { computeTrustScore } from "../risk/trust-score.service";
 
@@ -9,7 +9,7 @@ export class ReceiveQRController {
   /**
    * Get the user's static QR payload for receiving money.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("me/receive-code")
   async receiveCode(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -30,7 +30,7 @@ export class ReceiveQRController {
    * Get a rotating 6-digit receive code (5-minute expiry).
    * Used for street/voice/offline transactions.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("me/receive-code/rotating")
   async rotatingCode(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -40,7 +40,7 @@ export class ReceiveQRController {
   /**
    * Resolve a receive code to a recipient.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("receive-code/resolve")
   async resolve(@Body() body: { code: string }) {
     const result = await resolveReceiveCode(body.code);

@@ -6,7 +6,9 @@
   "scripts": {
     "lint": "biome lint .",
     "format": "biome format .",
-    "dev": "pnpm -r --filter ./apps/* run dev"
+    "dev": "pnpm -r --parallel --filter ./apps/* --filter !./apps/mobile run dev",
+    "dev:all": "pnpm -r --parallel --filter ./apps/* run dev",
+    "dev:mobile": "pnpm --filter ./apps/mobile run dev"
   },
   "keywords": [],
   "author": "",

@@ -31,7 +31,7 @@ export function LanguageSwitcher() {
             px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors
             ${
               locale === loc
-                ? "bg-[#C6A756]/20 text-[#C6A756]"
+                ? "bg-[#C9A84C]/20 text-[#C9A84C]"
                 : "text-neutral-500 hover:text-neutral-300"
             }
           `}

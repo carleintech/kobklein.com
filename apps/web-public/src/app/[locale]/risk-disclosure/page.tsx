@@ -85,7 +85,7 @@ export default async function RiskDisclosurePage({
       {/* Hero */}
       <section className="relative overflow-hidden gold-dust">
         <div className="absolute inset-0 gradient-sovereign" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(198,167,86,0.08),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(201,168,76,0.08),transparent_60%)]" />
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
           <ShieldAlert className="h-10 w-10 text-kob-gold mx-auto mb-4" />
           <h1 className="font-serif-luxury text-4xl md:text-5xl font-bold text-kob-text mb-4">

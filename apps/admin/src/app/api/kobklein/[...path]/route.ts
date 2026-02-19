@@ -1,16 +1,29 @@
-import { auth0 } from "@/lib/auth0";
 import { NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
 async function handler(
   req: Request,
   ctx: { params: Promise<{ path: string[] }> },
 ) {
   try {
-    // Auth0 v4: use the Auth0Client instance to get the access token
-    const tokenRes = await auth0.getAccessToken();
-    if (!tokenRes?.token) {
+    // Read session from chunked Supabase SSR cookies
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return cookieStore.getAll(); },
+          setAll() {},
+        },
+      },
+    );
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
       return NextResponse.json({ message: "Missing access token" }, { status: 401 });
     }
 
@@ -23,7 +36,7 @@ async function handler(
     incoming.searchParams.forEach((v, k) => url.searchParams.set(k, v));
 
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${tokenRes.token}`,
+      Authorization: `Bearer ${session.access_token}`,
       "Content-Type": req.headers.get("content-type") || "application/json",
     };
 
@@ -46,8 +59,21 @@ async function handler(
       },
     });
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : "Proxy error";
-    return NextResponse.json({ message }, { status: 500 });
+    const msg = e instanceof Error ? e.message : String(e);
+    const isDown = msg.includes("ECONNREFUSED") || msg.includes("fetch failed");
+
+    if (isDown) {
+      return NextResponse.json(
+        { message: "API service is unavailable. The backend server is not running.", code: "API_UNAVAILABLE" },
+        { status: 503 },
+      );
+    }
+
+    console.error("[Proxy] Unexpected error:", msg);
+    return NextResponse.json(
+      { message: "Failed to reach the API service.", code: "PROXY_ERROR" },
+      { status: 502 },
+    );
   }
 }
 

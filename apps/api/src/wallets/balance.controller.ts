@@ -1,21 +1,50 @@
 import { Controller, Get, UseGuards, Req } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
-import { computeWalletBalance } from "./balance.service";
+import { SupabaseGuard } from "../auth/supabase.guard";
+import { computeWalletBalance, getBalance } from "./balance.service";
 
-@Controller("wallets")
+@Controller("v1/wallets")
 export class WalletBalanceController {
-  @UseGuards(Auth0Guard)
+  /**
+   * GET /v1/wallets/balance
+   * Returns both the primary USER wallet summary (totalBalance, availableBalance, heldBalance)
+   * AND the full balances array across all wallets — satisfies both client.tsx and wallet/page.tsx.
+   */
+  @UseGuards(SupabaseGuard)
   @Get("balance")
   async balance(@Req() req: any) {
-    const userId = req.user.sub;
+    // localUser.id is the DB cuid; req.user.sub is the Supabase UUID — never mix them
+    const userId = req.localUser?.id || req.user?.sub;
 
-    const wallet = await prisma.wallet.findFirst({
-      where: { userId, type: "USER" },
+    const wallets = await prisma.wallet.findMany({
+      where: { userId },
     });
 
-    if (!wallet) return null;
+    if (wallets.length === 0) {
+      return { totalBalance: 0, availableBalance: 0, heldBalance: 0, balances: [] };
+    }
 
-    return computeWalletBalance(wallet.id);
+    // Build per-wallet balances (used by wallet/page.tsx)
+    const balances = await Promise.all(
+      wallets.map(async (w) => ({
+        walletId: w.id,
+        currency: w.currency,
+        type: w.type,
+        balance: await getBalance(w.id),
+      }))
+    );
+
+    // Primary USER wallet full detail (used by client.tsx)
+    const primaryWallet = wallets.find(w => w.type === "USER") ?? wallets[0];
+    const primary = await computeWalletBalance(primaryWallet.id);
+
+    return {
+      // Flat fields for client.tsx
+      totalBalance: primary.totalBalance,
+      availableBalance: primary.availableBalance,
+      heldBalance: primary.heldBalance,
+      // Array for wallet/page.tsx
+      balances,
+    };
   }
 }

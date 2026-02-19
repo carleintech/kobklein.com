@@ -3,11 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { apiGet } from "@/lib/api";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@kobklein/ui/card";
 import {
   ArrowDownLeft,
   ArrowUpRight,
-  Bell,
   Building,
   DollarSign,
   RefreshCw,
@@ -40,20 +39,13 @@ type AgentDashboard = {
 export function DistributorDashboard({ profile }: Props) {
   const router = useRouter();
   const [dashboard, setDashboard] = useState<AgentDashboard | null>(null);
-  const [notifCount, setNotifCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [dash, notifs] = await Promise.all([
-        apiGet<AgentDashboard>("v1/distributor/dashboard"),
-        apiGet<{ unread: number }>("notifications/count").catch(() => ({
-          unread: 0,
-        })),
-      ]);
+      const dash = await apiGet<AgentDashboard>("v1/distributor/dashboard");
       setDashboard(dash);
-      setNotifCount(notifs.unread);
     } catch (e) {
       console.error("Failed to load agent dashboard:", e);
     } finally {
@@ -86,21 +78,11 @@ export function DistributorDashboard({ profile }: Props) {
             </div>
           )}
         </div>
-        <div className="flex items-center gap-3">
-          <button type="button" onClick={load}>
-            <RefreshCw
-              className={`h-4 w-4 text-muted-foreground ${loading ? "animate-spin" : ""}`}
-            />
-          </button>
-          <button type="button" className="relative" onClick={() => router.push("/notifications")}>
-            <Bell className="h-5 w-5 text-muted-foreground" />
-            {notifCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] px-1 rounded-full">
-                {notifCount}
-              </span>
-            )}
-          </button>
-        </div>
+        <button type="button" onClick={load}>
+          <RefreshCw
+            className={`h-4 w-4 text-muted-foreground ${loading ? "animate-spin" : ""}`}
+          />
+        </button>
       </div>
 
       {/* Float Balance (prominent) */}

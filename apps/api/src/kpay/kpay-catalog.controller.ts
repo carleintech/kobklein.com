@@ -28,7 +28,7 @@ export class KpayCatalogController {
     const items = await prisma.subscriptionCatalogItem.findMany({
       where: { active: true },
       include: {
-        plans: {
+        SubscriptionPlan: {
           where: { active: true },
         },
       },
@@ -60,7 +60,7 @@ export class KpayCatalogController {
         category: item.category,
         name,
         description,
-        plans: item.plans.map((plan) => ({
+        SubscriptionPlan: item.SubscriptionPlan.map((plan) => ({
           id: plan.id,
           planKey: plan.planKey,
           interval: plan.interval,

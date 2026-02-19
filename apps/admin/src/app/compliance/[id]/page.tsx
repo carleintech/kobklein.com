@@ -3,10 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { kkGet, kkPost } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@kobklein/ui/card";
+import { Badge } from "@kobklein/ui/badge";
+import { Button } from "@kobklein/ui/button";
+import { Input } from "@kobklein/ui/input";
 import {
   RefreshCw,
   CheckCircle,
@@ -115,7 +115,7 @@ export default function CaseDetailPage() {
           <Card className="rounded-2xl">
             <CardContent className="p-5 space-y-3">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="h-4 w-4 text-[#C6A756]" />
+                <ShieldAlert className="h-4 w-4 text-[#C9A84C]" />
                 <span className="font-medium">Case Information</span>
                 {priorityBadge(caseData.priority)}
                 <Badge variant={caseData.status === "open" ? "warning" : "default"}>
@@ -175,7 +175,7 @@ export default function CaseDetailPage() {
                 <div className="space-y-2">
                   {caseData.actions.map((a) => (
                     <div key={a.id} className="flex items-center gap-3 text-sm">
-                      <div className="w-2 h-2 rounded-full bg-[#C6A756]" />
+                      <div className="w-2 h-2 rounded-full bg-[#C9A84C]" />
                       <span className="text-muted-foreground text-xs">
                         {new Date(a.createdAt).toLocaleString()}
                       </span>
@@ -193,7 +193,7 @@ export default function CaseDetailPage() {
             <Card className="rounded-2xl">
               <CardContent className="p-5">
                 <h3 className="font-medium mb-3 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-[#C6A756]" />
+                  <AlertTriangle className="h-4 w-4 text-[#C9A84C]" />
                   Resolve Case
                 </h3>
                 <div className="space-y-3">

@@ -1,11 +1,11 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 
 @Controller("distributor")
 export class MerchantSettlementController {
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post("merchant-settle")
   async settle(@Req() req: any, @Body() body: { code: string }) {
     const distributorUserId = req.user.sub;

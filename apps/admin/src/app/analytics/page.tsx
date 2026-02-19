@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { kkGet } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@kobklein/ui/card";
 import { TrendingUp, DollarSign } from "lucide-react";
 
 export default function AnalyticsPage() {

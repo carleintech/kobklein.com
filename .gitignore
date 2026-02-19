@@ -12,3 +12,5 @@ stripe-cli/
 .claude/
 test-stripe.js
 test-api-topup.js
+docs/images/preview/Kobklein.txt
+apps/web/public/images/images/*.txt

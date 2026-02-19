@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { RolesGuard } from "../policies/roles.guard";
 import { Roles } from "../policies/roles.decorator";
 import { computeWalletBalance, invalidateBalance } from "../wallets/balance.service";
@@ -22,7 +22,7 @@ export class AdminDistributorController {
    * GET /v1/admin/distributors
    * List all distributors with optional status filter.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get()
   async list(
@@ -38,7 +38,7 @@ export class AdminDistributorController {
       take,
       orderBy: { createdAt: "desc" },
       include: {
-        user: {
+        User: {
           select: { id: true, phone: true, firstName: true, lastName: true, kycTier: true },
         },
       },
@@ -69,7 +69,7 @@ export class AdminDistributorController {
         commissionIn: Number(d.commissionIn),
         commissionOut: Number(d.commissionOut),
         floatBalance,
-        user: d.user,
+        User: d.User,
         createdAt: d.createdAt,
       });
     }
@@ -81,14 +81,14 @@ export class AdminDistributorController {
    * GET /v1/admin/distributors/:id
    * Get single distributor detail with stats.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get(":id")
   async detail(@Param("id") id: string) {
     const distributor = await prisma.distributor.findUnique({
       where: { id },
       include: {
-        user: {
+        User: {
           select: { id: true, phone: true, firstName: true, lastName: true, email: true, kycTier: true },
         },
       },
@@ -140,7 +140,7 @@ export class AdminDistributorController {
         commissionIn: Number(distributor.commissionIn),
         commissionOut: Number(distributor.commissionOut),
         floatBalance,
-        user: distributor.user,
+        User: distributor.User,
         createdAt: distributor.createdAt,
       },
       stats30d: {
@@ -155,7 +155,7 @@ export class AdminDistributorController {
    * POST /v1/admin/distributors/:id/approve
    * Approve a pending distributor application.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/approve")
   async approve(
@@ -209,7 +209,7 @@ export class AdminDistributorController {
    * POST /v1/admin/distributors/:id/suspend
    * Suspend an active distributor.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/suspend")
   async suspend(
@@ -252,7 +252,7 @@ export class AdminDistributorController {
    * POST /v1/admin/distributors/:id/reactivate
    * Reactivate a suspended distributor.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/reactivate")
   async reactivate(
@@ -295,7 +295,7 @@ export class AdminDistributorController {
    * POST /v1/admin/distributors/:id/commission
    * Update per-distributor commission rates.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/commission")
   async setCommission(
@@ -354,7 +354,7 @@ export class AdminDistributorController {
    * GET /v1/admin/distributors/network/stats
    * Network-wide distributor statistics.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("network/stats")
   async networkStats() {
@@ -406,7 +406,7 @@ export class AdminDistributorController {
    * POST /v1/admin/distributors/:id/payout
    * Process earned commission payout — credits distributor float wallet.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/payout")
   async commissionPayout(

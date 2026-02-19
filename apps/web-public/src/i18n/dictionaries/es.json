@@ -15,11 +15,11 @@
   },
   "hero": {
     "badge": "El Futuro de las Finanzas Digitales en Haití",
-    "title": "El Futuro de la Libertad Financiera Digital",
-    "subtitle": "Envía dinero al instante. Sin bancos.",
+    "title": "Tu Dinero. Tu Poder. Sin Bancos.",
+    "subtitle": "La billetera digital segura que conecta Haití y su diáspora. Envía, paga y crece — al instante.",
     "description": "Un sistema de billetera digital seguro, sin efectivo, diseñado para haitianos y sus familias en todo el mundo.",
     "cta": "Comenzar",
-    "ctaSecondary": "Convertirse en Distribuidor",
+    "ctaSecondary": "Ver Cómo Funciona",
     "stats": {
       "users": "100K+",
       "usersLabel": "Usuarios Activos",
@@ -29,6 +29,20 @@
       "countriesLabel": "Países",
       "uptime": "99.9%",
       "uptimeLabel": "Disponibilidad"
+    },
+    "features": {
+      "security": {
+        "title": "Seguridad Bancaria",
+        "description": "Cifrado empresarial y prevención de fraude en tiempo real protegen cada transacción que realizas."
+      },
+      "instant": {
+        "title": "Procesamiento Instantáneo",
+        "description": "Transacciones en tiempo real que llegan en segundos, no en días. Tu familia recibe el dinero cuando lo necesita."
+      },
+      "fees": {
+        "title": "Cero Tarifas Ocultas",
+        "description": "Precios transparentes sin sorpresas. Transferencias P2P gratuitas y solo $1.99 para envíos internacionales."
+      }
     }
   },
   "features": {
@@ -209,6 +223,40 @@
     "title": "¿Listo para Unirte a la Revolución?",
     "subtitle": "Descarga KobKlein hoy y experimenta el futuro de los pagos digitales para Haití.",
     "button": "Comenzar Gratis"
+  },
+  "about": {
+    "badge": "Nuestra Historia",
+    "title": "Pagos Sin Fronteras para Haití",
+    "subtitle": "Estamos construyendo el puente entre Haití y su diáspora global — una transacción instantánea y segura a la vez.",
+    "founding": {
+      "title": "Por Qué Creamos KobKlein",
+      "p1": "Haití tiene una de las tasas de inclusión financiera más bajas del hemisferio occidental. Más del 80% de la población no tiene acceso bancario, dependiendo del efectivo para casi todas las transacciones. Mientras tanto, la diáspora haitiana envía más de $4 mil millones en remesas anualmente — pagando tarifas exorbitantes.",
+      "p2": "KobKlein fue fundado para cambiar esto. Creemos que cada haitiano merece acceso a herramientas financieras digitales modernas, seguras y asequibles — ya sea que viva en Puerto Príncipe, Miami, Montreal o París.",
+      "p3": "Nuestra plataforma conecta Haití con su diáspora global, permitiendo transferencias instantáneas, pagos sin efectivo y un camino hacia la verdadera independencia financiera.",
+      "problem": { "label": "El Problema", "text": "80%+ sin acceso bancario, tarifas de remesa de $12+, sin infraestructura de pago digital" },
+      "solution": { "label": "Nuestra Solución", "text": "Billetera digital móvil con transferencias instantáneas, remesas a $1.99, red de K-Agentes" },
+      "reach": { "label": "Nuestro Alcance", "text": "Sirviendo a Haití, EE.UU., Canadá, Francia y 15+ países donde viven haitianos" }
+    },
+    "stats": {
+      "users": { "value": "100K+", "label": "Usuarios Activos" },
+      "transfers": { "value": "$50M+", "label": "Transferidos" },
+      "countries": { "value": "15+", "label": "Países" },
+      "uptime": { "value": "99.9%", "label": "Disponibilidad" }
+    },
+    "missionCard": "Empoderar a cada haitiano con herramientas financieras digitales seguras, accesibles y asequibles — creando un camino desde la dependencia del efectivo hacia una verdadera soberanía financiera.",
+    "journey": {
+      "title": "Nuestro Camino",
+      "subtitle": "Hitos clave en la historia de KobKlein",
+      "m1": { "year": "2024", "title": "Fundado en Virginia Beach", "description": "KobKlein nace de una idea simple: los haitianos merecen las mismas herramientas financieras digitales que el resto del mundo." },
+      "m2": { "year": "2024", "title": "Lanzamiento de Plataforma", "description": "Las transferencias instantáneas K-Pay, la red de distribuidores K-Agent y los primeros paneles familiares K-Link se lanzan en Haití." },
+      "m3": { "year": "2025", "title": "Expansión Diáspora", "description": "Las operaciones se expanden para servir a la diáspora haitiana en EE.UU., Canadá y Francia con remesas transfronterizas." },
+      "m4": { "year": "2025", "title": "K-Card & Motor FX", "description": "Lanzamiento de la tarjeta Visa virtual K-Card y motor de cambio en tiempo real para conversión competitiva." }
+    },
+    "team": {
+      "title": "Conoce al Equipo",
+      "subtitle": "Un equipo apasionado de ingenieros, diseñadores y profesionales financieros comprometidos con la transformación digital de Haití.",
+      "cta": "Ver Nuestro Equipo"
+    }
   },
   "distributor": {
     "title": "Conviértete en K-Agente",

@@ -1,6 +1,6 @@
 import { Controller, Get, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { computeWalletBalance } from "../wallets/balance.service";
 import { getActiveFxRate } from "../fx/fx.service";
 
@@ -10,7 +10,7 @@ export class DiasporaSummaryController {
    * Diaspora-focused summary: USD balance, FX rate, family stats.
    * Complements the existing GET /v1/family/dashboard (HTG-focused).
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("summary")
   async summary(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;

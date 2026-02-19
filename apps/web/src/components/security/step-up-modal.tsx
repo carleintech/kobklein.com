@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@kobklein/ui/button";
+import { Input } from "@kobklein/ui/input";
+import { Card, CardContent } from "@kobklein/ui/card";
 import { Shield } from "lucide-react";
 
 type Props = {

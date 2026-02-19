@@ -4,6 +4,7 @@ import { motion, type Variants } from "framer-motion";
 import type { Dictionary } from "@/i18n";
 import { Building, Plane, ShoppingBag, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import Image from "next/image";
 
 const cardReveal: Variants = {
 	hidden: { opacity: 0, y: 40 },
@@ -16,6 +17,11 @@ const cardReveal: Variants = {
 			ease: "easeOut" as const,
 		},
 	}),
+};
+
+const pillarImages: Record<string, string> = {
+	merchants: "/images/features/merchant-payment.png",
+	diaspora: "/images/features/send-receive-connection.png",
 };
 
 const pillars = [
@@ -89,6 +95,19 @@ export function EcosystemSection({ dict }: { dict: Dictionary }) {
 													),
 												)}
 											</ul>
+											{pillarImages[key] && (
+												<div className="mt-5 relative h-32 w-full rounded-xl overflow-hidden opacity-75 group-hover:scale-105 transition-all duration-500">
+													<Image
+														src={pillarImages[key]}
+														alt={pillar.title}
+														fill
+												sizes="(max-width: 768px) 100vw, 25vw"
+												loading="lazy"
+														className="object-cover"
+													/>
+													<div className="absolute inset-0 bg-gradient-to-t from-kob-panel via-kob-teal/10 to-transparent" />
+												</div>
+											)}
 										</div>
 									</div>
 								</Card>

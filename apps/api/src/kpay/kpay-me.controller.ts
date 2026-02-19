@@ -1,5 +1,5 @@
 import { Controller, Get, Query, Req, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { prisma } from "../db/prisma";
 import { getActiveFxRate } from "../fx/fx.service";
 
@@ -13,7 +13,7 @@ export class KpayMeController {
    *
    * GET /v1/kpay/me?lang=ht
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("me")
   async mySubscriptions(@Req() req: any, @Query("lang") lang?: string) {
     const userId = req.localUser?.id || req.user?.sub;

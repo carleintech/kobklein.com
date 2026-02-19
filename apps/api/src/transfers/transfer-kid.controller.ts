@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 import { executeTransfer } from "./transfer-execution.service";
 import { AuditService } from "../audit/audit.service";
@@ -17,7 +17,7 @@ import { AuditService } from "../audit/audit.service";
 export class TransferByKIdController {
   constructor(private auditService: AuditService) {}
 
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post("kid")
   async transferByKId(
     @Req() req: any,
@@ -29,17 +29,12 @@ export class TransferByKIdController {
       idempotencyKey: string;
     },
   ) {
-    const senderAuth0Id = req.localUser?.id || req.user?.sub;
+    const senderUser = req.localUser;
+    if (!senderUser) throw new Error("Sender not found");
 
     if (!body.idempotencyKey) throw new Error("Missing idempotencyKey");
     if (!body.toKId) throw new Error("Missing toKId");
     if (!body.amount || body.amount <= 0) throw new Error("Invalid amount");
-
-    // Resolve sender (auth0Id → userId)
-    const senderUser = await prisma.user.findUnique({
-      where: { auth0Id: senderAuth0Id },
-    });
-    if (!senderUser) throw new Error("Sender not found");
 
     // Resolve recipient by K-ID
     const recipientUser = await prisma.user.findUnique({
@@ -82,7 +77,7 @@ export class TransferByKIdController {
       ok: true,
       transferId: result.transferId,
       deduplicated: result.deduplicated,
-      recipient: {
+      User_ScheduledTransfer_recipientUserIdToUser: {
         kId: recipientUser.kId,
         firstName: recipientUser.firstName,
         handle: recipientUser.handle,

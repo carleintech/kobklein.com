@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 import { AuditService } from "../audit/audit.service";
 import { executeTransfer } from "../transfers/transfer-execution.service";
@@ -15,7 +15,7 @@ export class PaymentRequestsController {
   /**
    * Create a payment request (ask someone to pay you).
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post()
   async create(
     @Req() req: any,
@@ -66,7 +66,7 @@ export class PaymentRequestsController {
   /**
    * List incoming payment requests (people asking me to pay).
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("incoming")
   async incoming(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -76,7 +76,7 @@ export class PaymentRequestsController {
       orderBy: { createdAt: "desc" },
       take: 50,
       include: {
-        requester: {
+        User_PaymentRequest_requesterIdToUser: {
           select: { id: true, firstName: true, lastName: true, handle: true },
         },
       },
@@ -86,7 +86,7 @@ export class PaymentRequestsController {
   /**
    * List outgoing payment requests (requests I sent).
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("outgoing")
   async outgoing(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -96,7 +96,7 @@ export class PaymentRequestsController {
       orderBy: { createdAt: "desc" },
       take: 50,
       include: {
-        requestee: {
+        User_PaymentRequest_requesteeIdToUser: {
           select: { id: true, firstName: true, lastName: true, handle: true },
         },
       },
@@ -106,7 +106,7 @@ export class PaymentRequestsController {
   /**
    * Pay a payment request.
    */
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post(":id/pay")
   async pay(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -165,7 +165,7 @@ export class PaymentRequestsController {
   /**
    * Decline a payment request.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post(":id/decline")
   async decline(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;

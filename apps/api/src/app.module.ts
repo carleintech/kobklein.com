@@ -107,6 +107,7 @@ import { PushController } from "./push/push.controller";
 import { FxPromoController, AdminFxPromoController } from "./fx/fx-promo.controller";
 import { DistributorRechargeController, AdminRechargeController } from "./distributor/recharge.controller";
 import { AmlController } from "./aml/aml.controller";
+import { OnboardingModule } from "./onboarding/onboarding.module";
 
 @Module({
   imports: [
@@ -114,6 +115,7 @@ import { AmlController } from "./aml/aml.controller";
       isGlobal: true,
     }),
     CasesModule,
+    OnboardingModule,
   ],
   controllers: [
     HealthController,
@@ -225,24 +227,34 @@ export class AppModule implements OnModuleInit, NestModule {
     // Direct SQL connection - no Prisma needed
     console.log("DB ready");
 
+    // Redis is optional in dev — API still works without it (degraded)
     await initRedis();
-    console.log("Redis connected");
 
-    startNotificationWorker();
+    // Notification worker depends on ioredis; wrap so API starts without Redis
+    try {
+      startNotificationWorker();
+    } catch (err) {
+      console.warn("⚠ Notification worker failed to start (Redis required):", err instanceof Error ? err.message : err);
+    }
 
-    startEventWorker();
-    console.log("Event worker started");
+    try {
+      startEventWorker();
+      console.log("Event worker started");
+    } catch (err) {
+      console.warn("⚠ Event worker failed to start:", err instanceof Error ? err.message : err);
+    }
 
-    startFloatScheduler();
-    console.log("Float scheduler started");
-
-    startBillingScheduler();
-    console.log("Billing scheduler started");
-
-    startNotificationScheduler();
-    console.log("Notification scheduler started");
-
-    startRemittanceScheduler();
-    console.log("Remittance scheduler started");
+    try {
+      startFloatScheduler();
+      console.log("Float scheduler started");
+      startBillingScheduler();
+      console.log("Billing scheduler started");
+      startNotificationScheduler();
+      console.log("Notification scheduler started");
+      startRemittanceScheduler();
+      console.log("Remittance scheduler started");
+    } catch (err) {
+      console.warn("⚠ Some schedulers failed to start:", err instanceof Error ? err.message : err);
+    }
   }
 }

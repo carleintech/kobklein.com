@@ -5,7 +5,7 @@ import { Badge } from "@/components/badge";
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import { useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
 interface ReconResult {
   status: string;

@@ -1,12 +1,11 @@
 import { Controller, Get, Param, Query, Req, UseGuards } from "@nestjs/common";
 import { pool } from "../db/pool";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { getWalletTimeline } from "./timeline.service";
-import { getBalance } from "./balance.service";
 
 @Controller("v1")
 export class TimelineController {
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("wallets/:walletId/timeline")
   async timeline(
     @Req() req: any,
@@ -24,27 +23,5 @@ export class TimelineController {
     if (walletCheck.rows.length === 0) throw new Error("Wallet not found or access denied");
 
     return getWalletTimeline(walletId, Number(limit) || 50, Number(offset) || 0);
-  }
-
-  @UseGuards(Auth0Guard)
-  @Get("wallets/balance")
-  async balance(@Req() req: any) {
-    const userId = req.localUser?.id;
-    if (!userId) throw new Error("Missing local user");
-
-    const walletsResult = await pool.query(
-      `SELECT id, currency, type FROM "Wallet" WHERE "userId" = $1`, [userId]
-    );
-
-    const balances = await Promise.all(
-      walletsResult.rows.map(async (w: any) => ({
-        walletId: w.id,
-        currency: w.currency,
-        type: w.type,
-        balance: await getBalance(w.id),
-      }))
-    );
-
-    return { balances };
   }
 }

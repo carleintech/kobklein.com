@@ -26,8 +26,8 @@ async function processScheduledRemittances() {
     },
     take: 200, // Batch limit
     include: {
-      sender: { select: { id: true, firstName: true, isFrozen: true } },
-      recipient: { select: { id: true, firstName: true, kId: true } },
+      User_ScheduledTransfer_senderUserIdToUser: { select: { id: true, firstName: true, isFrozen: true } },
+      User_ScheduledTransfer_recipientUserIdToUser: { select: { id: true, firstName: true, kId: true } },
     },
   });
 
@@ -38,14 +38,14 @@ async function processScheduledRemittances() {
   for (const schedule of dueSchedules) {
     try {
       // Skip frozen senders — don't mark as failed, just skip this cycle
-      if (schedule.sender.isFrozen) {
+      if (schedule.User_ScheduledTransfer_senderUserIdToUser.isFrozen) {
         console.log(
           `[remittance] Skipping ${schedule.id} — sender is frozen`,
         );
         await createNotification(
           schedule.senderUserId,
           "Scheduled Transfer Skipped",
-          `Your scheduled transfer of $${Number(schedule.amountUsd)} USD to ${schedule.recipient.firstName || schedule.recipient.kId || "family"} was skipped because your account is frozen.`,
+          `Your scheduled transfer of $${Number(schedule.amountUsd)} USD to ${schedule.User_ScheduledTransfer_recipientUserIdToUser.firstName || schedule.User_ScheduledTransfer_recipientUserIdToUser.kId || "family"} was skipped because your account is frozen.`,
           "system",
         );
         continue;

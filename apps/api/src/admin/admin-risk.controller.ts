@@ -6,7 +6,7 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { prisma } from "../db/prisma";
@@ -36,7 +36,7 @@ export class AdminRiskController {
    * GET /v1/admin/risk/profile/:userId
    * Get full risk profile for a user.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("profile/:userId")
   async getRiskProfile(@Param("userId") userId: string) {
@@ -48,7 +48,7 @@ export class AdminRiskController {
    * GET /v1/admin/risk/events/recent
    * Get recent high-risk events across all users.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("events/recent")
   async recentRiskEvents() {
@@ -65,7 +65,7 @@ export class AdminRiskController {
    * POST /v1/admin/risk/flags/add
    * Add an account flag to a user.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("flags/add")
   async addAccountFlag(
@@ -129,7 +129,7 @@ export class AdminRiskController {
    * POST /v1/admin/risk/flags/:id/resolve
    * Resolve (remove) an account flag.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("flags/:id/resolve")
   async resolveAccountFlag(
@@ -166,7 +166,7 @@ export class AdminRiskController {
    * GET /v1/admin/risk/flagged-users
    * List all users with active account flags.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("flagged-users")
   async flaggedUsers() {

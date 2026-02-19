@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { kkGet, kkPost } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { kkGet, kkPost, ApiError } from "@/lib/kobklein-api";
+import { ApiUnavailableBanner } from "@/components/api-status-banner";
+import { Card, CardContent } from "@kobklein/ui/card";
+import { Badge } from "@kobklein/ui/badge";
+import { Button } from "@kobklein/ui/button";
 import { DataTable } from "@/components/data-table";
 import {
   RefreshCw,
@@ -36,9 +37,11 @@ export default function CompliancePage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [cases, setCases] = useState<ComplianceCase[]>([]);
   const [loading, setLoading] = useState(false);
+  const [apiDown, setApiDown] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setApiDown(false);
     try {
       const [s, c] = await Promise.all([
         kkGet<any>("v1/admin/compliance/stats"),
@@ -47,6 +50,9 @@ export default function CompliancePage() {
       setStats(s);
       setCases(c?.cases || []);
     } catch (e) {
+      if (e instanceof ApiError && e.isApiUnavailable) {
+        setApiDown(true);
+      }
       console.error("Failed to load compliance data:", e);
     } finally {
       setLoading(false);
@@ -80,6 +86,8 @@ export default function CompliancePage() {
           Refresh
         </Button>
       </div>
+
+      {apiDown && <ApiUnavailableBanner />}
 
       {/* Stats */}
       {stats && (
@@ -161,7 +169,7 @@ export default function CompliancePage() {
                 render: (r: ComplianceCase) => (
                   <a
                     href={`/compliance/${r.id}`}
-                    className="text-xs text-[#C6A756] hover:underline"
+                    className="text-xs text-[#C9A84C] hover:underline"
                   >
                     View
                   </a>

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/badge";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card } from "@kobklein/ui/card";
+import { Button } from "@kobklein/ui/button";
 import { kkGet, kkPost } from "@/lib/kobklein-api";
 import { ArrowLeft, MessageSquare, Activity, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -101,8 +101,8 @@ export default function CaseDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-[#C6A756]" />
-        <span className="ml-2 text-sm text-[#7A8394]">Loading case...</span>
+        <Loader2 className="w-6 h-6 animate-spin text-[#C9A84C]" />
+        <span className="ml-2 text-sm text-[#6B7489]">Loading case...</span>
       </div>
     );
   }
@@ -180,7 +180,7 @@ export default function CaseDetailPage() {
 
               <div>
                 <span className="text-sm font-medium">Description:</span>
-                <p className="text-sm mt-1 p-3 bg-[#151B2E] rounded">{caseData.description}</p>
+                <p className="text-sm mt-1 p-3 bg-[#0F1D35] rounded">{caseData.description}</p>
               </div>
             </div>
           </Card>
@@ -195,21 +195,21 @@ export default function CaseDetailPage() {
 
               <div className="space-y-3">
                 {caseData.messages?.map((message: any) => (
-                  <div key={message.id} className="border-l-2 border-[#C6A756]/30 pl-4">
+                  <div key={message.id} className="border-l-2 border-[#C9A84C]/30 pl-4">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-medium capitalize">{message.authorRole}</span>
                       {message.authorUserId && (
-                        <span className="font-mono text-xs text-[#7A8394]">
+                        <span className="font-mono text-xs text-[#6B7489]">
                           {message.authorUserId.slice(0, 8)}...
                         </span>
                       )}
-                      <span className="text-xs text-[#7A8394]">{timeAgo(message.createdAt)}</span>
+                      <span className="text-xs text-[#6B7489]">{timeAgo(message.createdAt)}</span>
                     </div>
                     <p className="text-sm">{message.message}</p>
                   </div>
                 ))}
                 {(!caseData.messages || caseData.messages.length === 0) && (
-                  <p className="text-sm text-[#7A8394]">No messages yet</p>
+                  <p className="text-sm text-[#6B7489]">No messages yet</p>
                 )}
               </div>
             </div>
@@ -279,12 +279,12 @@ export default function CaseDetailPage() {
                   </Button>
                 ) : (
                   <div className="space-y-2 p-3 rounded-lg border border-emerald-600/40 bg-emerald-950/20">
-                    <label className="text-xs text-[#C4C7CF] block">Resolution</label>
+                    <label className="text-xs text-[#B8BCC8] block">Resolution</label>
                     <textarea
                       value={resolutionText}
                       onChange={(e) => setResolutionText(e.target.value)}
                       placeholder="Describe the resolution..."
-                      className="w-full h-20 rounded-md border border-input bg-[#151B2E] px-3 py-2 text-sm text-[#F2F2F2] placeholder:text-[#7A8394] resize-none focus:outline-none focus:ring-1 focus:ring-[#C6A756]"
+                      className="w-full h-20 rounded-md border border-input bg-[#0F1D35] px-3 py-2 text-sm text-[#F0F1F5] placeholder:text-[#6B7489] resize-none focus:outline-none focus:ring-1 focus:ring-[#C9A84C]"
                     />
                     <div className="flex gap-2">
                       <Button
@@ -334,12 +334,12 @@ export default function CaseDetailPage() {
                   </Button>
                 ) : (
                   <div className="space-y-2 p-3 rounded-lg border border-red-600/40 bg-red-950/20">
-                    <label className="text-xs text-[#C4C7CF] block">Rejection Reason</label>
+                    <label className="text-xs text-[#B8BCC8] block">Rejection Reason</label>
                     <textarea
                       value={rejectReasonText}
                       onChange={(e) => setRejectReasonText(e.target.value)}
                       placeholder="Describe the reason for rejection..."
-                      className="w-full h-20 rounded-md border border-input bg-[#151B2E] px-3 py-2 text-sm text-[#F2F2F2] placeholder:text-[#7A8394] resize-none focus:outline-none focus:ring-1 focus:ring-[#C6A756]"
+                      className="w-full h-20 rounded-md border border-input bg-[#0F1D35] px-3 py-2 text-sm text-[#F0F1F5] placeholder:text-[#6B7489] resize-none focus:outline-none focus:ring-1 focus:ring-[#C9A84C]"
                     />
                     <div className="flex gap-2">
                       <Button
@@ -396,21 +396,21 @@ export default function CaseDetailPage() {
                     <div className="font-medium">
                       {actionTypeLabels[action.actionType] || action.actionType}
                     </div>
-                    <div className="text-xs text-[#7A8394]">
+                    <div className="text-xs text-[#6B7489]">
                       {timeAgo(action.createdAt)}
                       {action.actorUserId && (
                         <span className="ml-2 font-mono">{action.actorUserId.slice(0, 8)}...</span>
                       )}
                     </div>
                     {action.meta && (
-                      <div className="text-xs text-[#C4C7CF] mt-1">
+                      <div className="text-xs text-[#B8BCC8] mt-1">
                         {JSON.stringify(action.meta, null, 2)}
                       </div>
                     )}
                   </div>
                 ))}
                 {(!caseData.actions || caseData.actions.length === 0) && (
-                  <p className="text-sm text-[#7A8394]">No actions yet</p>
+                  <p className="text-sm text-[#6B7489]">No actions yet</p>
                 )}
               </div>
             </div>

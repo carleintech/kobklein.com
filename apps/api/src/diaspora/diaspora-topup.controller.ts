@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { StripeService } from "../services/stripe.service";
 
 @Controller("v1/diaspora")
@@ -13,7 +13,7 @@ export class DiasporaTopupController {
    * The Stripe webhook (payment_intent.succeeded) already handles
    * crediting the wallet via postDeposit — we just pass walletId in metadata.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("topup-intent")
   async createTopupIntent(
     @Req() req: any,

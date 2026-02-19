@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { postTransfer } from "./transfer.service";
 import { enforceTransferVelocity, flagRisk } from "../fraud/risk.service";
 import { redis } from "../services/redis.client";
@@ -8,7 +8,7 @@ import { emitEvent } from "../services/event-bus.service";
 
 @Controller("v1")
 export class TransactionsController {
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("transfers")
   async transfer(@Req() req: any, @Body() body: any) {
     const idempotencyKey = req.headers["idempotency-key"];

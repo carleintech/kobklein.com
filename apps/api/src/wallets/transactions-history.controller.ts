@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { getUserLimits } from "../limits/spending-limits.service";
 
 @Controller("v1/transactions")
@@ -9,7 +9,7 @@ export class TransactionsHistoryController {
    * Unified transaction history from ledger entries.
    * Returns all money movement for the user's wallets.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get()
   async list(
     @Req() req: any,
@@ -52,7 +52,7 @@ export class TransactionsHistoryController {
   /**
    * Get user's spending limits info.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("limits")
   async limits(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;

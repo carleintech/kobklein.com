@@ -1,12 +1,12 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { StripeService } from "../services/stripe.service";
 import { pool } from "../db/pool";
 
 @Controller("v1")
 export class PaymentsController {
   constructor(private readonly stripeService: StripeService) {}
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("topup-intents")
   async createTopUp(@Req() req: any, @Body() body: any) {
     const walletId = String(body.walletId);

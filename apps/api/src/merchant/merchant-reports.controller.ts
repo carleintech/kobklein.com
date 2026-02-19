@@ -1,5 +1,5 @@
 import { Controller, Get, Query, Req, Res, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { prisma } from "../db/prisma";
 import type { Response } from "express";
 
@@ -16,7 +16,7 @@ export class MerchantReportsController {
    *
    * Returns settlement summary + line items for the authenticated merchant.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("settlement")
   async settlement(
     @Req() req: any,
@@ -116,7 +116,7 @@ export class MerchantReportsController {
    *
    * Returns CSV string of settlement entries.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("settlement/export")
   async exportCsv(
     @Req() req: any,

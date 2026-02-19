@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { kkGet, kkPost } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@kobklein/ui/card";
+import { Button } from "@kobklein/ui/button";
+import { Input } from "@kobklein/ui/input";
 import { DataTable } from "@/components/data-table";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@kobklein/ui/badge";
 import { RefreshCw, Shield } from "lucide-react";
 
 type LimitProfile = {
@@ -121,7 +121,7 @@ export default function LimitsPage() {
       <Card className="rounded-2xl">
         <CardContent className="p-5">
           <h2 className="font-medium mb-4 flex items-center gap-2">
-            <Shield className="h-4 w-4 text-[#C6A756]" />
+            <Shield className="h-4 w-4 text-[#C9A84C]" />
             Set Limit Profile
           </h2>
           <form onSubmit={handleSet} className="grid grid-cols-2 lg:grid-cols-5 gap-3 items-end">
@@ -157,7 +157,7 @@ export default function LimitsPage() {
               <label className="text-xs text-muted-foreground mb-1 block">Monthly Limit</label>
               <Input type="number" step="1" required value={monthlyLimit} onChange={(e) => setMonthlyLimit(e.target.value)} />
             </div>
-            <Button type="submit" disabled={submitting} className="bg-[#C6A756] hover:bg-[#E1C97A] text-[#080B14] font-semibold">
+            <Button type="submit" disabled={submitting} className="bg-[#C9A84C] hover:bg-[#E2CA6E] text-[#060D1F] font-semibold">
               {submitting ? "Saving..." : "Save"}
             </Button>
           </form>

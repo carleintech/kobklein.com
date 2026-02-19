@@ -1,12 +1,12 @@
 import { Controller, Post, Get, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { prisma } from '../db/prisma';
 import { AuditService } from '../audit/audit.service';
-import { Auth0Guard } from '../auth/auth0.guard';
+import { SupabaseGuard } from '../auth/supabase.guard';
 import { findRecipientUserId } from './case.service';
 import { createNotification } from '../notifications/notification.service';
 
 @Controller('cases')
-@UseGuards(Auth0Guard)
+@UseGuards(SupabaseGuard)
 export class CasesController {
   constructor(
     private auditService: AuditService,
@@ -199,11 +199,11 @@ export class CasesController {
     return prisma.case.findMany({
       where: { reporterUserId: userId },
       include: {
-        messages: {
+        CaseMessage: {
           orderBy: { createdAt: 'desc' },
           take: 1, // latest message
         },
-        actions: {
+        CaseAction: {
           orderBy: { createdAt: 'desc' },
           take: 5, // recent actions
         },
@@ -221,10 +221,10 @@ export class CasesController {
         reporterUserId: userId, // users can only see their own cases
       },
       include: {
-        messages: {
+        CaseMessage: {
           orderBy: { createdAt: 'asc' },
         },
-        actions: {
+        CaseAction: {
           orderBy: { createdAt: 'asc' },
         },
       },

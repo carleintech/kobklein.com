@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 import { computeWalletBalance } from "../wallets/balance.service";
 import { AuditService } from "../audit/audit.service";
@@ -9,7 +9,7 @@ import { AuditService } from "../audit/audit.service";
 export class FloatTransferController {
   constructor(private auditService: AuditService) {}
 
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post("float-transfer")
   async transfer(
     @Req() req: any,

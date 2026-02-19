@@ -1,31 +1,141 @@
 @import "tailwindcss";
 
 @source "../components";
+@source "../../../packages/ui/src";
 
 @theme {
+  /* ── Sovereign Luxury Master Palette ── */
   --color-kob-black: #080B14;
   --color-kob-navy: #0F1626;
   --color-kob-panel: #151B2E;
+
+  /* Gold system */
   --color-kob-gold: #C6A756;
   --color-kob-goldLight: #E1C97A;
   --color-kob-goldDark: #9F7F2C;
+  --color-kob-gold-light: #E1C97A;
+  --color-kob-gold-dark: #9F7F2C;
+
+  /* Accent */
   --color-kob-emerald: #1F6F4A;
+  --color-kob-danger: #DC2626;
+
+  /* Text hierarchy */
   --color-kob-text: #F2F2F2;
   --color-kob-body: #C4C7CF;
   --color-kob-muted: #7A8394;
-  --color-kob-danger: #DC2626;
 
+  /* Brand Accent — Teal */
+  --color-kob-teal: #0E8B78;
+  --color-kob-tealLight: #14B8A0;
+  --color-kob-tealDark: #086B5C;
+  --color-kob-teal-light: #14B8A0;
+  --color-kob-teal-dark: #086B5C;
+
+  /* Typography */
   --font-sans: "Inter", system-ui, sans-serif;
   --font-serif: "Playfair Display", Georgia, serif;
 }
 
+/* ── Base ── */
+html {
+  scroll-behavior: smooth;
+}
 html,
 body {
   background-color: var(--color-kob-black);
   color: var(--color-kob-body);
 }
 
-/* Animations */
+/* ── Sovereign Luxury Utility Classes ── */
+
+/* Font shorthand for Playfair Display headings */
+.font-serif-luxury {
+  font-family: "Playfair Display", Georgia, serif;
+}
+
+/* Gold gradient text */
+.gradient-gold-text {
+  background: linear-gradient(135deg, #E1C97A, #C6A756, #9F7F2C);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Sovereign gradient background — deep radial for hero sections */
+.gradient-sovereign {
+  background: linear-gradient(
+    180deg,
+    #080B14 0%,
+    #0F1626 40%,
+    #151B2E 100%
+  );
+}
+
+/* Card with sovereign styling — dark panel, subtle border, rounded */
+.card-sovereign {
+  background-color: #151B2E;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 1rem;
+  transition: border-color 0.2s ease;
+}
+.card-sovereign:hover {
+  border-color: rgba(198, 167, 86, 0.15);
+}
+
+/* Gold shimmer border on hover */
+.shimmer-gold {
+  position: relative;
+}
+.shimmer-gold::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, rgba(198, 167, 86, 0.1), transparent, rgba(198, 167, 86, 0.1)) border-box;
+  mask:
+    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+.shimmer-gold:hover::before {
+  opacity: 1;
+}
+
+/* Gold dust particle effect for hero sections */
+.gold-dust {
+  position: relative;
+  overflow: hidden;
+}
+.gold-dust::before,
+.gold-dust::after {
+  content: "";
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(198, 167, 86, 0.4);
+  animation: particle-float 8s linear infinite;
+  pointer-events: none;
+}
+.gold-dust::before {
+  left: 15%;
+  top: 100%;
+  animation-delay: 0s;
+  animation-duration: 10s;
+}
+.gold-dust::after {
+  left: 75%;
+  top: 100%;
+  animation-delay: -4s;
+  animation-duration: 12s;
+}
+
+/* ── Keyframe Animations ── */
 @keyframes shimmer {
   0% {
     background-position: -200% center;
@@ -87,7 +197,8 @@ body {
 }
 
 @keyframes sparkle {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0);
   }
@@ -112,6 +223,7 @@ body {
   }
 }
 
+/* Animation utilities */
 .animate-shimmer {
   animation: shimmer 3s ease-in-out infinite;
 }
@@ -135,7 +247,156 @@ body {
   animation: dust-trail 10s linear infinite;
 }
 
-/* Section styles */
+/* Teal + Gold wave gradient overlay */
+.gradient-teal-gold-wave {
+  background:
+    radial-gradient(ellipse 70% 50% at 10% 80%, rgba(14, 139, 120, 0.10), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 30%, rgba(14, 139, 120, 0.06), transparent),
+    radial-gradient(ellipse 50% 40% at 50% -10%, rgba(198, 167, 86, 0.08), transparent);
+}
+
+/* 1px gradient divider from teal to gold */
+.divider-teal-gold {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #0E8B78, #C6A756, transparent);
+}
+
+/* Dual radial glow for section backgrounds */
+.glow-teal-gold {
+  position: relative;
+}
+.glow-teal-gold::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 50% 40% at 20% 20%, rgba(14, 139, 120, 0.08), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(198, 167, 86, 0.06), transparent 70%);
+  pointer-events: none;
+}
+
+/* Section helpers */
 .section-dark {
   background-color: var(--color-kob-black);
+}
+
+/* ── Glass Morphism ── */
+.glass-card {
+  background: rgba(21, 27, 46, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+}
+.glass-card:hover {
+  background: rgba(21, 27, 46, 0.75);
+  border-color: rgba(198, 167, 86, 0.2);
+  box-shadow: 0 8px 32px rgba(198, 167, 86, 0.08);
+}
+
+.glass-nav {
+  background: rgba(15, 22, 38, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(14, 139, 120, 0.15);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Button Utilities ── */
+.btn-gold {
+  background: linear-gradient(135deg, #E1C97A, #C6A756);
+  color: #080B14;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(198, 167, 86, 0.25);
+}
+.btn-gold:hover {
+  background: linear-gradient(135deg, #E8D18C, #D4B466);
+  box-shadow: 0 6px 24px rgba(198, 167, 86, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-outline-gold {
+  background: transparent;
+  border: 1.5px solid rgba(198, 167, 86, 0.5);
+  color: #C6A756;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+.btn-outline-gold:hover {
+  background: rgba(198, 167, 86, 0.1);
+  border-color: #C6A756;
+  box-shadow: 0 0 20px rgba(198, 167, 86, 0.15);
+}
+
+/* Teal gradient text */
+.text-gradient-teal {
+  background: linear-gradient(135deg, #14B8A0, #0E8B78, #086B5C);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Advanced Animations ── */
+
+/* Shimmer glare — light streak moving across cards */
+@keyframes shimmer-glare {
+  0% { transform: translateX(-100%) rotate(25deg); }
+  100% { transform: translateX(200%) rotate(25deg); }
+}
+.animate-shimmer-glare {
+  position: relative;
+  overflow: hidden;
+}
+.animate-shimmer-glare::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 70%
+  );
+  animation: shimmer-glare 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Pulse glow — pulsing box-shadow */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(198, 167, 86, 0.15); }
+  50% { box-shadow: 0 0 40px rgba(198, 167, 86, 0.3); }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* 3D tilt on hover */
+.card-3d-tilt {
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+}
+.card-3d-tilt:hover {
+  transform: perspective(1000px) rotateX(2deg) rotateY(-3deg) translateZ(10px);
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  video {
+    animation: none !important;
+  }
 }

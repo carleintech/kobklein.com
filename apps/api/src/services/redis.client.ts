@@ -7,7 +7,7 @@ function getOrCreateClient(): RedisClientType | null {
   if (!_initialized) {
     _initialized = true;
     const url = process.env.REDIS_URL;
-    if (!url) return null;
+    if (!url || url.includes("localhost") || url.includes("127.0.0.1")) return null;
     _redis = createClient({ url }) as RedisClientType;
     _redis.on("error", (err) => {
       console.error("Redis error:", err.message ?? err);
@@ -16,15 +16,20 @@ function getOrCreateClient(): RedisClientType | null {
   return _redis;
 }
 
-/** Lazy export — only creates the client on first access */
+/** Lazy export — only creates the client on first access.
+ *  When Redis is unavailable, all method calls return safe no-op values
+ *  so callers don't need to guard every redis.xxx() call. */
 export const redis = new Proxy({} as RedisClientType, {
   get(_target, prop) {
     const client = getOrCreateClient();
     if (!client) {
-      // No REDIS_URL — return safe defaults
+      // No REDIS_URL — return safe no-op defaults
       if (prop === "isOpen") return false;
-      if (prop === "ping") return () => Promise.reject(new Error("Redis not configured"));
-      if (prop === "connect") return () => Promise.reject(new Error("Redis not configured"));
+      if (prop === "isReady") return false;
+      // All Redis commands return a no-op promise resolving to null
+      if (typeof prop === "string") {
+        return (..._args: any[]) => Promise.resolve(null);
+      }
       return undefined;
     }
     return (client as any)[prop];
@@ -33,7 +38,7 @@ export const redis = new Proxy({} as RedisClientType, {
 
 export async function initRedis() {
   const url = process.env.REDIS_URL;
-  if (!url) {
+  if (!url || url.includes("localhost") || url.includes("127.0.0.1")) {
     console.warn("⚠ REDIS_URL not set — Redis features disabled");
     return;
   }

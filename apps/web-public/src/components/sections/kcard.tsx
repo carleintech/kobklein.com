@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { Dictionary } from "@/i18n";
-import { PrimaryButton } from "@/components/ui/button";
+import type { Dictionary, Locale } from "@/i18n";
 import { Bell, CreditCard, Globe, Zap } from "lucide-react";
+import Link from "next/link";
 
 const cardFeatures = [
 	{ key: "virtual", icon: CreditCard },
@@ -12,7 +12,7 @@ const cardFeatures = [
 	{ key: "control", icon: Bell },
 ] as const;
 
-export function KCardSection({ dict }: { dict: Dictionary }) {
+export function KCardSection({ dict, locale }: { dict: Dictionary; locale: Locale }) {
 	return (
 		<section className="relative py-24 md:py-32 overflow-hidden">
 			<div className="max-w-7xl mx-auto px-6">
@@ -28,11 +28,11 @@ export function KCardSection({ dict }: { dict: Dictionary }) {
 						}}
 						className="relative"
 					>
-						<div className="relative aspect-[1.586/1] max-w-md mx-auto">
+						<div className="relative aspect-[1.586/1] max-w-md mx-auto animate-float">
 							{/* Card glow */}
-							<div className="absolute inset-4 bg-kob-gold/15 rounded-3xl blur-3xl" />
+							<div className="absolute inset-4 bg-kob-gold/15 rounded-3xl blur-3xl animate-pulse-glow" />
 							{/* Card body */}
-							<div className="relative h-full rounded-3xl bg-gradient-to-br from-kob-panel via-kob-navy to-kob-black border border-kob-gold/20 p-8 flex flex-col justify-between overflow-hidden shadow-2xl shadow-black/50">
+							<div className="relative h-full rounded-3xl bg-gradient-to-br from-kob-panel via-kob-navy to-kob-black border border-kob-gold/20 p-8 flex flex-col justify-between overflow-hidden shadow-2xl shadow-black/50 card-3d-tilt animate-shimmer-glare">
 								{/* Gold accent line */}
 								<div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-kob-goldDark via-kob-gold to-kob-goldLight" />
 								{/* Pattern overlay */}
@@ -40,7 +40,7 @@ export function KCardSection({ dict }: { dict: Dictionary }) {
 									className="absolute inset-0 opacity-[0.04]"
 									style={{
 										backgroundImage:
-											"radial-gradient(circle at 20% 50%, rgba(198,167,86,0.4), transparent 50%), radial-gradient(circle at 80% 20%, rgba(198,167,86,0.3), transparent 40%)",
+											"radial-gradient(circle at 20% 50%, rgba(201,168,76,0.4), transparent 50%), radial-gradient(circle at 80% 20%, rgba(201,168,76,0.3), transparent 40%)",
 									}}
 								/>
 
@@ -126,9 +126,12 @@ export function KCardSection({ dict }: { dict: Dictionary }) {
 							))}
 						</div>
 
-						<PrimaryButton className="mt-8 px-8 py-4 text-base shadow-lg shadow-kob-gold/20">
+						<Link
+							href={`/${locale}/card#waitlist`}
+							className="inline-flex items-center mt-8 px-8 py-4 text-base rounded-xl bg-kob-gold text-kob-black font-semibold shadow-lg shadow-kob-gold/20 hover:bg-kob-goldLight hover:shadow-kob-gold/30 transition-all duration-300"
+						>
 							{dict.kcard.waitlist}
-						</PrimaryButton>
+						</Link>
 
 						<p className="mt-4 text-xs text-kob-muted max-w-md leading-relaxed">
 							{dict.kcard.faq}

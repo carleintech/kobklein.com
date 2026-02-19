@@ -15,11 +15,11 @@
   },
   "hero": {
     "badge": "L'Avenir de la Finance Numérique en Haïti",
-    "title": "L'Avenir de la Liberté Financière Numérique",
-    "subtitle": "Envoyez de l'argent instantanément. Pas besoin de banque.",
+    "title": "Votre Argent. Votre Pouvoir. Sans Banque.",
+    "subtitle": "Le portefeuille numérique sécurisé connectant Haïti et sa diaspora. Envoyez, payez et grandissez — instantanément.",
     "description": "Un système de portefeuille numérique sécurisé, sans espèces, conçu pour les Haïtiens et leurs familles dans le monde entier.",
     "cta": "Commencer",
-    "ctaSecondary": "Devenir Distributeur",
+    "ctaSecondary": "Voir Comment Ça Marche",
     "stats": {
       "users": "100K+",
       "usersLabel": "Utilisateurs Actifs",
@@ -29,6 +29,20 @@
       "countriesLabel": "Pays",
       "uptime": "99.9%",
       "uptimeLabel": "Disponibilité"
+    },
+    "features": {
+      "security": {
+        "title": "Sécurité Niveau Bancaire",
+        "description": "Chiffrement professionnel et prévention de la fraude en temps réel pour protéger chaque transaction."
+      },
+      "instant": {
+        "title": "Traitement Instantané",
+        "description": "Des transactions en temps réel qui arrivent en secondes, pas en jours. Votre famille reçoit l'argent quand elle en a besoin."
+      },
+      "fees": {
+        "title": "Zéro Frais Cachés",
+        "description": "Tarification transparente sans surprises. Transferts P2P gratuits et seulement 1,99$ pour les envois internationaux."
+      }
     }
   },
   "features": {
@@ -209,6 +223,40 @@
     "title": "Prêt à Rejoindre la Révolution?",
     "subtitle": "Téléchargez KobKlein aujourd'hui et découvrez l'avenir des paiements numériques pour Haïti.",
     "button": "Commencer Gratuitement"
+  },
+  "about": {
+    "badge": "Notre Histoire",
+    "title": "Des Paiements Fluides pour Haïti",
+    "subtitle": "Nous construisons le pont entre Haïti et sa diaspora mondiale — une transaction instantanée et sécurisée à la fois.",
+    "founding": {
+      "title": "Pourquoi Nous Avons Créé KobKlein",
+      "p1": "Haïti a l'un des taux d'inclusion financière les plus bas de l'hémisphère occidental. Plus de 80% de la population reste sans accès bancaire, dépendant de l'argent liquide pour presque chaque transaction. Pendant ce temps, la diaspora haïtienne envoie plus de 4 milliards de dollars en transferts annuellement — payant souvent des frais exorbitants.",
+      "p2": "KobKlein a été fondé pour changer cela. Nous croyons que chaque Haïtien mérite l'accès à des outils financiers numériques modernes, sécurisés et abordables — qu'il vive à Port-au-Prince, Miami, Montréal ou Paris.",
+      "p3": "Notre plateforme fait le pont entre Haïti et sa diaspora mondiale, permettant des transferts instantanés, des paiements sans espèces et un chemin vers une véritable indépendance financière.",
+      "problem": { "label": "Le Problème", "text": "80%+ sans banque, frais de transfert de 12$+, aucune infrastructure de paiement numérique" },
+      "solution": { "label": "Notre Solution", "text": "Portefeuille numérique mobile avec transferts instantanés, transferts à 1,99$, réseau K-Agent" },
+      "reach": { "label": "Notre Portée", "text": "Desservant Haïti, les USA, le Canada, la France et 15+ pays où vivent les Haïtiens" }
+    },
+    "stats": {
+      "users": { "value": "100K+", "label": "Utilisateurs Actifs" },
+      "transfers": { "value": "50M$+", "label": "Transférés" },
+      "countries": { "value": "15+", "label": "Pays" },
+      "uptime": { "value": "99.9%", "label": "Disponibilité" }
+    },
+    "missionCard": "Donner à chaque Haïtien des outils financiers numériques sécurisés, accessibles et abordables — créant un chemin de la dépendance au cash vers une véritable souveraineté financière.",
+    "journey": {
+      "title": "Notre Parcours",
+      "subtitle": "Les étapes clés de l'histoire KobKlein",
+      "m1": { "year": "2024", "title": "Fondé à Virginia Beach", "description": "KobKlein naît d'une idée simple : les Haïtiens méritent les mêmes outils financiers numériques que le reste du monde." },
+      "m2": { "year": "2024", "title": "Lancement de la Plateforme", "description": "Les transferts instantanés K-Pay, le réseau de distributeurs K-Agent et les premiers panneaux familiaux K-Link sont lancés en Haïti." },
+      "m3": { "year": "2025", "title": "Expansion Diaspora", "description": "Les opérations s'étendent pour servir la diaspora haïtienne aux USA, au Canada et en France avec des transferts transfrontaliers." },
+      "m4": { "year": "2025", "title": "K-Card & Moteur FX", "description": "Lancement de la carte Visa virtuelle K-Card et du moteur de change en temps réel pour une conversion compétitive." }
+    },
+    "team": {
+      "title": "Rencontrez l'Équipe",
+      "subtitle": "Une équipe passionnée d'ingénieurs, designers et professionnels financiers engagés dans la transformation numérique d'Haïti.",
+      "cta": "Voir Notre Équipe"
+    }
   },
   "distributor": {
     "title": "Devenez un K-Agent",

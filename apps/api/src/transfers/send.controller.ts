@@ -1,6 +1,6 @@
 import { Body, Controller, Post, UseGuards, Req } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 import { computeWalletBalance } from "../wallets/balance.service";
 import { checkDailyTransferLimit } from "../limits/transfer-limit.service";
@@ -10,19 +10,17 @@ import { AuditService } from "../audit/audit.service";
 @Controller("transfers")
 export class SendMoneyController {
   constructor(private auditService: AuditService) {}
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post("send")
   async send(
     @Req() req: any,
     @Body() body: { phone: string; amount: number; currency: string }
   ) {
-    const senderId = req.user.sub;
+    const senderUser = req.localUser;
+    if (!senderUser) throw new Error("Sender not found");
+
     const idempotencyKey = req.headers["idempotency-key"];
     if (!idempotencyKey) throw new Error("Missing Idempotency-Key");
-
-    const senderUser = await prisma.user.findUnique({
-      where: { auth0Id: senderId },
-    });
 
     const senderWallet = await prisma.wallet.findFirst({
       where: { userId: senderUser?.id, type: "USER" },
@@ -143,7 +141,7 @@ export class SendMoneyController {
 
     // Audit log the transfer
     await this.auditService.logFinancialAction({
-      actorUserId: senderId,
+      actorUserId: senderUser.id,
       eventType: "transfer_sent",
       amount: body.amount,
       currency: body.currency,

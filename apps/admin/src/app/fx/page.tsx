@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { kkGet, kkPost } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { kkGet, kkPost, ApiError } from "@/lib/kobklein-api";
+import { ApiUnavailableBanner } from "@/components/api-status-banner";
+import { Card, CardContent } from "@kobklein/ui/card";
+import { Button } from "@kobklein/ui/button";
+import { Input } from "@kobklein/ui/input";
+import { Badge } from "@kobklein/ui/badge";
 import { DataTable } from "@/components/data-table";
 import {
   TrendingUp,
@@ -30,6 +31,7 @@ export default function FxPage() {
   const [history, setHistory] = useState<any[]>([]);
   const [revenue, setRevenue] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [apiDown, setApiDown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [mid, setMid] = useState("");
   const [spreadBps, setSpreadBps] = useState("250");
@@ -37,6 +39,7 @@ export default function FxPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setApiDown(false);
     try {
       const [r, h, rev] = await Promise.all([
         kkGet<any>("v1/admin/fx/active"),
@@ -47,6 +50,7 @@ export default function FxPage() {
       setHistory(h?.history || []);
       setRevenue(rev);
     } catch (e) {
+      if (e instanceof ApiError && e.isApiUnavailable) setApiDown(true);
       console.error("Failed to load FX data:", e);
     } finally {
       setLoading(false);
@@ -89,15 +93,17 @@ export default function FxPage() {
         </Button>
       </div>
 
+      {apiDown && <ApiUnavailableBanner />}
+
       {/* Current Rate */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="rounded-2xl">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mid Rate</span>
-              <ArrowRightLeft className="h-4 w-4 text-[#C6A756]" />
+              <ArrowRightLeft className="h-4 w-4 text-[#C9A84C]" />
             </div>
-            <div className="text-2xl font-semibold tabular-nums mt-1 text-[#C6A756]">
+            <div className="text-2xl font-semibold tabular-nums mt-1 text-[#C9A84C]">
               {rate?.mid?.toFixed(2) ?? "—"}
             </div>
             <div className="text-xs text-muted-foreground">USD → HTG</div>
@@ -199,7 +205,7 @@ export default function FxPage() {
                 onChange={(e) => setSpreadBps(e.target.value)}
               />
             </div>
-            <Button type="submit" disabled={submitting} className="bg-[#C6A756] hover:bg-[#E1C97A] text-[#080B14] font-semibold">
+            <Button type="submit" disabled={submitting} className="bg-[#C9A84C] hover:bg-[#E2CA6E] text-[#060D1F] font-semibold">
               {submitting ? "Setting..." : "Set Rate"}
             </Button>
           </form>

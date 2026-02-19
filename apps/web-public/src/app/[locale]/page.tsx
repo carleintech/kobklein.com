@@ -65,11 +65,11 @@ export default async function HomePage({
 				dangerouslySetInnerHTML={{ __html: JSON.stringify(appJsonLd) }}
 			/>
 			<HeroSection dict={dict} />
-			<FeaturesSection />
+			<FeaturesSection dict={dict} />
 			<HowItWorksSection dict={dict} />
 			<EcosystemSection dict={dict} />
 			<ComparisonSection dict={dict} />
-			<KCardSection dict={dict} />
+			<KCardSection dict={dict} locale={locale as Locale} />
 			<MissionSection dict={dict} />
 			<CtaSection dict={dict} />
 		</>

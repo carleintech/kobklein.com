@@ -30,7 +30,7 @@ const steps = [
 
 export function HowItWorksSection({ dict }: { dict: Dictionary }) {
 	return (
-		<section className="relative py-24 md:py-32">
+		<section id="how-it-works" className="relative py-24 md:py-32 scroll-mt-24">
 			{/* Subtle background */}
 			<div className="absolute inset-0 bg-kob-navy/40" />
 
@@ -58,7 +58,7 @@ export function HowItWorksSection({ dict }: { dict: Dictionary }) {
 						initial="hidden"
 						whileInView="visible"
 						viewport={{ once: true }}
-						className="hidden md:block absolute top-[52px] left-[calc(12.5%+24px)] right-[calc(12.5%+24px)] h-px bg-gradient-to-r from-kob-gold/20 via-kob-gold/40 to-kob-gold/20 origin-left"
+						className="hidden md:block absolute top-[52px] left-[calc(12.5%+24px)] right-[calc(12.5%+24px)] h-px bg-gradient-to-r from-kob-gold/20 via-kob-gold/40 to-kob-gold/20 animate-gradient-shift bg-[length:200%_100%] origin-left"
 					/>
 
 					<div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
@@ -81,6 +81,8 @@ export function HowItWorksSection({ dict }: { dict: Dictionary }) {
 									{/* Step circle */}
 									<div className="relative mx-auto w-[52px] h-[52px] rounded-full bg-kob-panel border-2 border-kob-gold/30 flex items-center justify-center mb-6 z-10 shadow-lg shadow-kob-gold/5">
 										<Icon className="h-5 w-5 text-kob-gold" />
+										{/* Step number */}
+										<div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-kob-gold text-kob-black text-xs font-bold flex items-center justify-center shadow-lg">{i + 1}</div>
 									</div>
 
 									{/* Mobile connecting line */}

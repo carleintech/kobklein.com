@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { withIdempotency } from "../idempotency/idempotency.service";
 import { getIdempotencyKey } from "../idempotency/idempotency.util";
 import { evaluateTransactionRisk } from "../risk/risk-engine.service";
@@ -10,7 +10,7 @@ import { AuditService } from "../audit/audit.service";
 export class DistributorCashInController {
   constructor(private auditService: AuditService) {}
 
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("cash-in")
   async cashIn(
     @Req() req: any,

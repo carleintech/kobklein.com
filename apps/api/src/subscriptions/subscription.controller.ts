@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 import { AuditService } from "../audit/audit.service";
 import { createSubscription } from "./subscription.service";
@@ -22,7 +22,7 @@ export class SubscriptionController {
    *
    * Body: { merchant: "NETFLIX", amountUsd: 15.99, externalAccountRef?: "user@email.com" }
    */
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post()
   async create(
     @Req() req: any,
@@ -61,7 +61,7 @@ export class SubscriptionController {
   /**
    * List all subscriptions for the authenticated user.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get()
   async list(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -87,7 +87,7 @@ export class SubscriptionController {
   /**
    * Get a single subscription by ID.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get(":id")
   async getOne(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;

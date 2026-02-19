@@ -22,8 +22,10 @@ export class RolesGuard implements CanActivate {
     const req = ctx.switchToHttp().getRequest();
     const user = req.user;
 
-    // Read role from namespaced custom claim or fallback to direct claim
+    // Read role from Supabase user_metadata, local DB user, or Auth0 namespaced claim
     const role =
+      user?.user_metadata?.role ||
+      req.localUser?.role ||
       user?.["https://kobklein.com/role"] ||
       user?.role;
 

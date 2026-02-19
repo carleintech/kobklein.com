@@ -11,4 +11,5 @@ export {
   kkPost,
   kkPatch,
   kkDelete,
+  ApiError,
 } from "./kobklein-api";

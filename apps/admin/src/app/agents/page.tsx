@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { kkGet } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@kobklein/ui/card";
+import { Badge } from "@kobklein/ui/badge";
+import { Button } from "@kobklein/ui/button";
 import {
   Users,
   AlertTriangle,

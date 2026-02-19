@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { postDeposit } from "./deposit.service";
 import { AuditService } from "../audit/audit.service";
 import { emitEvent } from "../services/event-bus.service";
@@ -7,7 +7,7 @@ import { emitEvent } from "../services/event-bus.service";
 @Controller("v1")
 export class WalletsController {
   constructor(private auditService: AuditService) {}
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("deposits")
   async deposit(@Req() req: any, @Body() body: any) {
     const idempotencyKey = req.headers["idempotency-key"];

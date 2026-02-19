@@ -24,10 +24,10 @@ export interface NotificationJob {
 
 // ─── Redis connection (BullMQ uses ioredis) ────────────────────
 
-const redisUrl = process.env.REDIS_URL ?? "redis://localhost:6379";
-
 function createRedisConnection() {
-  return new IORedis(redisUrl, { maxRetriesPerRequest: null });
+  const url = process.env.REDIS_URL;
+  if (!url) throw new Error("REDIS_URL not set — BullMQ queue disabled");
+  return new IORedis(url, { maxRetriesPerRequest: null });
 }
 
 // ─── Queue ─────────────────────────────────────────────────────
@@ -36,17 +36,22 @@ const QUEUE_NAME = "notifications";
 
 let queue: Queue<NotificationJob> | null = null;
 
-export function getNotificationQueue(): Queue<NotificationJob> {
+export function getNotificationQueue(): Queue<NotificationJob> | null {
   if (!queue) {
-    queue = new Queue<NotificationJob>(QUEUE_NAME, {
-      connection: createRedisConnection(),
-      defaultJobOptions: {
-        attempts: 3,
-        backoff: { type: "exponential", delay: 2000 },
-        removeOnComplete: { count: 1000 },
-        removeOnFail: { count: 5000 },
-      },
-    });
+    try {
+      queue = new Queue<NotificationJob>(QUEUE_NAME, {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: { type: "exponential", delay: 2000 },
+          removeOnComplete: { count: 1000 },
+          removeOnFail: { count: 5000 },
+        },
+      });
+    } catch {
+      console.warn("⚠ BullMQ queue not available (REDIS_URL not set)");
+      return null;
+    }
   }
   return queue;
 }
@@ -71,6 +76,10 @@ export async function enqueueNotification(job: NotificationJob): Promise<void> {
   }
 
   const q = getNotificationQueue();
+  if (!q) {
+    console.warn(`[Notification] Queue unavailable — skipping ${job.type} → ${job.channel}:${job.to}`);
+    return;
+  }
   const added = await q.add(job.type, job, {
     priority: job.channel === "sms" ? 1 : 5,
   });
@@ -138,6 +147,11 @@ async function processNotification(job: Job<NotificationJob>): Promise<void> {
  */
 export function startNotificationWorker(): void {
   if (worker) return; // already running
+
+  if (!process.env.REDIS_URL) {
+    console.warn("⚠ REDIS_URL not set — notification worker disabled");
+    return;
+  }
 
   worker = new Worker<NotificationJob>(QUEUE_NAME, processNotification, {
     connection: createRedisConnection(),

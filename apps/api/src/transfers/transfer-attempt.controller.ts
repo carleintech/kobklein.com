@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 import { AuditService } from "../audit/audit.service";
 import { evaluateTransactionRisk } from "../risk/risk-engine.service";
@@ -20,7 +20,7 @@ export class TransferAttemptController {
    * - Medium    → send OTP, return challengeId
    * - High      → freeze + block
    */
-  @UseGuards(Auth0Guard, FreezeGuard)
+  @UseGuards(SupabaseGuard, FreezeGuard)
   @Post("attempt")
   async attempt(
     @Req() req: any,

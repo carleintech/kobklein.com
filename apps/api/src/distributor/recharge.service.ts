@@ -78,7 +78,7 @@ export async function listPendingRecharges(options?: {
       take: options?.limit ?? 50,
       skip: options?.offset ?? 0,
       include: {
-        distributor: {
+        Distributor: {
           select: { displayName: true, businessName: true, userId: true },
         },
       },
@@ -99,7 +99,7 @@ export async function approveRecharge(
 ) {
   const recharge = await prisma.distributorRecharge.findUnique({
     where: { id: rechargeId },
-    include: { distributor: true },
+    include: { Distributor: true },
   });
 
   if (!recharge) throw new Error("Recharge not found");
@@ -120,7 +120,7 @@ export async function approveRecharge(
     // Find distributor's float wallet
     const floatWallet = await tx.wallet.findFirst({
       where: {
-        userId: recharge.distributor.userId,
+        userId: recharge.Distributor.userId,
         type: "DISTRIBUTOR",
         currency: recharge.currency,
       },
@@ -141,7 +141,7 @@ export async function approveRecharge(
     });
 
     // Notify distributor
-    notifyUser(recharge.distributor.userId, {
+    notifyUser(recharge.Distributor.userId, {
       title: "Recharge Approved ✅",
       body: `Your ${recharge.currency} ${Number(recharge.amount).toLocaleString()} recharge has been approved.`,
       data: { type: "recharge_approved", rechargeId },
@@ -161,7 +161,7 @@ export async function rejectRecharge(
 ) {
   const recharge = await prisma.distributorRecharge.findUnique({
     where: { id: rechargeId },
-    include: { distributor: true },
+    include: { Distributor: true },
   });
 
   if (!recharge) throw new Error("Recharge not found");
@@ -178,7 +178,7 @@ export async function rejectRecharge(
   });
 
   // Notify distributor
-  notifyUser(recharge.distributor.userId, {
+  notifyUser(recharge.Distributor.userId, {
     title: "Recharge Rejected",
     body: note
       ? `Your recharge was rejected: ${note}`

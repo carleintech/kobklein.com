@@ -15,11 +15,11 @@
   },
   "hero": {
     "badge": "The Future of Digital Finance in Haiti",
-    "title": "The Future of Digital Financial Freedom",
-    "subtitle": "Send money instantly. No banks required.",
+    "title": "Your Money. Your Power. No Banks.",
+    "subtitle": "The secure digital wallet connecting Haiti and its diaspora worldwide. Send, pay, and grow — instantly.",
     "description": "A secure, cashless digital wallet system designed for Haitians and their families worldwide.",
     "cta": "Get Started",
-    "ctaSecondary": "Become a Distributor",
+    "ctaSecondary": "See How It Works",
     "stats": {
       "users": "100K+",
       "usersLabel": "Active Users",
@@ -29,6 +29,20 @@
       "countriesLabel": "Countries",
       "uptime": "99.9%",
       "uptimeLabel": "Uptime"
+    },
+    "features": {
+      "security": {
+        "title": "Bank-Grade Security",
+        "description": "Enterprise encryption and real-time fraud prevention protect every transaction you make."
+      },
+      "instant": {
+        "title": "Instant Processing",
+        "description": "Real-time transactions that arrive in seconds, not days. Your family gets money when they need it."
+      },
+      "fees": {
+        "title": "Zero Hidden Fees",
+        "description": "Transparent pricing with no surprises. Free P2P transfers and just $1.99 for international sends."
+      }
     }
   },
   "features": {
@@ -209,6 +223,40 @@
     "title": "Ready to Join the Revolution?",
     "subtitle": "Download KobKlein today and experience the future of digital payments for Haiti.",
     "button": "Get Started Free"
+  },
+  "about": {
+    "badge": "Our Story",
+    "title": "Empowering Seamless Payments for Haiti",
+    "subtitle": "We're building the bridge between Haiti and its global diaspora — one instant, secure transaction at a time.",
+    "founding": {
+      "title": "Why We Built KobKlein",
+      "p1": "Haiti has one of the lowest rates of financial inclusion in the Western Hemisphere. Over 80% of the population remains unbanked, relying on cash for nearly every transaction. Meanwhile, the Haitian diaspora sends over $4 billion in remittances annually — often paying exorbitant fees to legacy transfer services.",
+      "p2": "KobKlein was founded to change this. We believe every Haitian deserves access to modern, secure, and affordable digital financial tools — whether they live in Port-au-Prince, Miami, Montreal, or Paris.",
+      "p3": "Our platform bridges the gap between Haiti and its global diaspora, enabling instant transfers, cashless payments, and a path to true financial independence.",
+      "problem": { "label": "The Problem", "text": "80%+ unbanked population, $12+ remittance fees, no digital payment infrastructure" },
+      "solution": { "label": "Our Solution", "text": "Mobile-first digital wallet with instant transfers, $1.99 remittances, K-Agent cash network" },
+      "reach": { "label": "Our Reach", "text": "Serving Haiti, US, Canada, France, and 15+ countries where Haitians live and work" }
+    },
+    "stats": {
+      "users": { "value": "100K+", "label": "Active Users" },
+      "transfers": { "value": "$50M+", "label": "Transferred" },
+      "countries": { "value": "15+", "label": "Countries" },
+      "uptime": { "value": "99.9%", "label": "Platform Uptime" }
+    },
+    "missionCard": "To empower every Haitian with digital financial tools that are secure, accessible, and affordable — creating a path from cash dependency to true financial sovereignty.",
+    "journey": {
+      "title": "Our Journey",
+      "subtitle": "Key milestones in the KobKlein story",
+      "m1": { "year": "2024", "title": "Founded in Virginia Beach", "description": "KobKlein is born from a simple idea: Haitians deserve the same digital financial tools as the rest of the world." },
+      "m2": { "year": "2024", "title": "Platform Launch", "description": "K-Pay instant transfers, K-Agent distributor network, and the first K-Link family panels go live in Haiti." },
+      "m3": { "year": "2025", "title": "Diaspora Expansion", "description": "Operations expand to serve the Haitian diaspora in the US, Canada, and France with cross-border remittances." },
+      "m4": { "year": "2025", "title": "K-Card & FX Engine", "description": "Launch of the K-Card virtual Visa and real-time foreign exchange engine for competitive currency conversion." }
+    },
+    "team": {
+      "title": "Meet the Team",
+      "subtitle": "A passionate team of engineers, designers, and financial professionals committed to Haiti's digital transformation.",
+      "cta": "View Our Team"
+    }
   },
   "distributor": {
     "title": "Become a K-Agent",

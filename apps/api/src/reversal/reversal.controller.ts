@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { reverseTransfer, reverseDeposit, reverseWithdrawal } from "./reversal.service";
@@ -8,7 +8,7 @@ import { AuditService } from "../audit/audit.service";
 @Controller("admin/reversal")
 export class ReversalController {
   constructor(private auditService: AuditService) {}
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("transfer")
   async transferReversal(@Req() req: any, @Body() body: any) {
@@ -40,7 +40,7 @@ export class ReversalController {
     return result;
   }
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("deposit")
   async depositReversal(@Req() req: any, @Body() body: any) {
@@ -56,7 +56,7 @@ export class ReversalController {
     });
   }
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("withdrawal")
   async withdrawalReversal(@Req() req: any, @Body() body: any) {

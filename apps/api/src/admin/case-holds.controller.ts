@@ -1,6 +1,6 @@
 import { Body, Controller, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { AuditService } from "../audit/audit.service";
@@ -13,7 +13,7 @@ export class CaseHoldsController {
   /**
    * Release held funds — case cleared, recipient gets funds back
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/release-hold")
   async releaseHold(@Req() req: any, @Param("id") caseId: string) {
@@ -90,7 +90,7 @@ export class CaseHoldsController {
   /**
    * Seize held funds — fraud confirmed, funds taken from recipient
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/seize-hold")
   async seizeHold(

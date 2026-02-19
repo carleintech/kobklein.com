@@ -1,6 +1,6 @@
 import { Body, Controller, Post, UseGuards, Req } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { AuditService } from "../audit/audit.service";
@@ -9,7 +9,7 @@ import { AuditService } from "../audit/audit.service";
 export class FloatController {
   constructor(private auditService: AuditService) {}
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("refill")
   async refill(

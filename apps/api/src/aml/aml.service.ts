@@ -98,14 +98,14 @@ async function checkVelocity(
   const [count1h, count24h] = await Promise.all([
     prisma.ledgerEntry.count({
       where: {
-        wallet: { userId },
+        Wallet: { userId },
         createdAt: { gte: oneHourAgo },
         amount: { lt: 0 }, // outgoing only
       },
     }),
     prisma.ledgerEntry.count({
       where: {
-        wallet: { userId },
+        Wallet: { userId },
         createdAt: { gte: oneDayAgo },
         amount: { lt: 0 },
       },
@@ -267,7 +267,7 @@ export async function listFlags(options?: {
       take: options?.limit ?? 50,
       skip: options?.offset ?? 0,
       include: {
-        user: {
+        User: {
           select: { id: true, kId: true, firstName: true, lastName: true, phone: true },
         },
       },

@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { prisma } from "../db/prisma";
@@ -19,7 +19,7 @@ export class AdminTreasuryController {
    * GET /v1/admin/treasury
    * Get all treasury wallet balances (computed from ledger entries).
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get()
   async getBalances() {
@@ -49,7 +49,7 @@ export class AdminTreasuryController {
    * GET /v1/admin/treasury/revenue?days=30
    * Revenue breakdown by ledger type for treasury wallets.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("revenue")
   async revenueBreakdown(@Query("days") days?: string) {

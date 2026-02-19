@@ -1,13 +1,14 @@
 import { Controller, Get, UseGuards, Req } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 
-@Controller("merchant")
+@Controller("v1/merchant")
 export class MerchantStatsController {
-  @UseGuards(Auth0Guard)
-  @Get("today")
-  async today(@Req() req: any) {
-    const userId = req.user.sub;
+  @UseGuards(SupabaseGuard)
+  @Get("stats")
+  async stats(@Req() req: any) {
+    // localUser.id is the DB cuid — must use this for Prisma queries, not req.user.sub (Supabase UUID)
+    const userId = req.localUser?.id || req.user?.sub;
 
     const merchant = await prisma.merchant.findFirst({
       where: { userId },
@@ -25,22 +26,51 @@ export class MerchantStatsController {
       return { error: "Merchant wallet not found" };
     }
 
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
 
-    const payments = await prisma.ledgerEntry.aggregate({
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Today's payments (count + sum)
+    const todayPayments = await prisma.ledgerEntry.findMany({
       where: {
         walletId: wallet.id,
         type: "merchant_payment",
-        createdAt: { gte: start },
+        createdAt: { gte: startOfDay },
+      },
+      select: { amount: true },
+    });
+
+    // Week sales
+    const weekPayments = await prisma.ledgerEntry.aggregate({
+      where: {
+        walletId: wallet.id,
+        type: "merchant_payment",
+        createdAt: { gte: startOfWeek },
       },
       _sum: { amount: true },
     });
 
-    const fees = await prisma.ledgerEntry.aggregate({
+    // Month sales
+    const monthPayments = await prisma.ledgerEntry.aggregate({
       where: {
+        walletId: wallet.id,
+        type: "merchant_payment",
+        createdAt: { gte: startOfMonth },
+      },
+      _sum: { amount: true },
+    });
+
+    const todayFees = await prisma.ledgerEntry.aggregate({
+      where: {
+        walletId: wallet.id,
         type: "merchant_fee",
-        createdAt: { gte: start },
+        createdAt: { gte: startOfDay },
       },
       _sum: { amount: true },
     });
@@ -51,12 +81,22 @@ export class MerchantStatsController {
     });
 
     return {
-      todaySales: Number(payments._sum.amount ?? 0),
-      todayFees: Number(fees._sum.amount ?? 0),
+      todaySales: todayPayments.reduce((s, e) => s + Number(e.amount), 0),
+      todayCount: todayPayments.length,
+      todayFees: Number(todayFees._sum.amount ?? 0),
       balance: Number(balance._sum.amount ?? 0),
       netToday:
-        Number(payments._sum.amount ?? 0) -
-        Number(fees._sum.amount ?? 0),
+        todayPayments.reduce((s, e) => s + Number(e.amount), 0) -
+        Number(todayFees._sum.amount ?? 0),
+      weekSales: Number(weekPayments._sum.amount ?? 0),
+      monthSales: Number(monthPayments._sum.amount ?? 0),
     };
+  }
+
+  // Keep old route for backward compatibility
+  @UseGuards(SupabaseGuard)
+  @Get("today")
+  async today(@Req() req: any) {
+    return this.stats(req);
   }
 }

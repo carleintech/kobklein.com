@@ -7,7 +7,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { RolesGuard } from "../policies/roles.guard";
 import { Roles } from "../policies/roles.decorator";
 import { prisma } from "../db/prisma";
@@ -17,7 +17,7 @@ import { createNotification } from "../notifications/notification.service";
 import { renderTemplate, toLang } from "../i18n/render";
 
 @Controller("v1/admin/compliance")
-@UseGuards(Auth0Guard, RolesGuard)
+@UseGuards(SupabaseGuard, RolesGuard)
 @Roles("admin")
 export class AdminComplianceController {
   // ─── Compliance Cases ───────────────────────────────────────
@@ -35,8 +35,8 @@ export class AdminComplianceController {
       orderBy: { createdAt: "desc" },
       take: 100,
       include: {
-        messages: { take: 1, orderBy: { createdAt: "desc" } },
-        actions: { take: 1, orderBy: { createdAt: "desc" } },
+        CaseMessage: { take: 1, orderBy: { createdAt: "desc" } },
+        CaseAction: { take: 1, orderBy: { createdAt: "desc" } },
       },
     });
 
@@ -56,17 +56,17 @@ export class AdminComplianceController {
     const c = await prisma.case.findUnique({
       where: { id },
       include: {
-        messages: { orderBy: { createdAt: "asc" } },
-        actions: { orderBy: { createdAt: "asc" } },
+        CaseMessage: { orderBy: { createdAt: "asc" } },
+        CaseAction: { orderBy: { createdAt: "asc" } },
       },
     });
 
     if (!c) throw new Error("Case not found");
 
     // Get the user info if reporterUserId is available
-    let user: any = null;
+    let User: any = null;
     if (c.reporterUserId && c.reporterUserId !== "system") {
-      user = await prisma.user.findUnique({
+      User = await prisma.user.findUnique({
         where: { id: c.reporterUserId },
         select: {
           id: true,
@@ -80,7 +80,7 @@ export class AdminComplianceController {
       });
     }
 
-    return { case: c, user };
+    return { case: c, User };
   }
 
   /**
@@ -133,10 +133,10 @@ export class AdminComplianceController {
   async kycPending() {
     const profiles = await prisma.kycProfile.findMany({
       where: {
-        user: { kycStatus: "pending" },
+        User: { kycStatus: "pending" },
       },
       include: {
-        user: {
+        User: {
           select: {
             id: true,
             kId: true,

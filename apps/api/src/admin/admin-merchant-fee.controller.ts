@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { prisma } from "../db/prisma";
@@ -21,7 +21,7 @@ export class AdminMerchantFeeController {
    * POST /v1/admin/merchant-fees/set
    * Create or update a merchant's fee profile.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("set")
   async setFee(
@@ -42,11 +42,11 @@ export class AdminMerchantFeeController {
     }
 
     // Verify merchant exists
-    const merchant = await prisma.merchant.findUnique({
+    const Merchant = await prisma.merchant.findUnique({
       where: { id: body.merchantId },
       select: { id: true, businessName: true },
     });
-    if (!merchant) throw new Error("Merchant not found");
+    if (!Merchant) throw new Error("Merchant not found");
 
     const profile = await prisma.merchantFeeProfile.upsert({
       where: { merchantId: body.merchantId },
@@ -65,6 +65,9 @@ export class AdminMerchantFeeController {
         currency: body.currency ?? "HTG",
         active: true,
       },
+      include: {
+        Merchant: { select: { businessName: true, paymentCode: true } },
+      },
     });
 
     await this.auditService.logFinancialAction({
@@ -72,7 +75,7 @@ export class AdminMerchantFeeController {
       eventType: "merchant_fee_updated",
       meta: {
         merchantId: body.merchantId,
-        merchantName: merchant.businessName,
+        merchantName: Merchant.businessName,
         mode: body.mode,
         percentBps: body.percentBps ?? 75,
         fixedFee: body.fixedFee ?? 0,
@@ -92,7 +95,7 @@ export class AdminMerchantFeeController {
    * GET /v1/admin/merchant-fees/:merchantId
    * Get a merchant's fee profile (or show global fallback).
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get(":merchantId")
   async getMerchantFee(@Param("merchantId") merchantId: string) {
@@ -134,7 +137,7 @@ export class AdminMerchantFeeController {
    * GET /v1/admin/merchant-fees?page=1
    * List all merchants with their fee profiles.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get()
   async listMerchantFees(@Query("limit") limit?: string) {
@@ -144,7 +147,7 @@ export class AdminMerchantFeeController {
       take,
       orderBy: { createdAt: "desc" },
       include: {
-        merchant: { select: { businessName: true, paymentCode: true } },
+        Merchant: { select: { businessName: true, paymentCode: true } },
       },
     });
 

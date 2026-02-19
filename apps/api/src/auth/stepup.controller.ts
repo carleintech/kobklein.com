@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "./auth0.guard";
+import { SupabaseGuard } from "./supabase.guard";
 import { createOtp, verifyOtp } from "./otp.service";
 import { prisma } from "../db/prisma";
 import { enqueueSMS } from "../notifications/notification.service";
@@ -18,7 +18,7 @@ export class StepUpController {
    * returns a token immediately (no OTP needed). Otherwise, sends an OTP
    * via SMS and optionally email.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("request")
   async request(
     @Req() req: any,
@@ -80,7 +80,7 @@ export class StepUpController {
    * The client should pass this token in the `x-stepup-token` header
    * when making sensitive requests.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("verify")
   async verify(
     @Req() req: any,

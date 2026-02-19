@@ -89,7 +89,7 @@ export default async function InstitutionalPage({
       {/* Hero */}
       <section className="relative overflow-hidden gold-dust">
         <div className="absolute inset-0 gradient-sovereign" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(198,167,86,0.08),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(201,168,76,0.08),transparent_60%)]" />
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center">
           <Building2 className="h-10 w-10 text-kob-gold mx-auto mb-4" />
           <h1 className="font-serif-luxury text-4xl md:text-5xl font-bold text-kob-text mb-4">
@@ -118,7 +118,7 @@ export default async function InstitutionalPage({
                 cash-in/cash-out distributor network (K-Agent).
               </p>
               <p>
-                Founded in Miami, Florida, KobKlein is licensed and registered across multiple
+                Founded in Virginia Beach, Virginia, KobKlein is licensed and registered across multiple
                 jurisdictions including Haiti (BRH), the United States (FinCEN), Canada (FINTRAC),
                 and the European Union (PSD2). The platform processes multi-currency transactions
                 with a focus on USD/HTG corridors and serves both retail and business customers.

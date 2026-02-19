@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { RolesGuard } from "../policies/roles.guard";
 import { Roles } from "../policies/roles.decorator";
 
@@ -16,12 +16,12 @@ export class AdminCatalogController {
    * GET /v1/admin/catalog
    * List all catalog items with plans (including inactive).
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get()
   async list() {
     const items = await prisma.subscriptionCatalogItem.findMany({
-      include: { plans: true },
+      include: { SubscriptionPlan: true },
       orderBy: { createdAt: "asc" },
     });
 
@@ -30,7 +30,7 @@ export class AdminCatalogController {
       count: items.length,
       items: items.map((item) => ({
         ...item,
-        plans: item.plans.map((p) => ({
+        plans: item.SubscriptionPlan.map((p) => ({
           ...p,
           amountUsd: Number(p.amountUsd),
         })),
@@ -42,7 +42,7 @@ export class AdminCatalogController {
    * POST /v1/admin/catalog/item
    * Create or update a catalog item (upsert by merchantKey).
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("item")
   async upsertItem(
@@ -101,7 +101,7 @@ export class AdminCatalogController {
    * POST /v1/admin/catalog/plan
    * Create or update a subscription plan (upsert by planKey).
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("plan")
   async upsertPlan(
@@ -162,7 +162,7 @@ export class AdminCatalogController {
    * POST /v1/admin/catalog/item/:id/toggle
    * Toggle active status of a catalog item.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("item/:id/toggle")
   async toggleItem(@Param("id") id: string) {
@@ -183,7 +183,7 @@ export class AdminCatalogController {
    * POST /v1/admin/catalog/plan/:id/toggle
    * Toggle active status of a plan.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("plan/:id/toggle")
   async togglePlan(@Param("id") id: string) {

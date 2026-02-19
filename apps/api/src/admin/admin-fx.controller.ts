@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Query, Post, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { prisma } from "../db/prisma";
@@ -20,7 +20,7 @@ export class AdminFxController {
    * GET /v1/admin/fx/active
    * Get the current active FX rate for USD→HTG.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("active")
   async getActiveRate() {
@@ -39,7 +39,7 @@ export class AdminFxController {
    * buy = mid × (1 - spread/2)  → what user receives (favorable to platform)
    * sell = mid × (1 + spread/2) → what platform sells at
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("set")
   async setRate(
@@ -109,7 +109,7 @@ export class AdminFxController {
    * GET /v1/admin/fx/history
    * View FX rate change history.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("history")
   async rateHistory(@Query("limit") limit?: string) {
@@ -140,7 +140,7 @@ export class AdminFxController {
    * GET /v1/admin/fx/revenue
    * FX spread revenue summary.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("revenue")
   async fxRevenue(@Query("days") days?: string) {

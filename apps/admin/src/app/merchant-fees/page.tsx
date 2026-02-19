@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { kkGet, kkPost } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@kobklein/ui/card";
+import { Button } from "@kobklein/ui/button";
+import { Input } from "@kobklein/ui/input";
 import { DataTable } from "@/components/data-table";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@kobklein/ui/badge";
 import { RefreshCw, Store } from "lucide-react";
 
 export default function MerchantFeesPage() {
@@ -118,7 +118,7 @@ export default function MerchantFeesPage() {
       <Card className="rounded-2xl">
         <CardContent className="p-5">
           <h2 className="font-medium mb-4 flex items-center gap-2">
-            <Store className="h-4 w-4 text-[#C6A756]" />
+            <Store className="h-4 w-4 text-[#C9A84C]" />
             Set Merchant Fee Profile
           </h2>
           <form onSubmit={handleSet} className="grid grid-cols-2 lg:grid-cols-5 gap-3 items-end">
@@ -147,7 +147,7 @@ export default function MerchantFeesPage() {
               <label className="text-xs text-muted-foreground mb-1 block">Fixed Fee</label>
               <Input type="number" step="0.01" value={fixedFee} onChange={(e) => setFixedFee(e.target.value)} />
             </div>
-            <Button type="submit" disabled={submitting} className="bg-[#C6A756] hover:bg-[#E1C97A] text-[#080B14] font-semibold">
+            <Button type="submit" disabled={submitting} className="bg-[#C9A84C] hover:bg-[#E2CA6E] text-[#060D1F] font-semibold">
               {submitting ? "Saving..." : "Save"}
             </Button>
           </form>

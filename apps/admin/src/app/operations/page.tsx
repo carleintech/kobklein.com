@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { kkGet, kkPost } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@kobklein/ui/card";
+import { Button } from "@kobklein/ui/button";
+import { Badge } from "@kobklein/ui/badge";
 import { RefreshCw, Copy, FileText, CheckCircle } from "lucide-react";
 
 type Withdrawal = {

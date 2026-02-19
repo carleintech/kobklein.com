@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { prisma } from "../db/prisma";
 import { toLang } from "../i18n/render";
 
@@ -13,7 +13,7 @@ export class ProfileController {
    * POST /v1/profile/lang
    * Body: { lang: "ht" }
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("lang")
   async setLang(
     @Req() req: any,
@@ -36,7 +36,7 @@ export class ProfileController {
    *
    * GET /v1/profile/lang
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("lang")
   async getLang(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;

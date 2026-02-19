@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import {
@@ -14,7 +14,7 @@ import {
 @Controller("admin/cases")
 export class CaseController {
   // ── Create a new case ──────────────────────────────────────────────
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post()
   async create(@Req() req: any, @Body() body: any) {
@@ -31,7 +31,7 @@ export class CaseController {
   }
 
   // ── List cases (with optional filters) ─────────────────────────────
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get()
   async list(
@@ -51,7 +51,7 @@ export class CaseController {
   }
 
   // ── Get single case with notes ─────────────────────────────────────
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get(":id")
   async detail(@Param("id") id: string) {
@@ -59,7 +59,7 @@ export class CaseController {
   }
 
   // ── Update case status ─────────────────────────────────────────────
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Patch(":id/status")
   async updateStatus(@Req() req: any, @Param("id") id: string, @Body() body: any) {
@@ -71,7 +71,7 @@ export class CaseController {
   }
 
   // ── Assign case to investigator ────────────────────────────────────
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Patch(":id/assign")
   async assign(@Req() req: any, @Param("id") id: string, @Body() body: any) {
@@ -83,7 +83,7 @@ export class CaseController {
   }
 
   // ── Add note to case ───────────────────────────────────────────────
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/notes")
   async note(@Req() req: any, @Param("id") id: string, @Body() body: any) {
@@ -91,7 +91,7 @@ export class CaseController {
   }
 
   // ── Case Actions ───────────────────────────────────────────────────
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/actions/freeze")
   async freezeAccount(@Req() req: any, @Param("id") id: string) {
@@ -99,7 +99,7 @@ export class CaseController {
     return { message: "Freeze action recorded" };
   }
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/actions/request-info")
   async requestInfo(@Req() req: any, @Param("id") id: string, @Body() body: any) {
@@ -107,7 +107,7 @@ export class CaseController {
     return { message: "Info request recorded" };
   }
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/actions/resolve")
   async resolveCase(@Req() req: any, @Param("id") id: string, @Body() body: any) {
@@ -118,7 +118,7 @@ export class CaseController {
     });
   }
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/actions/reject")
   async rejectCase(@Req() req: any, @Param("id") id: string, @Body() body: any) {

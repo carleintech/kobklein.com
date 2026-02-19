@@ -123,7 +123,7 @@ export default async function SecurityPage({
       {/* Hero */}
       <section className="relative overflow-hidden gold-dust">
         <div className="absolute inset-0 gradient-sovereign" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(198,167,86,0.1),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(201,168,76,0.1),transparent_60%)]" />
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-28 text-center">
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-kob-gold/25 bg-kob-gold/5 text-sm text-kob-gold mb-8">
             <Shield className="h-4 w-4" />

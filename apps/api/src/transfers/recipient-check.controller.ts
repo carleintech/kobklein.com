@@ -1,10 +1,10 @@
 import { Body, Controller, Post, UseGuards, Req } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 
 @Controller("transfers")
 export class RecipientCheckController {
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("check-recipient")
   async check(@Req() req: any, @Body() body: { phone: string }) {
     const senderId = req.user.sub;

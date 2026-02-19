@@ -4,12 +4,11 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { apiGet } from "@/lib/api";
 import { kkPost, kkPatch } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/toast";
+import { Card, CardContent } from "@kobklein/ui/card";
+import { Badge } from "@kobklein/ui/badge";
+import { useToast } from "@kobklein/ui";
 import {
   ArrowUpRight,
-  Bell,
   Calendar,
   CheckCircle2,
   Crown,
@@ -63,7 +62,6 @@ export function DiasporaDashboard({ profile }: Props) {
   const toast = useToast();
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [family, setFamily] = useState<FamilyMember[]>([]);
-  const [notifCount, setNotifCount] = useState(0);
   const [showAddForm, setShowAddForm] = useState(false);
   const [addPhone, setAddPhone] = useState("");
   const [addNickname, setAddNickname] = useState("");
@@ -71,15 +69,13 @@ export function DiasporaDashboard({ profile }: Props) {
 
   const load = useCallback(async () => {
     try {
-      const [dash, members, notifs] = await Promise.all([
+      const [dash, members] = await Promise.all([
         apiGet<DashboardData>("v1/family/dashboard"),
         apiGet<FamilyMember[]>("v1/family/members"),
-        apiGet<{ unread: number }>("notifications/count"),
       ]);
       setDashboard(dash);
       setFamily(members);
-      setNotifCount(notifs.unread);
-    } catch (e) {
+    } catch (e: unknown) {
       console.error("Failed to load diaspora dashboard:", e);
     }
   }, []);
@@ -102,8 +98,9 @@ export function DiasporaDashboard({ profile }: Props) {
       setAddRelationship("");
       toast.show("Family member added!", "success");
       load();
-    } catch (e: any) {
-      toast.show(e.message || "Failed to add family member", "error");
+    } catch (e: unknown) {
+      const message = typeof e === "object" && e && "message" in e ? (e as any).message : undefined;
+      toast.show(message || "Failed to add family member", "error");
     }
   }
 
@@ -152,54 +149,45 @@ export function DiasporaDashboard({ profile }: Props) {
         member.isFavorite ? "Removed from favorites" : "Added to favorites!",
         "success"
       );
-    } catch (e: any) {
-      toast.show(e.message || "Failed to update", "error");
+    } catch (e: unknown) {
+      const message = typeof e === "object" && e && "message" in e ? (e as any).message : undefined;
+      toast.show(message || "Failed to update", "error");
     }
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <div className="text-xs text-muted-foreground flex items-center gap-1">
-            <Globe className="h-3 w-3" /> KobKlein Diaspora
-          </div>
-          <div className="text-xl font-semibold">{greeting}</div>
-          {/* Plan & KYC Badges */}
-          <div className="flex items-center gap-1.5 mt-1">
-            {profile.planName ? (
-              <Badge variant="default" className="text-[10px] gap-0.5">
-                <Crown className="h-2.5 w-2.5" />
-                {profile.planName}
-              </Badge>
-            ) : (
-              <Badge variant="secondary" className="text-[10px]">Free</Badge>
-            )}
-            {profile.kycTier >= 2 ? (
-              <Badge variant="success" className="text-[10px] gap-0.5">
-                <CheckCircle2 className="h-2.5 w-2.5" />
-                Verified
-              </Badge>
-            ) : profile.kycTier === 1 ? (
-              <Badge variant="warning" className="text-[10px]">KYC Pending</Badge>
-            ) : (
-              <Badge variant="destructive" className="text-[10px]">Unverified</Badge>
-            )}
-          </div>
+      <div>
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <Globe className="h-3 w-3" /> KobKlein Diaspora
         </div>
-        <button type="button" className="relative" onClick={() => router.push("/notifications")}>
-          <Bell className="h-5 w-5 text-muted-foreground" />
-          {notifCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] px-1 rounded-full">
-              {notifCount}
-            </span>
+        <div className="text-xl font-semibold">{greeting}</div>
+        {/* Plan & KYC Badges */}
+        <div className="flex items-center gap-1.5 mt-1">
+          {profile.planName ? (
+            <Badge variant="default" className="text-[10px] gap-0.5">
+              <Crown className="h-2.5 w-2.5" />
+              {profile.planName}
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="text-[10px]">Free</Badge>
           )}
-        </button>
+          {profile.kycTier >= 2 ? (
+            <Badge variant="success" className="text-[10px] gap-0.5">
+              <CheckCircle2 className="h-2.5 w-2.5" />
+              Verified
+            </Badge>
+          ) : profile.kycTier === 1 ? (
+            <Badge variant="warning" className="text-[10px]">KYC Pending</Badge>
+          ) : (
+            <Badge variant="destructive" className="text-[10px]">Unverified</Badge>
+          )}
+        </div>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 md:grid-cols-3 gap-3 md:gap-4">
         <Card className="rounded-2xl">
           <CardContent className="p-3 text-center">
             <div className="text-lg font-bold">
@@ -283,6 +271,7 @@ export function DiasporaDashboard({ profile }: Props) {
                 value={addRelationship}
                 onChange={(e) => setAddRelationship(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+                title="Select relationship"
               >
                 <option value="">Relationship</option>
                 <option value="parent">Parent</option>
@@ -326,6 +315,7 @@ export function DiasporaDashboard({ profile }: Props) {
                   {/* Star Toggle */}
                   <button
                     type="button"
+                    title={member.isFavorite ? "Remove from favorites" : "Add to favorites"}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleToggleFavorite(member);
@@ -335,7 +325,7 @@ export function DiasporaDashboard({ profile }: Props) {
                     <Star
                       className={`h-4 w-4 ${
                         member.isFavorite
-                          ? "text-[#C6A756] fill-[#C6A756]"
+                          ? "text-[#C9A84C] fill-[#C9A84C]"
                           : "text-muted-foreground"
                       }`}
                     />
@@ -362,6 +352,7 @@ export function DiasporaDashboard({ profile }: Props) {
                   </div>
                   <button
                     type="button"
+                    title="Send money"
                     onClick={() =>
                       router.push(
                         `/send?recipientId=${member.familyUser.id}&name=${encodeURIComponent(
@@ -404,16 +395,16 @@ export function DiasporaDashboard({ profile }: Props) {
       {/* Plan Upgrade Banner */}
       {!profile.planSlug && (
         <button type="button" onClick={() => router.push("/settings/plan")} className="w-full text-left">
-          <Card className="rounded-2xl border-[#C6A756]/30 bg-[#C6A756]/5">
+          <Card className="rounded-2xl border-[#C9A84C]/30 bg-[#C9A84C]/5">
             <CardContent className="p-4 flex items-center gap-3">
-              <Crown className="h-8 w-8 text-[#C6A756] shrink-0" />
+              <Crown className="h-8 w-8 text-[#C9A84C] shrink-0" />
               <div className="flex-1">
                 <div className="text-sm font-semibold">Diaspora Plus</div>
                 <div className="text-xs text-muted-foreground">
                   Lower FX fees, priority support & more
                 </div>
               </div>
-              <ArrowUpRight className="h-4 w-4 text-[#C6A756] shrink-0" />
+              <ArrowUpRight className="h-4 w-4 text-[#C9A84C] shrink-0" />
             </CardContent>
           </Card>
         </button>

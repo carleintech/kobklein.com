@@ -6,7 +6,7 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { prisma } from "../db/prisma";
@@ -27,7 +27,7 @@ export class AdminLimitsController {
    * GET /v1/admin/limits/profiles
    * List all role-based limit profiles.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("profiles")
   async listProfiles() {
@@ -49,7 +49,7 @@ export class AdminLimitsController {
    * POST /v1/admin/limits/profiles/set
    * Create or update a role-based limit profile.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post("profiles/set")
   async setProfile(
@@ -101,7 +101,7 @@ export class AdminLimitsController {
    * GET /v1/admin/limits/user/:userId
    * Get a specific user's current limit status.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("user/:userId")
   async getUserLimits(@Param("userId") userId: string) {

@@ -7,7 +7,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { prisma } from "../db/prisma";
@@ -30,7 +30,7 @@ export class TransferReviewController {
    * GET /v1/admin/transfers/pending
    * List all transfers awaiting admin review.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("pending")
   async pendingTransfers(@Query("limit") limit?: string) {
@@ -83,7 +83,7 @@ export class TransferReviewController {
    * GET /v1/admin/transfers/:id/detail
    * Get full detail of a pending transfer including risk event.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get(":id/detail")
   async transferDetail(@Param("id") id: string) {
@@ -149,7 +149,7 @@ export class TransferReviewController {
    * POST /v1/admin/transfers/:id/approve
    * Approve a held transfer — execute the ledger entries.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/approve")
   async approveTransfer(
@@ -225,7 +225,7 @@ export class TransferReviewController {
    * POST /v1/admin/transfers/:id/reject
    * Reject a held transfer — release the hold, no ledger entries.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Post(":id/reject")
   async rejectTransfer(
@@ -298,7 +298,7 @@ export class TransferReviewController {
    * GET /v1/admin/transfers/stats
    * Quick stats about the review queue.
    */
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("stats")
   async reviewStats() {

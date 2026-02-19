@@ -6,7 +6,7 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { RolesGuard } from "../policies/roles.guard";
 import { Roles } from "../policies/roles.decorator";
 import {
@@ -16,7 +16,7 @@ import {
 } from "../security/device.service";
 
 @Controller("v1/admin/devices")
-@UseGuards(Auth0Guard, RolesGuard)
+@UseGuards(SupabaseGuard, RolesGuard)
 @Roles("admin")
 export class AdminDevicesController {
   /**

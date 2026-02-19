@@ -44,8 +44,8 @@ export async function resolvePlanFeatures(userId: string): Promise<PlanFeatureSe
       status: { in: ["active", "trialing"] },
       currentPeriodEnd: { gte: new Date() },
     },
-    include: { plan: true },
-    orderBy: { plan: { tier: "desc" } },
+    include: { PlatformPlan: true },
+    orderBy: { PlatformPlan: { tier: "desc" } },
   });
 
   if (!userPlan) {
@@ -57,11 +57,11 @@ export async function resolvePlanFeatures(userId: string): Promise<PlanFeatureSe
     return getDefaultFeatures(user?.role || "user");
   }
 
-  const features = (userPlan.plan.features || {}) as Record<string, any>;
+  const features = (userPlan.PlatformPlan.features || {}) as Record<string, any>;
 
   return {
-    tier: userPlan.plan.tier,
-    role: userPlan.plan.role,
+    tier: userPlan.PlatformPlan.tier,
+    role: userPlan.PlatformPlan.role,
     ...features,
   };
 }

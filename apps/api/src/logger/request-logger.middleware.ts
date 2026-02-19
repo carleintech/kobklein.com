@@ -17,8 +17,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
         durationMs: duration,
         ip: req.ip || req.headers["x-forwarded-for"],
         userId: req.localUser?.id,
-        auth0Id:
-          req.user?.["https://kobklein.com/user_id"] || req.user?.sub,
+        authSub: req.user?.sub,
       };
 
       // For now console → later ship to ELK / Datadog

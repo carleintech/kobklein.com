@@ -85,16 +85,16 @@ export function Sidebar() {
 
   return (
     <aside
-      className="hidden md:flex md:flex-col border-r border-white/5 bg-[#0F1626] fixed top-0 left-0 h-screen"
+      className="hidden md:flex md:flex-col border-r border-white/5 bg-[#0A1628] fixed top-0 left-0 h-screen"
       style={{ width: "var(--sidebar-w)" }}
     >
       {/* Branding */}
       <div className="h-16 px-4 flex items-center gap-2.5 border-b border-white/5">
-        <div className="w-7 h-7 rounded-lg bg-[#C6A756] flex items-center justify-center text-xs font-bold text-[#080B14]">
+        <div className="w-7 h-7 rounded-lg bg-[#C9A84C] flex items-center justify-center text-xs font-bold text-[#060D1F]">
           K
         </div>
-        <span className="font-semibold text-sm tracking-tight text-[#F2F2F2]">KobKlein</span>
-        <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-[#151B2E] text-[#7A8394] border border-white/5">
+        <span className="font-semibold text-sm tracking-tight text-[#F0F1F5]">KobKlein</span>
+        <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-[#0F1D35] text-[#6B7489] border border-white/5">
           Admin
         </span>
       </div>
@@ -104,7 +104,7 @@ export function Sidebar() {
         {sections.map((section, si) => (
           <div key={si}>
             {section.heading && (
-              <div className="px-3 pt-4 pb-1 text-[10px] font-semibold text-[#7A8394]/60 uppercase tracking-widest">
+              <div className="px-3 pt-4 pb-1 text-[10px] font-semibold text-[#6B7489]/60 uppercase tracking-widest">
                 {section.heading}
               </div>
             )}
@@ -119,12 +119,12 @@ export function Sidebar() {
                   href={item.href}
                   className={`relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-200 ${
                     isActive
-                      ? "bg-[#C6A756]/10 text-[#C6A756] font-medium"
-                      : "text-[#7A8394] hover:text-[#F2F2F2] hover:bg-white/3"
+                      ? "bg-[#C9A84C]/10 text-[#C9A84C] font-medium"
+                      : "text-[#6B7489] hover:text-[#F0F1F5] hover:bg-white/3"
                   }`}
                 >
                   {isActive && (
-                    <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[#C6A756]" />
+                    <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[#C9A84C]" />
                   )}
                   <Icon className="h-4 w-4" />
                   {item.label}
@@ -138,8 +138,8 @@ export function Sidebar() {
       {/* Footer */}
       <div className="p-3 border-t border-white/5">
         <Separator className="mb-3 bg-white/4" />
-        <div className="text-[11px] text-[#7A8394] space-y-1">
-          <div>Env: <span className="text-[#C6A756]">Dev</span></div>
+        <div className="text-[11px] text-[#6B7489] space-y-1">
+          <div>Env: <span className="text-[#C9A84C]">Dev</span></div>
           <div className="truncate">API: {process.env.NEXT_PUBLIC_API_BASE_URL}</div>
         </div>
       </div>

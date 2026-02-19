@@ -1,12 +1,12 @@
 import { Controller, Get, Query, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 
 @Controller("admin/analytics")
 export class AnalyticsRevenueController {
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("daily-revenue")
   async daily(@Query("days") days = "30") {

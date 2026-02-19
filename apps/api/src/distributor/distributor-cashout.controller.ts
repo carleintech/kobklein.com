@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { evaluateTransactionRisk } from "../risk/risk-engine.service";
 import { createOtpChallenge, consumeOtpChallenge } from "../otp/otp-challenge.service";
 import { AuditService } from "../audit/audit.service";
@@ -9,7 +9,7 @@ import { AuditService } from "../audit/audit.service";
 export class DistributorCashOutController {
   constructor(private auditService: AuditService) {}
 
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("cash-out/initiate")
   async initiate(
     @Req() req: any,
@@ -63,7 +63,7 @@ export class DistributorCashOutController {
     };
   }
 
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("cash-out/confirm")
   async confirm(
     @Req() req: any,

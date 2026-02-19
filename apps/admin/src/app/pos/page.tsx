@@ -1,5 +1,5 @@
 import { Card as KpiCard } from "@/components/card";
-import { Card as ShadcnCard, CardContent } from "@/components/ui/card";
+import { Card as ShadcnCard, CardContent } from "@kobklein/ui/card";
 import { apiGet } from "@/lib/api";
 import { DollarSign, Receipt, TrendingUp, Percent } from "lucide-react";
 

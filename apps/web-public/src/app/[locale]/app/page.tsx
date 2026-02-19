@@ -78,7 +78,7 @@ export default function AppPage() {
       {/* ---- Hero ---- */}
       <section className="relative overflow-hidden min-h-[90vh] flex flex-col justify-center">
         <div className="absolute inset-0 bg-kob-black" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(198,167,86,0.12),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(201,168,76,0.12),transparent)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_60%,rgba(31,111,74,0.08),transparent)]" />
         <div className="absolute inset-0 gold-dust" />
 
@@ -310,7 +310,7 @@ export default function AppPage() {
       {/* ---- Download CTA ---- */}
       <section className="py-24 relative overflow-hidden gold-dust">
         <div className="absolute inset-0 gradient-sovereign" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(198,167,86,0.08),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,168,76,0.08),transparent_70%)]" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div

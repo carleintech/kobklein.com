@@ -1,4 +1,4 @@
-import { Card as ShadcnCard, CardContent } from "@/components/ui/card";
+import { Card as ShadcnCard, CardContent } from "@kobklein/ui/card";
 import { Card as KpiCard } from "@/components/card";
 import { Badge } from "@/components/badge";
 import { DataTable } from "@/components/data-table";
@@ -96,9 +96,15 @@ export default async function OverviewPage() {
           />
         </div>
       ) : (
-        <ShadcnCard className="rounded-2xl">
-          <CardContent className="p-8 text-center text-muted-foreground">
-            Unable to fetch overview data. Make sure the API is running.
+        <ShadcnCard className="rounded-2xl border-yellow-600/30 bg-yellow-950/20">
+          <CardContent className="p-8 text-center">
+            <AlertTriangle className="h-8 w-8 text-yellow-400 mx-auto mb-3" />
+            <p className="text-sm font-medium text-yellow-300">Unable to fetch overview data</p>
+            <p className="text-xs text-[#7A8394] mt-2">
+              The API server is not responding. Run{" "}
+              <code className="font-mono bg-white/5 px-1.5 py-0.5 rounded text-[#C4C7CF]">pnpm dev</code>{" "}
+              from the project root to start all services.
+            </p>
           </CardContent>
         </ShadcnCard>
       )}

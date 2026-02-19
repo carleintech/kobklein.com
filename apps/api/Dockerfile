@@ -14,7 +14,6 @@ RUN npm install --include=dev
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-ARG CACHEBUST=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -36,12 +35,8 @@ COPY --from=builder /app/prisma ./prisma
 
 USER nestjs
 
-EXPOSE 3001
+EXPOSE ${PORT:-3001}
 
 ENV NODE_ENV=production
-ENV PORT=3001
-
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health || exit 1
 
 CMD ["node", "dist/src/main.js"]

@@ -1,19 +1,19 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { pool } from "../db/pool";
 
 @Controller("admin")
 export class AdminController {
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("stats")
   stats() {
     return { secret: "admin only data" };
   }
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("overview")
   async overview() {
@@ -77,7 +77,7 @@ export class AdminController {
     };
   }
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("liquidity")
   async liquidity() {
@@ -132,7 +132,7 @@ export class AdminController {
     return result;
   }
 
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
   @Get("recent-activity")
   async recentActivity() {

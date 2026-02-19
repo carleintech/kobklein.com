@@ -3,11 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { apiGet } from "@/lib/api";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@kobklein/ui/card";
 import {
   ArrowUpRight,
   Banknote,
-  Bell,
   BarChart3,
   Monitor,
   QrCode,
@@ -29,18 +28,15 @@ export function MerchantDashboard({ profile }: Props) {
   const router = useRouter();
   const [stats, setStats] = useState<MerchantStats | null>(null);
   const [balance, setBalance] = useState<any>(null);
-  const [notifCount, setNotifCount] = useState(0);
 
   const load = useCallback(async () => {
     try {
-      const [s, b, n] = await Promise.all([
+      const [s, b] = await Promise.all([
         apiGet<MerchantStats>("v1/merchant/stats").catch(() => null),
-        apiGet<any>("wallet/balance").catch(() => null),
-        apiGet<{ unread: number }>("notifications/count").catch(() => ({ unread: 0 })),
+        apiGet<any>("v1/wallets/balance").catch(() => null),
       ]);
       setStats(s);
       setBalance(b);
-      setNotifCount(n.unread);
     } catch {}
   }, []);
 
@@ -51,31 +47,21 @@ export function MerchantDashboard({ profile }: Props) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <div className="text-xs text-muted-foreground flex items-center gap-1">
-            <Store className="h-3 w-3" /> KobKlein Merchant
-          </div>
-          <div className="text-xl font-semibold">
-            {profile.firstName || "Merchant"} Dashboard
-          </div>
-          {profile.handle && (
-            <div className="text-xs text-primary font-medium">
-              <span className="inline-flex items-center gap-0.5">
-                <span className="w-3 h-3 rounded bg-primary text-white text-[8px] font-bold flex items-center justify-center">K</span>
-                @{profile.handle}
-              </span>
-            </div>
-          )}
+      <div>
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <Store className="h-3 w-3" /> KobKlein Merchant
         </div>
-        <button type="button" className="relative" onClick={() => router.push("/notifications")}>
-          <Bell className="h-5 w-5 text-muted-foreground" />
-          {notifCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] px-1 rounded-full">
-              {notifCount}
+        <div className="text-xl font-semibold">
+          {profile.firstName || "Merchant"} Dashboard
+        </div>
+        {profile.handle && (
+          <div className="text-xs text-primary font-medium">
+            <span className="inline-flex items-center gap-0.5">
+              <span className="w-3 h-3 rounded bg-primary text-white text-[8px] font-bold flex items-center justify-center">K</span>
+              @{profile.handle}
             </span>
-          )}
-        </button>
+          </div>
+        )}
       </div>
 
       {/* Balance */}
@@ -92,7 +78,7 @@ export function MerchantDashboard({ profile }: Props) {
       </Card>
 
       {/* Today's Stats */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card className="rounded-2xl">
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground">Today Sales</div>
@@ -131,9 +117,9 @@ export function MerchantDashboard({ profile }: Props) {
         <button
           type="button"
           onClick={() => router.push("/merchant/pos")}
-          className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[#C6A756]/30 bg-card hover:bg-secondary transition"
+          className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[#C9A84C]/30 bg-card hover:bg-secondary transition"
         >
-          <Monitor className="h-8 w-8 text-[#C6A756]" />
+          <Monitor className="h-8 w-8 text-[#C9A84C]" />
           <span className="text-sm font-medium">POS Terminal</span>
           <span className="text-[10px] text-muted-foreground">
             Full-screen mode

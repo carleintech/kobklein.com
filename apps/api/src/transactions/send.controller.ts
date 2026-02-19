@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query, Req, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { sendByPhone } from "./phone-transfer.service";
 import { getContacts, checkPhone } from "./contact.service";
 import { enforceTransferVelocity } from "../fraud/risk.service";
@@ -14,7 +14,7 @@ import { emitEvent } from "../services/event-bus.service";
  */
 @Controller("v1")
 export class SendController {
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("send")
   async send(@Req() req: any, @Body() body: any) {
     const idempotencyKey = req.headers["idempotency-key"];
@@ -55,7 +55,7 @@ export class SendController {
     }
   }
 
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("contacts")
   async contacts(@Req() req: any, @Query("limit") limit?: string) {
     const userId = req.localUser?.id;
@@ -63,7 +63,7 @@ export class SendController {
     return getContacts(userId, Number(limit) || 20);
   }
 
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("contacts/check")
   async checkContact(@Req() req: any, @Query("phone") phone: string) {
     if (!phone) throw new Error("Phone parameter required");

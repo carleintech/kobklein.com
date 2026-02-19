@@ -1,6 +1,6 @@
 import { auth0 } from "@/lib/auth0";
 
-const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
 /**
  * Server-side fetch that automatically attaches the Auth0 access token.

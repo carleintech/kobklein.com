@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
+import { Twitter, Instagram, Facebook, Youtube, Shield, Award, CheckCircle } from "lucide-react";
 import type { Dictionary, Locale } from "@/i18n";
 
 export function Footer({ dict, locale }: { dict: Dictionary; locale?: Locale }) {
@@ -11,28 +13,30 @@ export function Footer({ dict, locale }: { dict: Dictionary; locale?: Locale }) 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-kob-gold flex items-center justify-center">
-                <span className="text-kob-black font-bold text-sm">K</span>
-              </div>
-              <span className="text-xl font-semibold text-kob-text tracking-tight">
-                KobKlein
-              </span>
+            <div className="flex items-center">
+              <Image
+                src="/images/logos/footer.png"
+                alt="KobKlein Footer Logo"
+                width={320}
+                height={90}
+                className="h-24 w-auto object-contain"
+              />
             </div>
             <p className="text-sm text-kob-muted leading-relaxed">{dict.footer.tagline}</p>
             <div className="flex gap-3">
               {[
-                { label: "X", href: "#" },
-                { label: "IG", href: "#" },
-                { label: "FB", href: "#" },
-                { label: "YT", href: "#" },
-              ].map((s) => (
+                { label: "Twitter", icon: Twitter, href: "#" },
+                { label: "Instagram", icon: Instagram, href: "#" },
+                { label: "Facebook", icon: Facebook, href: "#" },
+                { label: "YouTube", icon: Youtube, href: "#" },
+              ].map(({ label, icon: Icon, href }) => (
                 <a
-                  key={s.label}
-                  href={s.href}
-                  className="w-9 h-9 rounded-full bg-white/4 flex items-center justify-center text-kob-muted hover:bg-kob-gold/10 hover:text-kob-gold transition-all duration-200"
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  className="w-9 h-9 rounded-full bg-white/4 flex items-center justify-center text-kob-muted hover:bg-kob-gold/10 hover:text-kob-gold hover:scale-110 transition-all duration-200"
                 >
-                  <span className="text-xs font-bold">{s.label}</span>
+                  <Icon className="h-4 w-4" />
                 </a>
               ))}
             </div>
@@ -90,12 +94,19 @@ export function Footer({ dict, locale }: { dict: Dictionary; locale?: Locale }) 
             &copy; {year} {dict.footer.copyright}
           </p>
           <div className="flex items-center gap-3">
-            {["PCI", "SOC", "AML"].map((badge) => (
+            {[
+              { label: "PCI", ariaLabel: "PCI DSS Compliant", icon: Shield },
+              { label: "SOC", ariaLabel: "SOC 2 Certified", icon: Award },
+              { label: "AML", ariaLabel: "AML Compliant", icon: CheckCircle },
+            ].map(({ label, ariaLabel, icon: Icon }) => (
               <div
-                key={badge}
-                className="px-2 py-1 rounded border border-kob-gold/20 flex items-center justify-center"
+                key={label}
+                aria-label={ariaLabel}
+                role="img"
+                className="px-2.5 py-1.5 rounded border border-kob-gold/20 flex items-center gap-1.5 hover:border-kob-gold/40 transition-colors duration-200"
               >
-                <span className="text-[9px] font-bold text-kob-gold tracking-wider">{badge}</span>
+                <Icon className="h-3 w-3 text-kob-gold" />
+                <span className="text-[9px] font-bold text-kob-gold tracking-wider">{label}</span>
               </div>
             ))}
             <span className="text-xs text-kob-muted ml-1">Bank-Grade Security</span>

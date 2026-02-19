@@ -1,6 +1,6 @@
 import { Controller, Delete, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { computeTrustScore } from "../risk/trust-score.service";
 
 @Controller("v1/recipients")
@@ -9,7 +9,7 @@ export class RecipientsController {
    * Smart recipients list: favorites first, then most frequent, then recent.
    * Enriched with trust score for each recipient.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get("smart")
   async smart(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -23,7 +23,7 @@ export class RecipientsController {
       ],
       take: 20,
       include: {
-        contactUser: {
+        User_TransferContact_contactUserIdToUser: {
           select: {
             id: true,
             firstName: true,
@@ -46,7 +46,7 @@ export class RecipientsController {
           isFavorite: r.isFavorite,
           transferCount: r.transferCount,
           lastTransferAt: r.lastTransferAt,
-          user: r.contactUser,
+          user: r.User_TransferContact_contactUserIdToUser,
           trust,
         };
       }),
@@ -58,7 +58,7 @@ export class RecipientsController {
   /**
    * Mark a contact as favorite.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post(":id/favorite")
   async favorite(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -79,7 +79,7 @@ export class RecipientsController {
   /**
    * Remove favorite.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Delete(":id/favorite")
   async unfavorite(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;

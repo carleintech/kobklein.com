@@ -8,7 +8,7 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import {
   getUserDevices,
   trustDevice,
@@ -21,7 +21,7 @@ export class DevicesController {
   /**
    * GET /devices — List the authenticated user's active devices
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get()
   async list(@Req() req: any) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -32,7 +32,7 @@ export class DevicesController {
   /**
    * PATCH /devices/:id/trust — Mark a device as trusted (skip step-up OTP)
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Patch(":id/trust")
   async trust(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -43,7 +43,7 @@ export class DevicesController {
   /**
    * PATCH /devices/:id/label — Rename a device
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Patch(":id/label")
   async label(
     @Req() req: any,
@@ -58,7 +58,7 @@ export class DevicesController {
   /**
    * DELETE /devices/:id — Revoke a device (soft delete)
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Delete(":id")
   async revoke(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;

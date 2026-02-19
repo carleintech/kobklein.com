@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Param, Query, UseGuards } from "@nestjs/common";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import {
@@ -11,7 +11,7 @@ import {
 import { enqueueNotification, NotificationJob, getNotificationQueue } from "../notifications/notification.queue";
 
 @Controller("admin/notifications")
-@UseGuards(Auth0Guard, RolesGuard)
+@UseGuards(SupabaseGuard, RolesGuard)
 @Roles("admin")
 export class NotificationsAdminController {
   /**
@@ -77,6 +77,9 @@ export class NotificationsAdminController {
     };
     // Re-queue directly using the shared BullMQ queue (reuses existing Redis connection)
     const q = getNotificationQueue();
+    if (!q) {
+      return { ok: false, message: "Queue unavailable — REDIS_URL not configured" };
+    }
     await q.add(log.type, { ...job, logId: id }, {
       priority: log.channel === "sms" ? 1 : 5,
     });

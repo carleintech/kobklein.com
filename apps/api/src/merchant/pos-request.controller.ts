@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { prisma } from "../db/prisma";
-import { Auth0Guard } from "../auth/auth0.guard";
+import { SupabaseGuard } from "../auth/supabase.guard";
 import { signPosRequest } from "../utils/qr-signature";
 
 /**
@@ -19,7 +19,7 @@ export class MerchantPosRequestController {
    *
    * Body: { amount: number, currency?: string, note?: string, ttlMinutes?: number }
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post("create")
   async createRequest(
     @Req() req: any,
@@ -98,7 +98,7 @@ export class MerchantPosRequestController {
    *
    * Check the status of a POS request (for polling by the merchant).
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Get(":id")
   async getRequestStatus(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;
@@ -143,7 +143,7 @@ export class MerchantPosRequestController {
    *
    * Merchant cancels a pending POS request.
    */
-  @UseGuards(Auth0Guard)
+  @UseGuards(SupabaseGuard)
   @Post(":id/cancel")
   async cancelRequest(@Req() req: any, @Param("id") id: string) {
     const userId = req.localUser?.id || req.user?.sub;

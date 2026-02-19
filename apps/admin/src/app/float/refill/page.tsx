@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { kkPost } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@kobklein/ui/card";
+import { Input } from "@kobklein/ui/input";
+import { Button } from "@kobklein/ui/button";
 
 export default function FloatRefillPage() {
   const [id, setId] = useState("");

@@ -131,7 +131,7 @@ export async function listPromotions(options?: {
       orderBy: { createdAt: "desc" },
       take: options?.limit ?? 50,
       skip: options?.offset ?? 0,
-      include: { _count: { select: { redemptions: true } } },
+      include: { _count: { select: { FxPromoRedemption: true } } },
     }),
     prisma.fxPromotion.count({ where }),
   ]);

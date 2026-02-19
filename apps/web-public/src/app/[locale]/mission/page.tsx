@@ -52,7 +52,7 @@ const timeline = [
     year: "2023",
     title: "Founded",
     description:
-      "KobKlein was founded in Port-au-Prince with a mission to democratize financial access for every Haitian.",
+      "KobKlein was founded in Virginia Beach with a mission to democratize financial access for every Haitian.",
     Icon: Calendar,
   },
   {
@@ -83,7 +83,7 @@ export default async function MissionPage({
       {/* Hero */}
       <section className="relative overflow-hidden gold-dust">
         <div className="absolute inset-0 gradient-sovereign" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(198,167,86,0.08),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(201,168,76,0.08),transparent_60%)]" />
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-28 text-center">
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-kob-gold/25 bg-kob-gold/5 text-sm text-kob-gold mb-8">
             <Target className="h-4 w-4" />
