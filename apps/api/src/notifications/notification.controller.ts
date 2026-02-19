@@ -3,7 +3,7 @@ import { prisma } from "../db/prisma";
 import { SupabaseGuard } from "../auth/supabase.guard";
 import { renderTemplate, toLang } from "../i18n/render";
 
-@Controller("notifications")
+@Controller("v1/notifications")
 export class NotificationController {
   /**
    * List recent notifications for the authenticated user.

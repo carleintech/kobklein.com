@@ -8,12 +8,12 @@ export default function NotificationsPage() {
   const [items, setItems] = useState<any[]>([]);
 
   async function load() {
-    const res = await kkGet<any[]>("notifications");
+    const res = await kkGet<any[]>("v1/notifications");
     setItems(res);
   }
 
   async function markRead() {
-    await kkPatch("notifications/read-all");
+    await kkPatch("v1/notifications/read-all");
   }
 
   useEffect(() => {
