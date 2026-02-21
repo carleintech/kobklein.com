@@ -1,37 +1,52 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Badge } from "@/components/badge";
-import { Card } from "@kobklein/ui/card";
-import { Button } from "@kobklein/ui/button";
-import { kkGet, kkPost } from "@/lib/kobklein-api";
-import { ArrowLeft, MessageSquare, Activity, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Activity, ArrowLeft, CheckCircle2, Loader2, MessageSquare, Snowflake, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { kkGet, kkPost } from "@/lib/kobklein-api";
 
-const caseTypeLabels: Record<string, string> = {
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+type CaseMessage = {
+  id: string;
+  authorRole: string;
+  authorUserId?: string;
+  message: string;
+  createdAt: string;
+};
+
+type CaseAction = {
+  id: string;
+  actionType: string;
+  actorUserId?: string;
+  meta?: Record<string, unknown>;
+  createdAt: string;
+};
+
+type CaseData = {
+  id: string;
+  caseType: string;
+  status: string;
+  priority: string;
+  description: string;
+  reporterUserId?: string;
+  referenceType?: string;
+  referenceId?: string;
+  createdAt: string;
+  messages?: CaseMessage[];
+  actions?: CaseAction[];
+};
+
+// ── Label maps ────────────────────────────────────────────────────────────────
+
+const TYPE_LABELS: Record<string, string> = {
   wrong_recipient: "Wrong Recipient",
   unauthorized: "Unauthorized Transaction",
   merchant_dispute: "Merchant Dispute",
 };
 
-const priorityVariant: Record<string, "red" | "yellow" | "blue" | "default"> = {
-  critical: "red",
-  high: "red",
-  normal: "default",
-  low: "blue",
-};
-
-const statusVariant: Record<string, "green" | "yellow" | "red" | "blue" | "default"> = {
-  open: "yellow",
-  investigating: "blue",
-  pending_user: "yellow",
-  pending_admin: "yellow",
-  resolved: "green",
-  rejected: "default",
-};
-
-const actionTypeLabels: Record<string, string> = {
+const ACTION_LABELS: Record<string, string> = {
   freeze_account: "Account Frozen",
   unfreeze_account: "Account Unfrozen",
   request_info: "Info Requested",
@@ -40,381 +55,380 @@ const actionTypeLabels: Record<string, string> = {
   close_case: "Case Closed",
 };
 
-function timeAgo(d: string) {
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function timeAgo(d: string): string {
   const s = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
   if (s < 60) return `${s}s ago`;
   if (s < 3600) return `${Math.floor(s / 60)}m ago`;
   if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  return `${Math.floor(s / 86400)}d ago`;
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
+
+type StatusStyle = { dot: string; text: string; bg: string; border: string; label: string };
+type PriorityStyle = { dot: string; text: string; bg: string; border: string };
+
+function statusStyle(s: string): StatusStyle {
+  const map: Record<string, StatusStyle> = {
+    open:          { dot: "bg-kob-gold",    text: "text-kob-gold",    bg: "bg-kob-gold/10",    border: "border-kob-gold/25",    label: "Open" },
+    investigating: { dot: "bg-sky-400",     text: "text-sky-400",     bg: "bg-sky-500/10",     border: "border-sky-500/25",     label: "Investigating" },
+    pending_user:  { dot: "bg-yellow-400",  text: "text-yellow-300",  bg: "bg-yellow-500/10",  border: "border-yellow-500/25",  label: "Pending User" },
+    pending_admin: { dot: "bg-yellow-400",  text: "text-yellow-300",  bg: "bg-yellow-500/10",  border: "border-yellow-500/25",  label: "Pending Admin" },
+    resolved:      { dot: "bg-emerald-400", text: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/25", label: "Resolved" },
+    rejected:      { dot: "bg-kob-muted",   text: "text-kob-muted",   bg: "bg-white/5",        border: "border-white/10",       label: "Rejected" },
+  };
+  return map[s] ?? { dot: "bg-kob-muted", text: "text-kob-muted", bg: "bg-white/5", border: "border-white/10", label: s };
+}
+
+function priorityStyle(p: string): PriorityStyle {
+  if (p === "critical" || p === "high") return { dot: "bg-red-500", text: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/25" };
+  if (p === "normal") return { dot: "bg-kob-gold", text: "text-kob-gold", bg: "bg-kob-gold/10", border: "border-kob-gold/25" };
+  return { dot: "bg-sky-400", text: "text-sky-400", bg: "bg-sky-500/10", border: "border-sky-500/25" };
+}
+
+function authorColor(role: string): string {
+  if (role === "admin") return "border-l-kob-gold bg-kob-gold/3";
+  if (role === "user") return "border-l-sky-500 bg-sky-500/3";
+  return "border-l-white/20";
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function CaseDetailPage() {
   const params = useParams<{ id: string }>();
   const caseId = params.id;
 
-  const [caseData, setCaseData] = useState<any>(null);
+  const [caseData, setCaseData] = useState<CaseData | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [actionMessage, setActionMessage] = useState("");
+  const [actionMessage, setActionMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const [resolutionText, setResolutionText] = useState("");
   const [rejectReasonText, setRejectReasonText] = useState("");
-  const [showResolveInput, setShowResolveInput] = useState(false);
-  const [showRejectInput, setShowRejectInput] = useState(false);
+  const [showResolve, setShowResolve] = useState(false);
+  const [showReject, setShowReject] = useState(false);
 
   const fetchCase = useCallback(async () => {
     try {
-      const data = await kkGet<any>(`v1/admin/cases/${caseId}`);
-      setCaseData(data);
-    } catch (e: any) {
-      console.error("Failed to load case:", e);
+      const data = await kkGet<CaseData>(`v1/admin/cases/${caseId}`);
+      setCaseData(data ?? null);
+    } catch {
+      setCaseData(null);
     } finally {
       setLoading(false);
     }
   }, [caseId]);
 
-  useEffect(() => {
-    fetchCase();
-  }, [fetchCase]);
+  useEffect(() => { fetchCase(); }, [fetchCase]);
 
-  async function handleAction(
-    action: string,
-    endpoint: string,
-    body?: Record<string, unknown>,
-  ) {
+  async function handleAction(action: string, endpoint: string, body?: Record<string, unknown>) {
     setActionLoading(action);
-    setActionMessage("");
+    setActionMessage(null);
     try {
       await kkPost(endpoint, body ?? {});
-      setActionMessage(`${action} completed successfully`);
-      setShowResolveInput(false);
-      setShowRejectInput(false);
+      setActionMessage({ text: `${action} completed`, ok: true });
+      setShowResolve(false);
+      setShowReject(false);
       setResolutionText("");
       setRejectReasonText("");
       await fetchCase();
-    } catch (e: any) {
-      setActionMessage(`Error: ${e.message}`);
+    } catch (e: unknown) {
+      setActionMessage({ text: e instanceof Error ? e.message : "Action failed", ok: false });
     } finally {
       setActionLoading(null);
     }
   }
 
+  // ── Loading state ──────────────────────────────────────────────────────────
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-[#C9A84C]" />
-        <span className="ml-2 text-sm text-[#6B7489]">Loading case...</span>
+      <div className="flex items-center justify-center py-24 gap-3">
+        <Loader2 className="h-5 w-5 animate-spin text-kob-gold" />
+        <span className="text-sm text-kob-muted">Loading case…</span>
       </div>
     );
   }
 
   if (!caseData) {
     return (
-      <div className="space-y-6">
-        <Link href="/cases">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Cases
-          </Button>
+      <div className="space-y-5">
+        <Link href="/cases" className="inline-flex items-center gap-2 text-xs text-kob-muted hover:text-kob-text transition-colors">
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Cases
         </Link>
-        <p className="text-sm text-red-400">Failed to load case data.</p>
+        <div className="rounded-2xl border border-red-500/25 bg-red-500/5 px-5 py-8 text-center">
+          <p className="text-sm text-red-400 font-medium">Failed to load case data</p>
+        </div>
       </div>
     );
   }
 
+  const sta = statusStyle(caseData.status);
+  const pri = priorityStyle(caseData.priority);
+  const isClosed = caseData.status === "resolved" || caseData.status === "rejected";
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/cases">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Cases
-          </Button>
+    <div className="space-y-5">
+
+      {/* ── Header ────────────────────────────────────────── */}
+      <div className="flex items-start gap-4">
+        <Link
+          href="/cases"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-kob-muted hover:text-kob-text hover:border-white/20 transition-all shrink-0 mt-0.5"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Cases
         </Link>
-        <div>
-          <h1 className="text-xl font-semibold">Case #{caseData.id.slice(0, 8)}</h1>
-          <p className="text-sm text-[var(--text-muted)]">
-            {caseTypeLabels[caseData.caseType] || caseData.caseType} • {timeAgo(caseData.createdAt)}
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <h1 className="text-xl font-bold text-kob-text tracking-tight">
+              Case <span className="font-mono text-kob-muted">#{caseData.id.slice(0, 8)}</span>
+            </h1>
+            {/* Priority badge */}
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wide ${pri.text} ${pri.bg} ${pri.border}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${pri.dot}`} />
+              {caseData.priority}
+            </span>
+            {/* Status badge */}
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wide ${sta.text} ${sta.bg} ${sta.border}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${sta.dot}`} />
+              {sta.label}
+            </span>
+          </div>
+          <p className="text-xs text-kob-muted">
+            {TYPE_LABELS[caseData.caseType] ?? caseData.caseType}
+            {" · "}Opened {timeAgo(caseData.createdAt)}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Case Summary */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-medium">Case Summary</h2>
-                <div className="flex gap-2">
-                  <Badge variant={priorityVariant[caseData.priority] ?? "default"}>
-                    {caseData.priority}
-                  </Badge>
-                  <Badge variant={statusVariant[caseData.status] ?? "default"}>
-                    {caseData.status}
-                  </Badge>
-                </div>
-              </div>
+      {/* ── Main layout ───────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-              <div className="space-y-2">
-                <div>
-                  <span className="text-sm font-medium">Type:</span>{" "}
-                  <span className="text-sm">{caseTypeLabels[caseData.caseType] || caseData.caseType}</span>
-                </div>
-                <div>
-                  <span className="text-sm font-medium">Reporter:</span>{" "}
-                  <span className="font-mono text-sm">{caseData.reporterUserId || "System"}</span>
-                </div>
-                {caseData.referenceType && (
-                  <div>
-                    <span className="text-sm font-medium">Reference:</span>{" "}
-                    <span className="text-sm">
-                      {caseData.referenceType} #{caseData.referenceId?.slice(0, 8)}
-                    </span>
-                  </div>
-                )}
-                <div>
-                  <span className="text-sm font-medium">Created:</span>{" "}
-                  <span className="text-sm">{new Date(caseData.createdAt).toLocaleString()}</span>
-                </div>
-              </div>
+        {/* ── Left col: Summary + Messages ─────────────────── */}
+        <div className="lg:col-span-2 space-y-4">
 
-              <div>
-                <span className="text-sm font-medium">Description:</span>
-                <p className="text-sm mt-1 p-3 bg-[#0F1D35] rounded">{caseData.description}</p>
+          {/* Case Summary */}
+          <div className="rounded-2xl border border-white/8 bg-[#080E20] p-5 space-y-4">
+            <p className="text-xs font-semibold text-kob-muted uppercase tracking-widest">Case Summary</p>
+
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+              {[
+                { label: "Type",    value: TYPE_LABELS[caseData.caseType] ?? caseData.caseType },
+                { label: "Reporter", value: caseData.reporterUserId ? `${caseData.reporterUserId.slice(0, 8)}…` : "System", mono: true },
+                ...(caseData.referenceType ? [{ label: "Reference", value: `${caseData.referenceType} #${caseData.referenceId?.slice(0, 8)}` }] : []),
+                { label: "Created", value: new Date(caseData.createdAt).toLocaleString() },
+              ].map((f) => (
+                <div key={f.label}>
+                  <p className="text-[10px] font-medium text-kob-muted uppercase tracking-widest mb-0.5">{f.label}</p>
+                  <p className={`text-sm text-kob-body ${f.mono ? "font-mono" : ""}`}>{f.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <p className="text-[10px] font-medium text-kob-muted uppercase tracking-widest mb-1.5">Description</p>
+              <div className="rounded-xl bg-kob-panel/60 border border-white/6 px-4 py-3">
+                <p className="text-sm text-kob-body leading-relaxed">{caseData.description || "No description provided."}</p>
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Messages */}
-          <Card>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4" />
-                <h2 className="font-medium">Messages</h2>
-              </div>
+          <div className="rounded-2xl border border-white/8 bg-[#080E20] p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-kob-muted" />
+              <p className="text-xs font-semibold text-kob-muted uppercase tracking-widest">Messages</p>
+              {caseData.messages && caseData.messages.length > 0 && (
+                <span className="ml-auto text-[10px] text-kob-muted">{caseData.messages.length} message{caseData.messages.length > 1 ? "s" : ""}</span>
+              )}
+            </div>
 
+            {!caseData.messages?.length ? (
+              <div className="text-center py-6">
+                <p className="text-xs text-kob-muted">No messages yet</p>
+              </div>
+            ) : (
               <div className="space-y-3">
-                {caseData.messages?.map((message: any) => (
-                  <div key={message.id} className="border-l-2 border-[#C9A84C]/30 pl-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-medium capitalize">{message.authorRole}</span>
-                      {message.authorUserId && (
-                        <span className="font-mono text-xs text-[#6B7489]">
-                          {message.authorUserId.slice(0, 8)}...
-                        </span>
+                {caseData.messages.map((msg) => (
+                  <div key={msg.id} className={`rounded-xl border-l-2 px-4 py-3 ${authorColor(msg.authorRole)}`}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-kob-text">{msg.authorRole}</span>
+                      {msg.authorUserId && (
+                        <span className="text-[10px] font-mono text-kob-muted">{msg.authorUserId.slice(0, 8)}…</span>
                       )}
-                      <span className="text-xs text-[#6B7489]">{timeAgo(message.createdAt)}</span>
+                      <span className="ml-auto text-[10px] text-kob-muted">{timeAgo(msg.createdAt)}</span>
                     </div>
-                    <p className="text-sm">{message.message}</p>
+                    <p className="text-sm text-kob-body leading-relaxed">{msg.message}</p>
                   </div>
                 ))}
-                {(!caseData.messages || caseData.messages.length === 0) && (
-                  <p className="text-sm text-[#6B7489]">No messages yet</p>
-                )}
               </div>
-            </div>
-          </Card>
+            )}
+          </div>
         </div>
 
-        {/* Actions Sidebar */}
-        <div className="space-y-6">
-          <Card>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4" />
-                <h2 className="font-medium">Actions</h2>
-              </div>
+        {/* ── Right col: Actions + History ─────────────────── */}
+        <div className="space-y-4">
 
+          {/* Actions panel */}
+          <div className="rounded-2xl border border-white/8 bg-[#080E20] p-5 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Activity className="h-4 w-4 text-kob-muted" />
+              <p className="text-xs font-semibold text-kob-muted uppercase tracking-widest">Actions</p>
+            </div>
+
+            {isClosed ? (
+              <p className="text-xs text-kob-muted text-center py-3">Case is {caseData.status} — no further actions</p>
+            ) : (
               <div className="space-y-2">
+
+                {/* Freeze account — unauthorized only */}
                 {caseData.caseType === "unauthorized" && caseData.status === "open" && (
-                  <Button
-                    className="w-full"
-                    variant="destructive"
+                  <button
+                    type="button"
                     disabled={actionLoading !== null}
-                    onClick={() =>
-                      handleAction(
-                        "Freeze Account",
-                        `v1/admin/cases/${caseId}/freeze`,
-                      )
-                    }
+                    onClick={() => handleAction("Freeze Account", `v1/admin/cases/${caseId}/freeze`)}
+                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-red-500/12 border border-red-500/25 text-xs font-semibold text-red-400 hover:bg-red-500/22 hover:border-red-500/40 transition-all disabled:opacity-40"
                   >
-                    {actionLoading === "Freeze Account" ? (
-                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Freezing...</>
-                    ) : (
-                      "Freeze Account"
-                    )}
-                  </Button>
+                    {actionLoading === "Freeze Account"
+                      ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Freezing…</>
+                      : <><Snowflake className="h-3.5 w-3.5" />Freeze Account</>
+                    }
+                  </button>
                 )}
 
-                <Button
-                  className="w-full"
-                  variant="outline"
+                {/* Request Info */}
+                <button
+                  type="button"
                   disabled={actionLoading !== null}
-                  onClick={() =>
-                    handleAction(
-                      "Request Info",
-                      `v1/admin/cases/${caseId}/request-info`,
-                    )
-                  }
+                  onClick={() => handleAction("Request Info", `v1/admin/cases/${caseId}/request-info`)}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-kob-muted hover:text-kob-text hover:border-white/20 transition-all disabled:opacity-40"
                 >
-                  {actionLoading === "Request Info" ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Requesting...</>
-                  ) : (
-                    "Request Info"
-                  )}
-                </Button>
+                  {actionLoading === "Request Info"
+                    ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Requesting…</>
+                    : "Request Info"
+                  }
+                </button>
 
                 {/* Resolve Case */}
-                {!showResolveInput ? (
-                  <Button
-                    className="w-full"
-                    variant="outline"
+                {!showResolve ? (
+                  <button
+                    type="button"
                     disabled={actionLoading !== null}
-                    onClick={() => {
-                      setShowResolveInput(true);
-                      setShowRejectInput(false);
-                    }}
+                    onClick={() => { setShowResolve(true); setShowReject(false); }}
+                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-500/12 border border-emerald-500/25 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/22 hover:border-emerald-500/40 transition-all disabled:opacity-40"
                   >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
                     Resolve Case
-                  </Button>
+                  </button>
                 ) : (
-                  <div className="space-y-2 p-3 rounded-lg border border-emerald-600/40 bg-emerald-950/20">
-                    <label className="text-xs text-[#B8BCC8] block">Resolution</label>
+                  <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3 space-y-2">
+                    <p className="text-[10px] font-medium text-kob-muted">Resolution notes</p>
                     <textarea
+                      rows={3}
                       value={resolutionText}
                       onChange={(e) => setResolutionText(e.target.value)}
-                      placeholder="Describe the resolution..."
-                      className="w-full h-20 rounded-md border border-input bg-[#0F1D35] px-3 py-2 text-sm text-[#F0F1F5] placeholder:text-[#6B7489] resize-none focus:outline-none focus:ring-1 focus:ring-[#C9A84C]"
+                      placeholder="Describe the resolution…"
+                      className="w-full resize-none rounded-xl bg-kob-panel/60 border border-white/10 text-xs text-kob-text placeholder:text-kob-muted px-3 py-2 outline-none focus:border-emerald-500/40 transition-colors"
                     />
                     <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        className="flex-1 bg-emerald-700 hover:bg-emerald-600 text-white"
+                      <button
+                        type="button"
                         disabled={actionLoading !== null || !resolutionText.trim()}
-                        onClick={() =>
-                          handleAction(
-                            "Resolve Case",
-                            `v1/admin/cases/${caseId}/resolve`,
-                            { resolution: resolutionText.trim() },
-                          )
-                        }
+                        onClick={() => handleAction("Resolve Case", `v1/admin/cases/${caseId}/resolve`, { resolution: resolutionText.trim() })}
+                        className="flex-1 py-2 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/30 transition-all disabled:opacity-40"
                       >
-                        {actionLoading === "Resolve Case" ? (
-                          <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Resolving...</>
-                        ) : (
-                          "Confirm Resolve"
-                        )}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setShowResolveInput(false);
-                          setResolutionText("");
-                        }}
-                      >
+                        {actionLoading === "Resolve Case" ? "Resolving…" : "Confirm"}
+                      </button>
+                      <button type="button" onClick={() => { setShowResolve(false); setResolutionText(""); }} className="px-3 py-2 rounded-lg text-xs text-kob-muted hover:text-kob-text transition-colors">
                         Cancel
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 )}
 
                 {/* Reject Case */}
-                {!showRejectInput ? (
-                  <Button
-                    className="w-full"
-                    variant="outline"
+                {!showReject ? (
+                  <button
+                    type="button"
                     disabled={actionLoading !== null}
-                    onClick={() => {
-                      setShowRejectInput(true);
-                      setShowResolveInput(false);
-                    }}
+                    onClick={() => { setShowReject(true); setShowResolve(false); }}
+                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-kob-muted hover:text-red-400 hover:border-red-500/25 hover:bg-red-500/5 transition-all disabled:opacity-40"
                   >
+                    <XCircle className="h-3.5 w-3.5" />
                     Reject Case
-                  </Button>
+                  </button>
                 ) : (
-                  <div className="space-y-2 p-3 rounded-lg border border-red-600/40 bg-red-950/20">
-                    <label className="text-xs text-[#B8BCC8] block">Rejection Reason</label>
+                  <div className="rounded-xl border border-red-500/25 bg-red-500/5 p-3 space-y-2">
+                    <p className="text-[10px] font-medium text-kob-muted">Rejection reason</p>
                     <textarea
+                      rows={3}
                       value={rejectReasonText}
                       onChange={(e) => setRejectReasonText(e.target.value)}
-                      placeholder="Describe the reason for rejection..."
-                      className="w-full h-20 rounded-md border border-input bg-[#0F1D35] px-3 py-2 text-sm text-[#F0F1F5] placeholder:text-[#6B7489] resize-none focus:outline-none focus:ring-1 focus:ring-[#C9A84C]"
+                      placeholder="Reason for rejection…"
+                      className="w-full resize-none rounded-xl bg-kob-panel/60 border border-white/10 text-xs text-kob-text placeholder:text-kob-muted px-3 py-2 outline-none focus:border-red-500/40 transition-colors"
                     />
                     <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="flex-1"
+                      <button
+                        type="button"
                         disabled={actionLoading !== null || !rejectReasonText.trim()}
-                        onClick={() =>
-                          handleAction(
-                            "Reject Case",
-                            `v1/admin/cases/${caseId}/reject`,
-                            { reason: rejectReasonText.trim() },
-                          )
-                        }
+                        onClick={() => handleAction("Reject Case", `v1/admin/cases/${caseId}/reject`, { reason: rejectReasonText.trim() })}
+                        className="flex-1 py-2 rounded-lg bg-red-500/15 border border-red-500/25 text-xs font-semibold text-red-400 hover:bg-red-500/25 transition-all disabled:opacity-40"
                       >
-                        {actionLoading === "Reject Case" ? (
-                          <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Rejecting...</>
-                        ) : (
-                          "Confirm Reject"
-                        )}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setShowRejectInput(false);
-                          setRejectReasonText("");
-                        }}
-                      >
+                        {actionLoading === "Reject Case" ? "Rejecting…" : "Confirm"}
+                      </button>
+                      <button type="button" onClick={() => { setShowReject(false); setRejectReasonText(""); }} className="px-3 py-2 rounded-lg text-xs text-kob-muted hover:text-kob-text transition-colors">
                         Cancel
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 )}
+
+                {/* Inline feedback */}
+                {actionMessage && (
+                  <p className={`text-[10px] text-center font-medium py-1 ${actionMessage.ok ? "text-emerald-400" : "text-red-400"}`}>
+                    {actionMessage.text}
+                  </p>
+                )}
               </div>
+            )}
+          </div>
 
-              {/* Action Feedback */}
-              {actionMessage && (
-                <p className={`text-sm ${actionMessage.startsWith("Error") ? "text-red-400" : "text-emerald-400"}`}>
-                  {actionMessage}
-                </p>
-              )}
-            </div>
-          </Card>
+          {/* Action history timeline */}
+          <div className="rounded-2xl border border-white/8 bg-[#080E20] p-5 space-y-4">
+            <p className="text-xs font-semibold text-kob-muted uppercase tracking-widest">Action History</p>
 
-          {/* Action History */}
-          <Card>
-            <div className="space-y-4">
-              <h2 className="font-medium">Action History</h2>
+            {!caseData.actions?.length ? (
+              <p className="text-xs text-kob-muted text-center py-3">No actions yet</p>
+            ) : (
+              <div className="relative space-y-0">
+                {/* Vertical line */}
+                <div className="absolute left-3 top-2 bottom-2 w-px bg-white/8" />
 
-              <div className="space-y-3">
-                {caseData.actions?.map((action: any) => (
-                  <div key={action.id} className="text-sm">
-                    <div className="font-medium">
-                      {actionTypeLabels[action.actionType] || action.actionType}
+                {caseData.actions.map((action, i) => (
+                  <div key={action.id} className={`relative pl-8 ${i < (caseData.actions?.length ?? 0) - 1 ? "pb-4" : ""}`}>
+                    {/* Dot */}
+                    <div className="absolute left-1.5 top-1 h-3 w-3 rounded-full bg-kob-gold/20 border border-kob-gold/40 flex items-center justify-center">
+                      <div className="h-1 w-1 rounded-full bg-kob-gold" />
                     </div>
-                    <div className="text-xs text-[#6B7489]">
-                      {timeAgo(action.createdAt)}
+                    <p className="text-xs font-semibold text-kob-text">
+                      {ACTION_LABELS[action.actionType] ?? action.actionType}
+                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] text-kob-muted">{timeAgo(action.createdAt)}</span>
                       {action.actorUserId && (
-                        <span className="ml-2 font-mono">{action.actorUserId.slice(0, 8)}...</span>
+                        <span className="text-[10px] font-mono text-kob-muted">{action.actorUserId.slice(0, 8)}…</span>
                       )}
                     </div>
-                    {action.meta && (
-                      <div className="text-xs text-[#B8BCC8] mt-1">
-                        {JSON.stringify(action.meta, null, 2)}
-                      </div>
+                    {action.meta && Object.keys(action.meta).length > 0 && (
+                      <p className="text-[10px] text-kob-muted mt-0.5">
+                        {Object.entries(action.meta).map(([k, v]) => `${k}: ${v}`).join(" · ")}
+                      </p>
                     )}
                   </div>
                 ))}
-                {(!caseData.actions || caseData.actions.length === 0) && (
-                  <p className="text-sm text-[#6B7489]">No actions yet</p>
-                )}
               </div>
-            </div>
-          </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>
