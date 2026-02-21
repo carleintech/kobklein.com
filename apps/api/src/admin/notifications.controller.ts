@@ -10,7 +10,7 @@ import {
 } from "../notifications/notification-log.service";
 import { enqueueNotification, NotificationJob, getNotificationQueue } from "../notifications/notification.queue";
 
-@Controller("admin/notifications")
+@Controller("v1/admin/notifications")
 @UseGuards(SupabaseGuard, RolesGuard)
 @Roles("admin")
 export class NotificationsAdminController {
