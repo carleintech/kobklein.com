@@ -78,6 +78,57 @@ export class AdminDistributorController {
   }
 
   /**
+   * GET /v1/admin/distributors/network/stats
+   * Network-wide distributor statistics.
+   */
+  @UseGuards(SupabaseGuard, RolesGuard)
+  @Roles("admin")
+  @Get("network/stats")
+  async networkStats() {
+    const [totalDist, activeDist, pendingDist, suspendedDist] = await Promise.all([
+      prisma.distributor.count(),
+      prisma.distributor.count({ where: { status: "active" } }),
+      prisma.distributor.count({ where: { status: "pending" } }),
+      prisma.distributor.count({ where: { status: "suspended" } }),
+    ]);
+
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
+
+    const [cashInTotal, cashOutTotal, commTotal] = await Promise.all([
+      prisma.distributorSettlement.aggregate({
+        where: { type: "cash_in", createdAt: { gte: since } },
+        _sum: { amount: true },
+        _count: true,
+      }),
+      prisma.distributorSettlement.aggregate({
+        where: { type: "cash_out", createdAt: { gte: since } },
+        _sum: { amount: true },
+        _count: true,
+      }),
+      prisma.distributorCommission.aggregate({
+        where: { createdAt: { gte: since } },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    return {
+      ok: true,
+      network: {
+        total: totalDist,
+        active: activeDist,
+        pending: pendingDist,
+        suspended: suspendedDist,
+      },
+      volume30d: {
+        cashIn: { total: Number(cashInTotal._sum.amount ?? 0), count: cashInTotal._count },
+        cashOut: { total: Number(cashOutTotal._sum.amount ?? 0), count: cashOutTotal._count },
+        totalCommissions: Number(commTotal._sum.amount ?? 0),
+      },
+    };
+  }
+
+  /**
    * GET /v1/admin/distributors/:id
    * Get single distributor detail with stats.
    */
@@ -347,58 +398,6 @@ export class AdminDistributorController {
       ok: true,
       commissionIn: Number(updated.commissionIn),
       commissionOut: Number(updated.commissionOut),
-    };
-  }
-
-  /**
-   * GET /v1/admin/distributors/network/stats
-   * Network-wide distributor statistics.
-   */
-  @UseGuards(SupabaseGuard, RolesGuard)
-  @Roles("admin")
-  @Get("network/stats")
-  async networkStats() {
-    const [totalDist, activeDist, pendingDist, suspendedDist] = await Promise.all([
-      prisma.distributor.count(),
-      prisma.distributor.count({ where: { status: "active" } }),
-      prisma.distributor.count({ where: { status: "pending" } }),
-      prisma.distributor.count({ where: { status: "suspended" } }),
-    ]);
-
-    // Last 30 days volume
-    const since = new Date();
-    since.setDate(since.getDate() - 30);
-
-    const [cashInTotal, cashOutTotal, commTotal] = await Promise.all([
-      prisma.distributorSettlement.aggregate({
-        where: { type: "cash_in", createdAt: { gte: since } },
-        _sum: { amount: true },
-        _count: true,
-      }),
-      prisma.distributorSettlement.aggregate({
-        where: { type: "cash_out", createdAt: { gte: since } },
-        _sum: { amount: true },
-        _count: true,
-      }),
-      prisma.distributorCommission.aggregate({
-        where: { createdAt: { gte: since } },
-        _sum: { amount: true },
-      }),
-    ]);
-
-    return {
-      ok: true,
-      network: {
-        total: totalDist,
-        active: activeDist,
-        pending: pendingDist,
-        suspended: suspendedDist,
-      },
-      volume30d: {
-        cashIn: { total: Number(cashInTotal._sum.amount ?? 0), count: cashInTotal._count },
-        cashOut: { total: Number(cashOutTotal._sum.amount ?? 0), count: cashOutTotal._count },
-        totalCommissions: Number(commTotal._sum.amount ?? 0),
-      },
     };
   }
 
