@@ -20,10 +20,10 @@ export async function createServerSupabase() {
           return cookieStore.get(name)?.value;
         },
         set(name, value, options) {
-          cookieStore.set({ name, value, ...options });
+          try { cookieStore.set({ name, value, ...options }); } catch { /* Server Component — middleware handles refresh */ }
         },
         remove(name, options) {
-          cookieStore.set({ name, value: "", ...options });
+          try { cookieStore.set({ name, value: "", ...options }); } catch { /* Server Component — middleware handles refresh */ }
         },
       },
     },
