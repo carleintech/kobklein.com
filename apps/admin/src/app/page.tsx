@@ -9,7 +9,7 @@ type DailyApiRow = { day: string; volume: number };
 
 export default async function CommandCenterPage() {
   const [overview, dailyRaw] = await Promise.all([
-    apiGet<Record<string, unknown>>("admin/overview", null),
+    apiGet<Record<string, unknown> | null>("admin/overview", null),
     apiGet<DailyApiRow[]>("admin/analytics/daily-volume?days=14", []),
   ]);
 
