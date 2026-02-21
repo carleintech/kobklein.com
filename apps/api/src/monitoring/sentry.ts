@@ -1,48 +1,10 @@
 /**
  * Sentry Monitoring — KobKlein API
  *
- * Initializes Sentry error tracking and performance monitoring.
- * Must be imported BEFORE all other imports in main.ts.
+ * Convenience helpers re-exported for use across the codebase.
+ * Sentry is initialized in src/instrument.ts (loaded first in main.ts).
  */
-import * as Sentry from "@sentry/node";
-
-const dsn = process.env.SENTRY_DSN;
-
-export function initSentry() {
-  if (!dsn) {
-    console.log("Sentry DSN not configured — error monitoring disabled");
-    return;
-  }
-
-  Sentry.init({
-    dsn,
-    environment: process.env.NODE_ENV ?? "development",
-    release: `kobklein-api@${process.env.npm_package_version ?? "0.0.1"}`,
-
-    // Performance monitoring
-    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.2 : 1.0,
-
-    // Filter sensitive data
-    beforeSend(event) {
-      // Strip authorization headers
-      if (event.request?.headers) {
-        delete event.request.headers["authorization"];
-        delete event.request.headers["cookie"];
-      }
-      return event;
-    },
-
-    // Ignore noisy errors
-    ignoreErrors: [
-      "ECONNRESET",
-      "EPIPE",
-      "ETIMEDOUT",
-      "ERR_STREAM_PREMATURE_CLOSE",
-    ],
-  });
-
-  console.log(`Sentry initialized (env: ${process.env.NODE_ENV})`);
-}
+import * as Sentry from "@sentry/nestjs";
 
 /**
  * Capture an exception with optional context.
@@ -51,7 +13,7 @@ export function captureException(
   error: Error | unknown,
   context?: Record<string, unknown>,
 ) {
-  if (!dsn) return;
+  if (!process.env.SENTRY_DSN) return;
 
   if (context) {
     Sentry.withScope((scope) => {
@@ -72,7 +34,7 @@ export function captureMessage(
   message: string,
   level: "info" | "warning" | "error" = "info",
 ) {
-  if (!dsn) return;
+  if (!process.env.SENTRY_DSN) return;
   Sentry.captureMessage(message, level);
 }
 

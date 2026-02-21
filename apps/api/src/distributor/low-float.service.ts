@@ -10,7 +10,7 @@ const ALERT_COOLDOWN_MS = 60 * 60 * 1000;
 export async function checkLowFloat() {
   const distributors = await prisma.distributor.findMany({
     where: { status: "active" },
-    include: { User: true },
+    include: { user: true },
   });
 
   for (const d of distributors) {
@@ -35,9 +35,9 @@ export async function checkLowFloat() {
 
       if (recentAlert) continue;
 
-      if (d.User?.phone) {
+      if (d.user?.phone) {
         await enqueueSMS(
-          d.User.phone,
+          d.user.phone,
           `KobKlein Alert: Your float is low (${balance.availableBalance}). Please refill soon.`,
         );
 
@@ -47,7 +47,7 @@ export async function checkLowFloat() {
             userId: d.userId,
             channel: "sms",
             type: "low_float_alert",
-            to: d.User.phone,
+            to: d.user.phone,
             body: `Low float alert: ${balance.availableBalance}`,
             status: "queued",
           },

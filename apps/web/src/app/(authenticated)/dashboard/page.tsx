@@ -27,10 +27,17 @@ export default function DashboardPage() {
   useEffect(() => {
     async function init() {
       try {
-        const [user, plan] = await Promise.all([
-          kkGet<UserProfile>("v1/users/me"),
-          kkGet<{ plan: { slug: string; name: string; tier: number } } | null>("v1/billing/my-plan").catch(() => null),
-        ]);
+        const user = await kkGet<UserProfile>("v1/users/me");
+
+        // Clients are always free — no plan/billing system for them.
+        // Only fetch plan for business roles (diaspora, merchant, distributor).
+        const isBusinessRole = user.role === "diaspora" || user.role === "merchant" || user.role === "distributor";
+        type PlanResponse = { plan: { slug: string; name: string; tier: number } } | null;
+        let plan: PlanResponse = null;
+        if (isBusinessRole) {
+          plan = await kkGet<PlanResponse>("v1/billing/my-plan").catch(() => null);
+        }
+
         setProfile({
           ...user,
           planSlug: plan?.plan?.slug,

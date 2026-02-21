@@ -59,6 +59,12 @@ export default function OnboardingPage() {
         throw new Error(data.message || "Failed to complete onboarding");
       }
 
+      // Mark onboarding as done in sessionStorage so AppShell never redirects
+      // us back here during this browser session
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("kk_onboarding_done", "1");
+      }
+
       setStep("complete");
 
       // Redirect to dashboard after 2 seconds

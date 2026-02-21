@@ -282,6 +282,7 @@ export default function SignupPage() {
               width={160}
               height={160}
               className="h-20 w-auto mb-10 hover:scale-105 transition-transform duration-300"
+              priority
             />
           </Link>
 
@@ -371,6 +372,7 @@ export default function SignupPage() {
                 width={80}
                 height={80}
                 className="h-10 w-auto"
+                priority
               />
             </Link>
           </div>

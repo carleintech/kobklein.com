@@ -132,8 +132,8 @@ export class BillingController {
         status: { in: ["active", "trialing"] },
         currentPeriodEnd: { gte: new Date() },
       },
-      include: { PlatformPlan: true },
-      orderBy: { PlatformPlan: { tier: "desc" } },
+      include: { plan: true },
+      orderBy: { plan: { tier: "desc" } },
     });
 
     if (!userPlan) {
@@ -141,13 +141,13 @@ export class BillingController {
     }
 
     return {
-      PlatformPlan: {
-        slug: userPlan.PlatformPlan.slug,
-        tier: userPlan.PlatformPlan.tier,
-        name: userPlan.PlatformPlan.nameEn,
-        priceUsd: userPlan.PlatformPlan.priceUsd,
-        interval: userPlan.PlatformPlan.interval,
-        features: userPlan.PlatformPlan.features,
+      plan: {
+        slug: userPlan.plan.slug,
+        tier: userPlan.plan.tier,
+        name: userPlan.plan.nameEn,
+        priceUsd: userPlan.plan.priceUsd,
+        interval: userPlan.plan.interval,
+        features: userPlan.plan.features,
       },
       status: userPlan.status,
       currentPeriodEnd: userPlan.currentPeriodEnd,

@@ -21,7 +21,7 @@ export class AdminCatalogController {
   @Get()
   async list() {
     const items = await prisma.subscriptionCatalogItem.findMany({
-      include: { SubscriptionPlan: true },
+      include: { plans: true },
       orderBy: { createdAt: "asc" },
     });
 
@@ -30,7 +30,7 @@ export class AdminCatalogController {
       count: items.length,
       items: items.map((item) => ({
         ...item,
-        plans: item.SubscriptionPlan.map((p) => ({
+        plans: item.plans.map((p) => ({
           ...p,
           amountUsd: Number(p.amountUsd),
         })),

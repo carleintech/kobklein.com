@@ -35,8 +35,8 @@ export class AdminComplianceController {
       orderBy: { createdAt: "desc" },
       take: 100,
       include: {
-        CaseMessage: { take: 1, orderBy: { createdAt: "desc" } },
-        CaseAction: { take: 1, orderBy: { createdAt: "desc" } },
+        messages: { take: 1, orderBy: { createdAt: "desc" } },
+        actions: { take: 1, orderBy: { createdAt: "desc" } },
       },
     });
 
@@ -56,8 +56,8 @@ export class AdminComplianceController {
     const c = await prisma.case.findUnique({
       where: { id },
       include: {
-        CaseMessage: { orderBy: { createdAt: "asc" } },
-        CaseAction: { orderBy: { createdAt: "asc" } },
+        messages: { orderBy: { createdAt: "asc" } },
+        actions: { orderBy: { createdAt: "asc" } },
       },
     });
 
@@ -133,10 +133,10 @@ export class AdminComplianceController {
   async kycPending() {
     const profiles = await prisma.kycProfile.findMany({
       where: {
-        User: { kycStatus: "pending" },
+        user: { kycStatus: "pending" },
       },
       include: {
-        User: {
+        user: {
           select: {
             id: true,
             kId: true,

@@ -38,7 +38,7 @@ export class AdminDistributorController {
       take,
       orderBy: { createdAt: "desc" },
       include: {
-        User: {
+        user: {
           select: { id: true, phone: true, firstName: true, lastName: true, kycTier: true },
         },
       },
@@ -69,7 +69,7 @@ export class AdminDistributorController {
         commissionIn: Number(d.commissionIn),
         commissionOut: Number(d.commissionOut),
         floatBalance,
-        User: d.User,
+        user: d.user,
         createdAt: d.createdAt,
       });
     }
@@ -88,7 +88,7 @@ export class AdminDistributorController {
     const distributor = await prisma.distributor.findUnique({
       where: { id },
       include: {
-        User: {
+        user: {
           select: { id: true, phone: true, firstName: true, lastName: true, email: true, kycTier: true },
         },
       },
@@ -140,7 +140,7 @@ export class AdminDistributorController {
         commissionIn: Number(distributor.commissionIn),
         commissionOut: Number(distributor.commissionOut),
         floatBalance,
-        User: distributor.User,
+        user: distributor.user,
         createdAt: distributor.createdAt,
       },
       stats30d: {

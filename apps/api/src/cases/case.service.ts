@@ -114,10 +114,10 @@ export async function getCaseDetail(caseId: string) {
   return prisma.case.findUnique({
     where: { id: caseId },
     include: {
-      CaseMessage: {
+      messages: {
         orderBy: { createdAt: 'asc' },
       },
-      CaseAction: {
+      actions: {
         orderBy: { createdAt: 'asc' },
       },
     },

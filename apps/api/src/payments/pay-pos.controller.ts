@@ -55,7 +55,7 @@ export class PayPosController {
     // ── 2. Load and validate the POS request ───────────────────
     const posRequest = await prisma.merchantPosRequest.findUnique({
       where: { id: body.requestId },
-      include: { Merchant: true },
+      include: { merchant: true },
     });
 
     if (!posRequest) throw new Error("Payment request not found");
@@ -79,7 +79,7 @@ export class PayPosController {
     }
 
     // Prevent merchant from paying their own request
-    if (posRequest.Merchant.userId === userId) {
+    if (posRequest.merchant.userId === userId) {
       throw new Error("Cannot pay your own POS request");
     }
 
@@ -91,7 +91,7 @@ export class PayPosController {
     if (!customerWallet) throw new Error("Wallet not found");
 
     const merchantWallet = await prisma.wallet.findFirst({
-      where: { userId: posRequest.Merchant.userId, type: "MERCHANT", currency: body.currency },
+      where: { userId: posRequest.merchant.userId, type: "MERCHANT", currency: body.currency },
     });
 
     if (!merchantWallet) throw new Error("Merchant wallet not found");
@@ -176,12 +176,12 @@ export class PayPosController {
     await createNotification(
       userId,
       "Payment Sent",
-      `You paid ${body.amount} ${body.currency} to ${posRequest.Merchant.businessName}`,
+      `You paid ${body.amount} ${body.currency} to ${posRequest.merchant.businessName}`,
       "merchant",
     );
 
     await createNotification(
-      posRequest.Merchant.userId,
+      posRequest.merchant.userId,
       "Payment Received",
       `You received ${net} ${body.currency} from a customer (fee: ${fee})`,
       "merchant",
@@ -201,7 +201,7 @@ export class PayPosController {
       meta: {
         posRequestId: posRequest.id,
         merchantId: posRequest.merchantId,
-        merchantName: posRequest.Merchant.businessName,
+        merchantName: posRequest.merchant.businessName,
         fee,
         net,
       },
@@ -212,7 +212,7 @@ export class PayPosController {
       ok: true,
       receipt: {
         requestId: posRequest.id,
-        merchant: posRequest.Merchant.businessName,
+        merchant: posRequest.merchant.businessName,
         amount: body.amount,
         currency: body.currency,
         fee,

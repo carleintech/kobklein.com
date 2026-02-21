@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiGet } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
+import { KIdCard } from "@/components/kid-card";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -12,7 +14,7 @@ import {
   Send, QrCode, CreditCard, ArrowDownLeft,
   Shield, ChevronRight, ArrowUpRight, ArrowDownRight,
   TrendingUp, TrendingDown, Wallet, Lock, Clock, Zap,
-  CheckCircle2, Crown, AlertTriangle, RefreshCw,
+  CheckCircle2, AlertTriangle, RefreshCw,
   Eye, EyeOff, Globe, Users, Star, ShieldCheck,
 } from "lucide-react";
 
@@ -60,11 +62,30 @@ type FamilyMember = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getGreeting() {
+// greeting word varies by time of day, per locale
+const GREETING_MORNING: Record<string, string> = {
+  en: "Good morning",
+  fr: "Bonjour",
+  ht: "Bonjou",
+  es: "Buenos días",
+};
+const GREETING_AFTERNOON: Record<string, string> = {
+  en: "Good afternoon",
+  fr: "Bon après-midi",
+  ht: "Bon apremidi",
+  es: "Buenas tardes",
+};
+const GREETING_EVENING: Record<string, string> = {
+  en: "Good evening",
+  fr: "Bonsoir",
+  ht: "Bonswa",
+  es: "Buenas noches",
+};
+
+function getGreeting(locale: string) {
   const h = new Date().getHours();
-  if (h < 12) return "Bonjou";
-  if (h < 17) return "Bon apremidi";
-  return "Bonswa";
+  const map = h < 12 ? GREETING_MORNING : h < 17 ? GREETING_AFTERNOON : GREETING_EVENING;
+  return map[locale] ?? map["en"];
 }
 
 function fmtHTG(n: number) {
@@ -94,7 +115,7 @@ const RELATIONSHIP_EMOJI: Record<string, string> = {
 function CustomBarTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[#111A30] border border-white/10 rounded-lg px-3 py-2 text-xs shadow-xl">
+    <div className="bg-[#0E2018] border border-[#0D9E8A]/20 rounded-lg px-3 py-2 text-xs shadow-xl">
       <p className="text-[#7A8394] mb-1">{label}</p>
       {payload.map((p: any) => (
         <p key={p.name} style={{ color: p.color }} className="font-semibold">
@@ -126,7 +147,7 @@ function StatPill({ label, value, icon: Icon, colorClass = "text-[#C9A84C]" }: {
   colorClass?: string;
 }) {
   return (
-    <div className="flex flex-col gap-1 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+    <div className="flex flex-col gap-1 p-3 rounded-xl bg-[#122B22] border border-[#0D9E8A]/[0.12]">
       <div className="flex items-center gap-1.5">
         <Icon className={`h-3 w-3 ${colorClass}`} />
         <span className="text-[10px] text-[#5A6478] uppercase tracking-wider font-medium">{label}</span>
@@ -140,6 +161,7 @@ function StatPill({ label, value, icon: Icon, colorClass = "text-[#C9A84C]" }: {
 
 export function ClientDashboard({ profile }: Props) {
   const router = useRouter();
+  const { t, locale }  = useI18n();
 
   const [balance, setBalance]           = useState<BalanceInfo | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -157,12 +179,32 @@ export function ClientDashboard({ profile }: Props) {
     if (!silent) setLoading(true);
     else setRefreshing(true);
     try {
-      const [bal, txRes, famRes] = await Promise.allSettled([
+      // First fetch balance to get the walletId, then fetch timeline with it
+      const [bal, famRes] = await Promise.allSettled([
         apiGet<BalanceInfo>("v1/wallets/balance"),
-        (apiGet<Transaction[]>("v1/wallets/timeline") as Promise<Transaction[]>)
-          .catch(() => apiGet<Transaction[]>("v1/transactions").catch(() => [] as Transaction[])),
         apiGet<FamilyMember[]>("v1/family/members").catch(() => [] as FamilyMember[]),
       ]);
+
+      // Resolve transactions: use walletId-scoped timeline if available, else fall back
+      let txRes: PromiseSettledResult<Transaction[]>;
+      if (bal.status === "fulfilled") {
+        const walletId = (bal.value as any).balances?.find((b: any) => b.type === "USER")?.walletId
+          ?? (bal.value as any).walletId;
+        if (walletId) {
+          txRes = await Promise.resolve(
+            apiGet<Transaction[]>(`v1/wallets/${walletId}/timeline?limit=60`)
+              .catch(() => apiGet<Transaction[]>("v1/transactions").catch(() => [] as Transaction[]))
+          ).then((v) => ({ status: "fulfilled" as const, value: v }))
+            .catch((e) => ({ status: "rejected" as const, reason: e }));
+        } else {
+          txRes = await Promise.resolve(
+            apiGet<Transaction[]>("v1/transactions").catch(() => [] as Transaction[])
+          ).then((v) => ({ status: "fulfilled" as const, value: v }))
+            .catch((e) => ({ status: "rejected" as const, reason: e }));
+        }
+      } else {
+        txRes = { status: "rejected", reason: "balance failed" };
+      }
       if (bal.status    === "fulfilled") setBalance(bal.value);
       if (txRes.status  === "fulfilled") setTransactions(Array.isArray(txRes.value) ? txRes.value : []);
       if (famRes.status === "fulfilled") setFamily(Array.isArray(famRes.value) ? famRes.value : []);
@@ -270,13 +312,13 @@ export function ClientDashboard({ profile }: Props) {
       >
         <div>
           <p className="text-xs text-[#3A4558] font-medium tracking-widest uppercase mb-1">
-            Haiti's Financial Operating System
+            {t("auth.tagline")}
           </p>
           <h1
             className="text-2xl md:text-3xl font-bold text-[#F0F1F5]"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            {getGreeting()}, {profile.firstName || "there"} 👋
+            {getGreeting(locale)}, {profile.firstName || "there"} 👋
           </h1>
           {profile.handle && (
             <p className="text-xs text-[#C9A84C] mt-1.5 font-medium flex items-center gap-1">
@@ -288,15 +330,6 @@ export function ClientDashboard({ profile }: Props) {
 
         {/* Status badges */}
         <div className="flex flex-wrap items-center gap-2">
-          {profile.planName ? (
-            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#C9A84C]/10 border border-[#C9A84C]/25 text-[#C9A84C] text-[11px] font-semibold">
-              <Crown className="h-3 w-3" /> {profile.planName}
-            </span>
-          ) : (
-            <span className="px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[#5A6478] text-[11px]">
-              Free Plan
-            </span>
-          )}
           {profile.kycTier >= 2 ? (
             <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-semibold">
               <CheckCircle2 className="h-3 w-3" /> Verified Identity
@@ -310,7 +343,7 @@ export function ClientDashboard({ profile }: Props) {
               <AlertTriangle className="h-3 w-3" /> Unverified
             </span>
           )}
-          <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.06] text-[#3A4558] text-[11px]">
+          <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#122B22] border border-[#0D9E8A]/[0.12] text-[#3A4558] text-[11px]">
             <Shield className="h-3 w-3" /> 256-bit Encrypted
           </span>
         </div>
@@ -319,6 +352,9 @@ export function ClientDashboard({ profile }: Props) {
       {/* ══════════════════════════════════════════════
           MAIN 2-COLUMN GRID
           ══════════════════════════════════════════════ */}
+      {/* ── K-ID Identity Card ────────────────────────────── */}
+      <KIdCard compact profile={profile} />
+
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
 
         {/* ───────── LEFT COLUMN ───────── */}
@@ -333,8 +369,8 @@ export function ClientDashboard({ profile }: Props) {
             transition={{ duration: 0.6, delay: 0.05 }}
             className="relative rounded-2xl overflow-hidden border border-[#C9A84C]/20"
             style={{
-              background: "linear-gradient(135deg, #0D1628 0%, #111A30 60%, #0A1020 100%)",
-              boxShadow: "0 0 60px -10px rgba(201,168,76,0.15), 0 4px 32px -4px rgba(0,0,0,0.6)",
+              background: "linear-gradient(135deg, #071A14 0%, #0B2218 60%, #061510 100%)",
+              boxShadow: "0 0 60px -10px rgba(201,168,76,0.15), 0 0 40px -12px rgba(13,158,138,0.20), 0 4px 32px -4px rgba(0,0,0,0.6)",
             }}
           >
             {/* Ambient glows */}
@@ -346,11 +382,11 @@ export function ClientDashboard({ profile }: Props) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Wallet className="h-4 w-4 text-[#C9A84C]" />
-                  <span className="text-xs text-[#5A6478] font-medium uppercase tracking-widest">Total Balance</span>
+                  <span className="text-xs text-[#5A6478] font-medium uppercase tracking-widest">{t("dashboard.balance")}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   {/* HTG / USD toggle */}
-                  <div className="flex rounded-lg overflow-hidden border border-white/[0.08] text-[11px] font-bold">
+                  <div className="flex rounded-lg overflow-hidden border border-[#0D9E8A]/[0.25] text-[11px] font-bold">
                     {(["HTG", "USD"] as const).map((c) => (
                       <button
                         key={c}
@@ -370,7 +406,7 @@ export function ClientDashboard({ profile }: Props) {
                     type="button"
                     title={balanceHidden ? "Show balance" : "Hide balance"}
                     onClick={() => setBalanceHidden((v) => !v)}
-                    className="p-1.5 rounded-lg hover:bg-white/[0.04] text-[#5A6478] transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-[#122B22] text-[#5A6478] transition-colors"
                   >
                     {balanceHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                   </button>
@@ -378,7 +414,7 @@ export function ClientDashboard({ profile }: Props) {
                     type="button"
                     title="Refresh"
                     onClick={() => loadData(true)}
-                    className="p-1.5 rounded-lg hover:bg-white/[0.04] text-[#5A6478] transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-[#122B22] text-[#5A6478] transition-colors"
                   >
                     <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
                   </button>
@@ -455,10 +491,10 @@ export function ClientDashboard({ profile }: Props) {
               ──────────────────────────────────────── */}
           <div className="grid grid-cols-4 gap-3">
             {[
-              { label: "Send Money", icon: Send,          href: "/send",           gradient: "from-[#C9A84C] to-[#9F7F2C]", glow: "#C9A84C" },
-              { label: "Request",   icon: ArrowDownLeft, href: "/recurring/create",gradient: "from-[#3B82F6] to-[#1D4ED8]", glow: "#3B82F6" },
-              { label: "K-Scan",    icon: QrCode,         href: "/pay",            gradient: "from-[#8B5CF6] to-[#6D28D9]", glow: "#8B5CF6" },
-              { label: "K-Card",    icon: CreditCard,     href: "/card",           gradient: "from-[#10B981] to-[#059669]", glow: "#10B981" },
+              { label: t("send.title"),  icon: Send,          href: "/send",           gradient: "from-[#C9A84C] to-[#9F7F2C]", glow: "#C9A84C" },
+              { label: "Request",       icon: ArrowDownLeft, href: "/recurring/create",gradient: "from-[#3B82F6] to-[#1D4ED8]", glow: "#3B82F6" },
+              { label: t("pay.scanQr"), icon: QrCode,        href: "/pay",            gradient: "from-[#8B5CF6] to-[#6D28D9]", glow: "#8B5CF6" },
+              { label: "K-Card",        icon: CreditCard,    href: "/card",           gradient: "from-[#10B981] to-[#059669]", glow: "#10B981" },
             ].map((a, i) => (
               <motion.button
                 key={a.label}
@@ -469,7 +505,7 @@ export function ClientDashboard({ profile }: Props) {
                 transition={{ delay: 0.15 + i * 0.06 }}
                 whileHover={{ scale: 1.06, y: -3 }}
                 whileTap={{ scale: 0.96 }}
-                className="flex flex-col items-center gap-2.5 p-4 rounded-xl border border-white/[0.05] bg-[#0D1525]/80 hover:border-white/[0.12] transition-all"
+                className="flex flex-col items-center gap-2.5 p-4 rounded-xl border border-[#0D9E8A]/[0.10] bg-[#0B1A16] hover:border-[#0D9E8A]/[0.12] transition-all"
                 style={{ boxShadow: `0 4px 20px -8px ${a.glow}25` }}
               >
                 <div
@@ -490,7 +526,7 @@ export function ClientDashboard({ profile }: Props) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="rounded-2xl border border-white/[0.06] bg-[#0D1525]/60 p-4"
+            className="rounded-2xl border border-[#0D9E8A]/[0.12] bg-[#0B1A16]/80 p-4"
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-[#F0F1F5] flex items-center gap-2">
@@ -508,7 +544,7 @@ export function ClientDashboard({ profile }: Props) {
 
             {family.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-8 text-center">
-                <div className="w-12 h-12 rounded-full bg-white/[0.03] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-[#122B22] flex items-center justify-center">
                   <Globe className="h-5 w-5 text-[#2A3448]" />
                 </div>
                 <div>
@@ -566,15 +602,19 @@ export function ClientDashboard({ profile }: Props) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.26 }}
-            className="rounded-2xl border border-white/[0.06] bg-[#0D1525]/60 overflow-hidden"
+            className="rounded-2xl border border-[#0D9E8A]/[0.12] bg-[#0B1A16]/80 overflow-hidden"
           >
-            <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.04]">
-              <h2 className="text-sm font-bold text-[#F0F1F5] flex items-center gap-2">
-                <Zap className="h-4 w-4 text-[#C9A84C]" /> Recent Activity
-              </h2>
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#0D9E8A]/[0.12]">
               <button
                 type="button"
-                onClick={() => router.push("/wallet")}
+                onClick={() => router.push("/transactions")}
+                className="text-sm font-bold text-[#F0F1F5] flex items-center gap-2 hover:text-[#C9A84C] transition-colors"
+              >
+                <Zap className="h-4 w-4 text-[#C9A84C]" /> {t("dashboard.recentActivity")}
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/transactions")}
                 className="text-[11px] text-[#C9A84C] font-semibold flex items-center gap-0.5 hover:text-[#E1C97A] transition-colors"
               >
                 View All <ChevronRight className="h-3 w-3" />
@@ -584,10 +624,10 @@ export function ClientDashboard({ profile }: Props) {
             {transactions.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-10 text-center">
                 <Wallet className="h-6 w-6 text-[#2A3448]" />
-                <p className="text-sm text-[#3A4558]">No transactions yet</p>
+                <p className="text-sm text-[#3A4558]">{t("wallet.noTransactions")}</p>
               </div>
             ) : (
-              <div className="divide-y divide-white/[0.03]">
+              <div className="divide-y divide-[#0D9E8A]/[0.06]">
                 {transactions.slice(0, 8).map((tx) => {
                   const isPos   = Number(tx.amount) >= 0;
                   const isExp   = expandedTx === tx.id;
@@ -621,7 +661,7 @@ export function ClientDashboard({ profile }: Props) {
                           <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
                             tx.status === "posted"  ? "bg-emerald-500/10 text-emerald-400" :
                             tx.status === "pending" ? "bg-amber-500/10 text-amber-400" :
-                            "bg-white/[0.04] text-[#3A4558]"
+                            "bg-[#122B22] text-[#3A4558]"
                           }`}>
                             {tx.status || "—"}
                           </span>
@@ -637,7 +677,7 @@ export function ClientDashboard({ profile }: Props) {
                             transition={{ duration: 0.18 }}
                             className="overflow-hidden"
                           >
-                            <div className="px-4 pb-3 pt-1 flex gap-4 text-[10px] text-[#3A4558] border-t border-white/[0.03]">
+                            <div className="px-4 pb-3 pt-1 flex gap-4 text-[10px] text-[#3A4558] border-t border-[#0D9E8A]/[0.06]">
                               <span>ID: <span className="font-mono text-[#2A3448]">{tx.id.slice(0, 18)}…</span></span>
                               <span>Type: <span className="text-[#5A6478]">{tx.type}</span></span>
                             </div>
@@ -662,13 +702,13 @@ export function ClientDashboard({ profile }: Props) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.14 }}
-            className="rounded-2xl border border-white/[0.06] bg-[#0D1525]/60 p-4"
+            className="rounded-2xl border border-[#0D9E8A]/[0.12] bg-[#0B1A16]/80 p-4"
           >
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-[#F0F1F5] flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-[#C9A84C]" /> Spending Insights
               </h2>
-              <span className="text-[10px] text-[#2A3448] bg-white/[0.03] px-2 py-0.5 rounded-full">
+              <span className="text-[10px] text-[#5A7A6A] bg-[#0E2018] border border-[#0D9E8A]/[0.10] px-2 py-0.5 rounded-full">
                 Last 30 days
               </span>
             </div>
@@ -727,7 +767,7 @@ export function ClientDashboard({ profile }: Props) {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.22 }}
-              className="rounded-2xl border border-white/[0.06] bg-[#0D1525]/60 p-4"
+              className="rounded-2xl border border-[#0D9E8A]/[0.12] bg-[#0B1A16]/80 p-4"
             >
               <h2 className="text-sm font-bold text-[#F0F1F5] mb-4 flex items-center gap-2">
                 <Wallet className="h-4 w-4 text-[#C9A84C]" /> Spending Breakdown
@@ -785,7 +825,7 @@ export function ClientDashboard({ profile }: Props) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="rounded-2xl border border-white/[0.06] bg-[#0D1525]/60 p-4"
+            className="rounded-2xl border border-[#0D9E8A]/[0.12] bg-[#0B1A16]/80 p-4"
           >
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-[#F0F1F5] flex items-center gap-2">
@@ -811,7 +851,7 @@ export function ClientDashboard({ profile }: Props) {
             <button
               type="button"
               onClick={() => router.push("/settings/security")}
-              className="w-full py-2 rounded-lg border border-white/[0.08] text-[11px] font-bold text-[#C9A84C] hover:bg-[#C9A84C]/5 transition-colors flex items-center justify-center gap-1.5"
+              className="w-full py-2 rounded-lg border border-[#C9A84C]/20 text-[11px] font-bold text-[#C9A84C] hover:bg-[#C9A84C]/5 transition-colors flex items-center justify-center gap-1.5"
             >
               <Shield className="h-3.5 w-3.5" /> Manage Security
             </button>
@@ -841,28 +881,7 @@ export function ClientDashboard({ profile }: Props) {
             </motion.button>
           )}
 
-          {/* Plan upgrade */}
-          {!profile.planSlug && (
-            <motion.button
-              type="button"
-              onClick={() => router.push("/settings/plan")}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.42 }}
-              whileHover={{ scale: 1.02 }}
-              className="w-full text-left rounded-2xl border border-[#C9A84C]/20 p-4 flex items-center gap-3 hover:bg-[#C9A84C]/[0.04] transition-colors"
-              style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.06) 0%, transparent 100%)" }}
-            >
-              <div className="w-10 h-10 rounded-xl bg-[#C9A84C]/10 flex items-center justify-center shrink-0">
-                <Crown className="h-5 w-5 text-[#C9A84C]" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-[#F0F1F5]">Upgrade to Premium</p>
-                <p className="text-[11px] text-[#3A4558] mt-0.5">Lower fees, higher limits & K-Card</p>
-              </div>
-              <ArrowUpRight className="h-4 w-4 text-[#C9A84C] shrink-0" />
-            </motion.button>
-          )}
+          {/* No premium upsell for clients — KobKlein is fully free for clients */}
 
           {/* KleinAssist AI placeholder — hidden, activate later */}
           <div id="klein-assist-preview" style={{ display: "none" }} aria-hidden="true" />
@@ -871,3 +890,4 @@ export function ClientDashboard({ profile }: Props) {
     </div>
   );
 }
+

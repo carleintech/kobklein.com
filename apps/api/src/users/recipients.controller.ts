@@ -23,7 +23,7 @@ export class RecipientsController {
       ],
       take: 20,
       include: {
-        User_TransferContact_contactUserIdToUser: {
+        contactUser: {
           select: {
             id: true,
             firstName: true,
@@ -46,7 +46,7 @@ export class RecipientsController {
           isFavorite: r.isFavorite,
           transferCount: r.transferCount,
           lastTransferAt: r.lastTransferAt,
-          user: r.User_TransferContact_contactUserIdToUser,
+          user: r.contactUser,
           trust,
         };
       }),

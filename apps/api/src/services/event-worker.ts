@@ -87,6 +87,9 @@ async function handleEvent(name: string, payload: any) {
 }
 
 export function startEventWorker() {
+  let lastErrorMsg = "";
+  let lastErrorTime = 0;
+
   setInterval(async () => {
     try {
       const events = await pullQueuedEvents(25);
@@ -98,9 +101,15 @@ export function startEventWorker() {
           await markEventFailed(evt.id, e?.message ?? "unknown error");
         }
       }
-    } catch (e) {
-      // worker loop error; log and continue
-      console.error("Event worker loop error:", e);
+    } catch (e: any) {
+      // Debounce: only log once per unique message (or every 30s)
+      const msg = e?.message || e?.code || (e != null ? String(e) : "unknown error");
+      const now = Date.now();
+      if (msg !== lastErrorMsg || now - lastErrorTime > 30_000) {
+        console.warn("Event worker loop error:", msg);
+        lastErrorMsg = msg;
+        lastErrorTime = now;
+      }
     }
-  }, 1000);
+  }, 5_000); // 5s poll — 1s was too aggressive on the connection pool
 }

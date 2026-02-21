@@ -143,10 +143,10 @@ export class KycController {
   async pendingReviews() {
     return prisma.kycProfile.findMany({
       where: {
-        User: { kycStatus: "pending" },
+        user: { kycStatus: "pending" },
       },
       include: {
-        User: {
+        user: {
           select: { id: true, firstName: true, phone: true, kycTier: true, kycStatus: true },
         },
       },

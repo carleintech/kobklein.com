@@ -71,7 +71,7 @@ export async function findBestPromo(params: {
     }
 
     // Calculate savings — discountBps reduces spread, bonusPct adds bonus amount
-    const bonusPct = promo.bonusPct ? Number(promo.bonusPct) : 0;
+    const bonusPct = promo.bonusPct ? promo.bonusPct.toNumber() : 0;
 
     return {
       promotionId: promo.id,
@@ -131,7 +131,7 @@ export async function listPromotions(options?: {
       orderBy: { createdAt: "desc" },
       take: options?.limit ?? 50,
       skip: options?.offset ?? 0,
-      include: { _count: { select: { FxPromoRedemption: true } } },
+      include: { _count: { select: { redemptions: true } } },
     }),
     prisma.fxPromotion.count({ where }),
   ]);

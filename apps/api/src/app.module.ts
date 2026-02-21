@@ -1,5 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule, OnModuleInit } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { SentryModule } from "@sentry/nestjs/setup";
 import { HealthController } from "./health.controller";
 import { UsersController } from "./users/users.controller";
 import { AdminController } from "./admin/admin.controller";
@@ -105,12 +106,15 @@ import { BillingController } from "./billing/billing.controller";
 import { AdminPlansController } from "./admin/admin-plans.controller";
 import { PushController } from "./push/push.controller";
 import { FxPromoController, AdminFxPromoController } from "./fx/fx-promo.controller";
+import { AffiliatePromoController } from "./fx/affiliate-promo.controller";
 import { DistributorRechargeController, AdminRechargeController } from "./distributor/recharge.controller";
 import { AmlController } from "./aml/aml.controller";
 import { OnboardingModule } from "./onboarding/onboarding.module";
+import { AdminWithdrawalsController } from "./admin/admin-withdrawals.controller";
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -210,9 +214,11 @@ import { OnboardingModule } from "./onboarding/onboarding.module";
     PushController,
     FxPromoController,
     AdminFxPromoController,
+    AffiliatePromoController,
     DistributorRechargeController,
     AdminRechargeController,
     AmlController,
+    AdminWithdrawalsController,
   ],
   providers: [StripeService, AuditService],
 })
@@ -232,7 +238,7 @@ export class AppModule implements OnModuleInit, NestModule {
 
     // Notification worker depends on ioredis; wrap so API starts without Redis
     try {
-      startNotificationWorker();
+      await startNotificationWorker();
     } catch (err) {
       console.warn("⚠ Notification worker failed to start (Redis required):", err instanceof Error ? err.message : err);
     }

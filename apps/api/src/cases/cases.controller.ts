@@ -24,17 +24,18 @@ export class CasesController {
       description: string;
     },
   ) {
-    const userId = req.user.sub;
+    const userId = req.localUser?.id || req.user?.sub;
 
     // Validate reference exists if provided
     if (body.referenceId && body.referenceType) {
       switch (body.referenceType) {
-        case 'transfer':
+        case 'transfer': {
           const transfer = await prisma.transfer.findUnique({
             where: { id: body.referenceId },
           });
           if (!transfer) throw new Error('Transfer not found');
           break;
+        }
         // Add other validations as needed
       }
     }
@@ -195,15 +196,15 @@ export class CasesController {
 
   @Get('my')
   async getMyCases(@Request() req) {
-    const userId = req.user.sub;
+    const userId = req.localUser?.id || req.user?.sub;
     return prisma.case.findMany({
       where: { reporterUserId: userId },
       include: {
-        CaseMessage: {
+        messages: {
           orderBy: { createdAt: 'desc' },
           take: 1, // latest message
         },
-        CaseAction: {
+        actions: {
           orderBy: { createdAt: 'desc' },
           take: 5, // recent actions
         },
@@ -214,17 +215,17 @@ export class CasesController {
 
   @Get(':id')
   async getCase(@Request() req, @Param('id') caseId: string) {
-    const userId = req.user.sub;
+    const userId = req.localUser?.id || req.user?.sub;
     const caseData = await prisma.case.findFirst({
       where: {
         id: caseId,
         reporterUserId: userId, // users can only see their own cases
       },
       include: {
-        CaseMessage: {
+        messages: {
           orderBy: { createdAt: 'asc' },
         },
-        CaseAction: {
+        actions: {
           orderBy: { createdAt: 'asc' },
         },
       },
@@ -239,7 +240,7 @@ export class CasesController {
     @Param('id') caseId: string,
     @Body() body: { message: string },
   ) {
-    const userId = req.user.sub;
+    const userId = req.localUser?.id || req.user?.sub;
 
     // Verify case ownership
     const caseData = await prisma.case.findFirst({

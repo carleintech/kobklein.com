@@ -15,7 +15,7 @@ export class AuditAdminController {
       take: Math.min(Number(take), 200),
       include: {
         // Safe joins (server-side only, admin-only endpoint)
-        User: {
+        actorUser: {
           select: { id: true, email: true, firstName: true, lastName: true },
         },
       },

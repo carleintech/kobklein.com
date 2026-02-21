@@ -6,6 +6,9 @@ import {
   Post,
   Req,
   UseGuards,
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
 } from "@nestjs/common";
 import { prisma } from "../db/prisma";
 import { SupabaseGuard } from "../auth/supabase.guard";
@@ -31,10 +34,10 @@ export class VirtualCardsController {
       select: { kycTier: true, isFrozen: true },
     });
 
-    if (!user) throw new Error("User not found");
-    if (user.isFrozen) throw new Error("Account is frozen");
+    if (!user) throw new NotFoundException("User not found");
+    if (user.isFrozen) throw new ForbiddenException("Account is frozen. Unlock your account first.");
     if ((user.kycTier ?? 0) < 2) {
-      throw new Error("KYC tier 2 required to issue a virtual card");
+      throw new ForbiddenException("KYC level 2 verification required to issue a virtual card. Please complete identity verification first.");
     }
 
     // Ensure user has a USD wallet
@@ -54,7 +57,7 @@ export class VirtualCardsController {
     });
 
     if (activeCount >= 3) {
-      throw new Error("Maximum 3 active cards allowed");
+      throw new BadRequestException("Maximum 3 active cards allowed");
     }
 
     // Generate card details
@@ -153,8 +156,8 @@ export class VirtualCardsController {
       },
     });
 
-    if (!card) throw new Error("Card not found");
-    if (card.userId !== userId) throw new Error("Not your card");
+    if (!card) throw new NotFoundException("Card not found");
+    if (card.userId !== userId) throw new ForbiddenException("Not your card");
 
     return card;
   }
@@ -168,9 +171,9 @@ export class VirtualCardsController {
     const userId = req.localUser?.id || req.user?.sub;
 
     const card = await prisma.virtualCard.findUnique({ where: { id } });
-    if (!card) throw new Error("Card not found");
-    if (card.userId !== userId) throw new Error("Not your card");
-    if (card.status === "canceled") throw new Error("Card is canceled");
+    if (!card) throw new NotFoundException("Card not found");
+    if (card.userId !== userId) throw new ForbiddenException("Not your card");
+    if (card.status === "canceled") throw new BadRequestException("Card is canceled");
 
     const newStatus = card.status === "frozen" ? "active" : "frozen";
 
@@ -197,9 +200,9 @@ export class VirtualCardsController {
     const userId = req.localUser?.id || req.user?.sub;
 
     const card = await prisma.virtualCard.findUnique({ where: { id } });
-    if (!card) throw new Error("Card not found");
-    if (card.userId !== userId) throw new Error("Not your card");
-    if (card.status === "canceled") throw new Error("Card already canceled");
+    if (!card) throw new NotFoundException("Card not found");
+    if (card.userId !== userId) throw new ForbiddenException("Not your card");
+    if (card.status === "canceled") throw new BadRequestException("Card already canceled");
 
     await prisma.virtualCard.update({
       where: { id },

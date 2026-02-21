@@ -119,5 +119,5 @@ export async function resetNotificationForRetry(id: string): Promise<boolean> {
      RETURNING id`,
     [id],
   );
-  return result.rowCount > 0;
+  return (result.rowCount ?? 0) > 0;
 }

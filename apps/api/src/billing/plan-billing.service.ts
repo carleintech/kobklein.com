@@ -287,7 +287,7 @@ async function onPaymentFailed(invoice: Stripe.Invoice) {
   const subId = typeof sub === "string" ? sub : sub.toString();
   const userPlan = await prisma.userPlan.findFirst({
     where: { stripeSubscriptionId: subId },
-    include: { PlatformPlan: true },
+    include: { plan: true },
   });
   if (!userPlan) return;
 
@@ -301,7 +301,7 @@ async function onPaymentFailed(invoice: Stripe.Invoice) {
     select: { preferredLang: true },
   });
   const lang = toLang(user?.preferredLang);
-  const msg = renderTemplate("plan_payment_failed", lang, { planName: userPlan.PlatformPlan.nameEn });
+  const msg = renderTemplate("plan_payment_failed", lang, { planName: userPlan.plan.nameEn });
   await createNotification(userPlan.userId, msg.title, msg.body, "system");
 }
 
@@ -320,19 +320,19 @@ export async function getUserPlanFeatures(
       status: { in: ["active", "trialing"] },
       currentPeriodEnd: { gte: new Date() },
     },
-    include: { PlatformPlan: true },
-    orderBy: { PlatformPlan: { tier: "desc" } }, // highest tier first
+    include: { plan: true },
+    orderBy: { plan: { tier: "desc" } }, // highest tier first
   });
 
   if (!userPlan) return null;
 
   return {
     plan: {
-      slug: userPlan.PlatformPlan.slug,
-      tier: userPlan.PlatformPlan.tier,
-      role: userPlan.PlatformPlan.role,
-      name: userPlan.PlatformPlan.nameEn,
+      slug: userPlan.plan.slug,
+      tier: userPlan.plan.tier,
+      role: userPlan.plan.role,
+      name: userPlan.plan.nameEn,
     },
-    features: (userPlan.PlatformPlan.features as Record<string, any>) || {},
+    features: (userPlan.plan.features as Record<string, any>) || {},
   };
 }

@@ -76,7 +76,7 @@ export class PaymentRequestsController {
       orderBy: { createdAt: "desc" },
       take: 50,
       include: {
-        User_PaymentRequest_requesterIdToUser: {
+        requester: {
           select: { id: true, firstName: true, lastName: true, handle: true },
         },
       },
@@ -96,7 +96,7 @@ export class PaymentRequestsController {
       orderBy: { createdAt: "desc" },
       take: 50,
       include: {
-        User_PaymentRequest_requesteeIdToUser: {
+        requestee: {
           select: { id: true, firstName: true, lastName: true, handle: true },
         },
       },

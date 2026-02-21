@@ -243,7 +243,7 @@ export default function UsersPage() {
                   onChange={(e) => setNewRole(e.target.value)}
                   className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
                 >
-                  <option value="user">User</option>
+                  <option value="client">Client</option>
                   <option value="diaspora">Diaspora</option>
                   <option value="merchant">Merchant</option>
                   <option value="distributor">Distributor</option>

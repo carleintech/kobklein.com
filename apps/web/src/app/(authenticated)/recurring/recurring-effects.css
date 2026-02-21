@@ -1,0 +1,54 @@
+/* Animations and effects for stunning recurring page */
+.animate-fade-in-up {
+  animation: fadeInUp 0.7s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.animate-fade-in-down {
+  animation: fadeInDown 0.7s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(32px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-32px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.animate-bounce-once {
+  animation: bounceOnce 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+}
+@keyframes bounceOnce {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.08); }
+  60% { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+.animate-spin-slow {
+  animation: spin 2.5s linear infinite;
+}
+.gold-glow-card {
+  box-shadow: 0 0 24px -8px #C9A84C44, 0 2px 8px 0 #0004;
+}
+.gold-glow-text {
+  text-shadow: 0 0 8px #C9A84C88, 0 1px 2px #0008;
+}
+.animate-wiggle-on-hover:hover, .group:hover .animate-wiggle-on-hover {
+  animation: wiggle 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+@keyframes wiggle {
+  0% { transform: rotate(-2deg) scale(1.04); }
+  20% { transform: rotate(2deg) scale(1.08); }
+  40% { transform: rotate(-1deg) scale(1.04); }
+  60% { transform: rotate(1deg) scale(1.06); }
+  100% { transform: none; }
+}
+.animate-shake {
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+  100% { transform: none; }
+}

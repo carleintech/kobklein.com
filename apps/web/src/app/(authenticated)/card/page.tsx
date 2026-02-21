@@ -1,409 +1,454 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { kkGet, kkPost } from "@/lib/kobklein-api";
 import {
   CreditCard,
-  Shield,
-  Globe,
-  Wifi,
-  Lock,
-  Unlock,
+  Plus,
+  Snowflake,
+  Trash2,
   Eye,
+  EyeOff,
+  Copy,
+  CheckCircle2,
+  AlertTriangle,
+  Shield,
+  Zap,
+  RefreshCw,
+  Share2,
+  Globe,
 } from "lucide-react";
 
-/* ------------------------------------------------------------------ */
-/*  Types                                                              */
-/* ------------------------------------------------------------------ */
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface KCard {
+type VirtualCard = {
   id: string;
   last4: string;
-  holderName: string;
-  expiryMonth: string;
-  expiryYear: string;
-  status: "active" | "frozen" | "ordered";
-  type: "virtual" | "physical";
-  dailyLimit: number;
-  monthlyLimit: number;
-  balance: number;
-  settings: CardSettings;
-}
-
-interface CardSettings {
-  online: boolean;
-  international: boolean;
-  contactless: boolean;
-}
-
-interface CardTransaction {
-  id: string;
-  merchant: string;
-  amount: number;
-  date: string;
-  status: "completed" | "pending" | "declined";
-}
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
-
-const htg = (v: number) =>
-  new Intl.NumberFormat("en-HT", {
-    style: "currency",
-    currency: "HTG",
-    minimumFractionDigits: 2,
-  }).format(v);
-
-const statusColor: Record<string, string> = {
-  active: "bg-[#1F6F4A] text-white",
-  frozen: "bg-red-600/80 text-white",
-  ordered: "bg-[#C9A84C]/20 text-[#C9A84C]",
-  completed: "bg-[#1F6F4A]/20 text-[#1F6F4A]",
-  pending: "bg-[#C9A84C]/20 text-[#C9A84C]",
-  declined: "bg-red-500/20 text-red-400",
+  brand: string;
+  expiryMonth: number;
+  expiryYear: number;
+  currency: string;
+  status: "active" | "frozen" | "canceled";
+  createdAt: string;
 };
 
-/* ------------------------------------------------------------------ */
-/*  Page                                                               */
-/* ------------------------------------------------------------------ */
+type NewCardDetails = VirtualCard & {
+  cardNumber: string;
+  cvv: string;
+};
 
-export default function CardPage() {
-  const [card, setCard] = useState<KCard | null>(null);
-  const [txns, setTxns] = useState<CardTransaction[]>([]);
+// ─── Design tokens ────────────────────────────────────────────────────────────
+
+const BG = "#050F0C";
+const CARD_BG = "#0B1A16";
+const PANEL = "#0E2018";
+const BORDER = "rgba(13,158,138,0.14)";
+const TEAL = "#0D9E8A";
+const TEAL_BRIGHT = "#14C9B0";
+const GOLD = "#E2CA6E";
+const GOLD_MID = "#C9A84C";
+
+// ─── Card Visual ─────────────────────────────────────────────────────────────
+
+function CardVisual({
+  card,
+  reveal,
+  newDetails,
+}: {
+  card: VirtualCard;
+  reveal: boolean;
+  newDetails?: NewCardDetails | null;
+}) {
+  const isFrozen = card.status === "frozen";
+  const isCanceled = card.status === "canceled";
+
+  const displayNumber =
+    reveal && newDetails
+      ? newDetails.cardNumber.replace(/(.{4})/g, "$1 ").trim()
+      : `•••• •••• •••• ${card.last4}`;
+
+  const displayExpiry = `${String(card.expiryMonth).padStart(2, "0")}/${String(card.expiryYear).slice(-2)}`;
+  const displayCvv = reveal && newDetails ? newDetails.cvv : "•••";
+
+  return (
+    <motion.div
+      className="relative w-full rounded-3xl overflow-hidden select-none cursor-default"
+      style={{
+        background: isCanceled
+          ? "linear-gradient(145deg, #1a1a1a, #111)"
+          : isFrozen
+          ? "linear-gradient(145deg, #0a1525, #0d1e33)"
+          : "linear-gradient(145deg, #091c15 0%, #0c2218 50%, #061410 100%)",
+        border: isFrozen
+          ? "1px solid rgba(59,130,246,0.3)"
+          : `1px solid ${BORDER}`,
+        aspectRatio: "1.586 / 1",
+        maxWidth: 380,
+      }}
+      whileHover={{ scale: isCanceled ? 1 : 1.01 }}
+      transition={{ duration: 0.2 }}
+    >
+      {/* Glow */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: isFrozen
+            ? "radial-gradient(circle at 30% 70%, rgba(59,130,246,0.15) 0%, transparent 60%)"
+            : `radial-gradient(circle at 80% 20%, ${TEAL}20 0%, transparent 60%)`,
+        }}
+      />
+      {/* Grid texture */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-5"
+        style={{
+          backgroundImage: `repeating-linear-gradient(0deg, ${TEAL} 0, ${TEAL} 1px, transparent 1px, transparent 20px),
+            repeating-linear-gradient(90deg, ${TEAL} 0, ${TEAL} 1px, transparent 1px, transparent 20px)`,
+        }}
+      />
+
+      <div className="relative z-10 p-6 h-full flex flex-col justify-between">
+        {/* Top */}
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: TEAL }}>
+              KobKlein
+            </div>
+            <div className="text-[9px] uppercase tracking-wider mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+              Virtual Card
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {isFrozen && (
+              <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                style={{ background: "rgba(59,130,246,0.2)", color: "#60a5fa" }}>
+                <Snowflake className="h-2.5 w-2.5" /> Frozen
+              </span>
+            )}
+            {isCanceled && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                style={{ background: "rgba(239,68,68,0.2)", color: "#f87171" }}>
+                Canceled
+              </span>
+            )}
+            {/* Chip */}
+            <div className="w-9 h-7 rounded-md"
+              style={{ background: `linear-gradient(135deg, ${GOLD}AA, ${GOLD_MID}AA)` }} />
+          </div>
+        </div>
+
+        {/* Number */}
+        <div className="text-xl font-black tracking-[0.12em] text-white mt-3"
+          style={{ fontFamily: "monospace" }}>
+          {displayNumber}
+        </div>
+
+        {/* Bottom */}
+        <div className="flex items-end justify-between">
+          <div>
+            <div className="text-[9px] uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>Expires</div>
+            <div className="text-sm font-bold text-white" style={{ fontFamily: "monospace" }}>{displayExpiry}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-[9px] uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>CVV</div>
+            <div className="text-sm font-bold text-white" style={{ fontFamily: "monospace" }}>{displayCvv}</div>
+          </div>
+          <div className="text-base font-black italic" style={{ color: GOLD }}>VISA</div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function VirtualCardPage() {
+  const [cards, setCards] = useState<VirtualCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [newCard, setNewCard] = useState<NewCardDetails | null>(null);
+  const [revealId, setRevealId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [freezing, setFreezing] = useState(false);
-  const [savingSettings, setSavingSettings] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  /* ---------- fetch card + transactions ---------- */
   const load = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      setError(null);
-      const [c, t] = await Promise.all([
-        kkGet<KCard>("v1/cards/my-card").catch(() => null),
-        kkGet<CardTransaction[]>("v1/cards/transactions?limit=10").catch(
-          () => [],
-        ),
-      ]);
-      setCard(c);
-      setTxns(t);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to load card data");
+      const data = await kkGet<VirtualCard[]>("v1/cards");
+      setCards(data);
+    } catch (e: any) {
+      setError(e?.message || "Could not load cards");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
-  /* ---------- freeze / unfreeze ---------- */
-  const toggleFreeze = async () => {
-    if (!card) return;
-    setFreezing(true);
+  const handleCreate = async () => {
+    setCreating(true);
+    setError(null);
     try {
-      const frozen = card.status !== "frozen";
-      await kkPost("v1/cards/freeze", { frozen });
-      setCard((p) =>
-        p ? { ...p, status: frozen ? "frozen" : "active" } : p,
+      const card = await kkPost<NewCardDetails>("v1/cards", {});
+      setNewCard(card);
+      setRevealId(card.id);
+      setCards((prev) => [card, ...prev]);
+    } catch (e: any) {
+      setError(e?.message || "Could not create card. KYC level 2 required.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleFreeze = async (id: string) => {
+    setActionLoading(id + "-freeze");
+    try {
+      const res = await kkPost<{ ok: boolean; status: string }>(`v1/cards/${id}/freeze`, {});
+      setCards((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, status: res.status as VirtualCard["status"] } : c)),
       );
-    } catch {
-      setError("Could not update freeze status");
+    } catch (e: any) {
+      setError(e?.message);
     } finally {
-      setFreezing(false);
+      setActionLoading(null);
     }
   };
 
-  /* ---------- card settings ---------- */
-  const updateSetting = async (key: keyof CardSettings) => {
-    if (!card) return;
-    const updated = { ...card.settings, [key]: !card.settings[key] };
-    setSavingSettings(true);
+  const handleCancel = async (id: string) => {
+    if (!window.confirm("Cancel this card permanently? This cannot be undone.")) return;
+    setActionLoading(id + "-cancel");
     try {
-      await kkPost("v1/cards/settings", updated);
-      setCard((p) => (p ? { ...p, settings: updated } : p));
-    } catch {
-      setError("Could not save settings");
+      await kkPost(`v1/cards/${id}/cancel`, {});
+      setCards((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, status: "canceled" } : c)),
+      );
+    } catch (e: any) {
+      setError(e?.message);
     } finally {
-      setSavingSettings(false);
+      setActionLoading(null);
     }
   };
 
-  /* ================================================================ */
-  /*  Render                                                           */
-  /* ================================================================ */
+  const copyNumber = (num: string) => {
+    navigator.clipboard.writeText(num.replace(/\s/g, ""));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
-  /* --- loading --- */
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#060D1F]">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#C9A84C] border-t-transparent" />
-      </div>
-    );
-  }
-
-  /* --- error --- */
-  if (error && !card) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#060D1F] px-4 text-center">
-        <Shield className="h-12 w-12 text-red-400" />
-        <p className="text-[#B8BCC8]">{error}</p>
-        <button
-          onClick={load}
-          className="rounded-lg bg-[#C9A84C] px-6 py-2 font-semibold text-[#060D1F] transition hover:bg-[#E2CA6E]"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  /* --- no card --- */
-  if (!card) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#060D1F] px-4 text-center">
-        <CreditCard className="h-16 w-16 text-[#6B7489]" />
-        <h1 className="font-[family-name:var(--font-playfair)] text-2xl font-bold text-[#F0F1F5]">
-          No K-Card Yet
-        </h1>
-        <p className="max-w-md text-[#6B7489]">
-          Request your K-Card to make payments, manage spending, and transact
-          securely worldwide.
-        </p>
-        <button className="rounded-xl bg-[#C9A84C] px-8 py-3 font-semibold text-[#060D1F] transition hover:bg-[#E2CA6E]">
-          Request K-Card
-        </button>
-      </div>
-    );
-  }
-
-  const isFrozen = card.status === "frozen";
-  const isActive = card.status === "active";
+  const activeCards = cards.filter((c) => c.status !== "canceled");
+  const canCreate = activeCards.length < 3;
 
   return (
-    <main className="min-h-screen bg-[#060D1F] px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-2xl space-y-8">
-        {/* ---- heading ---- */}
-        <h1 className="font-[family-name:var(--font-playfair)] text-2xl font-bold text-[#F0F1F5]">
-          My K-Card
-        </h1>
+    <div className="min-h-screen pb-28" style={{ background: BG, color: "white" }}>
+      <div className="max-w-xl mx-auto px-4 py-6 space-y-6">
 
-        {error && (
-          <div className="rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-400">
-            {error}
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          className="flex items-start justify-between">
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-1" style={{ color: TEAL }}>
+              <CreditCard className="h-3 w-3" /> Virtual Cards
+            </div>
+            <h1 className="text-2xl font-black text-white">My KobKlein Cards</h1>
+            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+              Shop internationally — Netflix, Amazon & more
+            </p>
+          </div>
+          <button type="button" onClick={load} aria-label="Refresh" title="Refresh cards"
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ background: PANEL, border: `1px solid ${BORDER}` }}>
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} style={{ color: TEAL }} />
+          </button>
+        </motion.div>
+
+        {/* Error */}
+        <AnimatePresence>
+          {error && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="flex items-center gap-3 p-3 rounded-xl"
+              style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)" }}>
+              <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+              <p className="text-sm text-red-300 flex-1">{error}</p>
+              <button type="button" onClick={() => setError(null)} className="text-red-400 text-xs font-bold">✕</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* New card one-time reveal banner */}
+        <AnimatePresence>
+          {newCard && (
+            <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+              className="p-4 rounded-2xl space-y-3"
+              style={{ background: "rgba(13,158,138,0.1)", border: `1px solid ${TEAL}40` }}>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5" style={{ color: TEAL }} />
+                <div className="text-sm font-bold text-white">Card created! Save these details now.</div>
+              </div>
+              <div className="text-xs leading-relaxed p-3 rounded-xl"
+                style={{ background: "rgba(255,220,0,0.06)", border: "1px solid rgba(255,220,0,0.15)", color: "#FCD34D" }}>
+                ⚠️ Full number & CVV shown <strong>only once</strong>. Save them or add to Apple/Google Pay immediately.
+              </div>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => copyNumber(newCard.cardNumber)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold"
+                  style={{ background: `${TEAL}20`, color: TEAL_BRIGHT, border: `1px solid ${BORDER}` }}>
+                  {copied ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? "Copied!" : "Copy number"}
+                </button>
+                <button type="button" onClick={() => setNewCard(null)}
+                  className="px-3 py-2 rounded-xl text-xs font-semibold"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)" }}>
+                  Dismiss
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Cards list */}
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="rounded-3xl animate-pulse"
+                style={{ background: CARD_BG, aspectRatio: "1.586 / 1", maxWidth: 380 }} />
+            ))}
+          </div>
+        ) : cards.length === 0 ? (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            className="py-16 text-center space-y-4">
+            <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center"
+              style={{ background: `${TEAL}15`, border: `2px solid ${BORDER}` }}>
+              <CreditCard className="h-10 w-10" style={{ color: TEAL }} />
+            </div>
+            <div>
+              <div className="text-lg font-bold text-white">No virtual cards yet</div>
+              <div className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                Get your KobKlein Visa card to shop internationally
+              </div>
+              <div className="text-xs mt-2" style={{ color: "rgba(255,255,255,0.25)" }}>
+                Netflix · Amazon · Apple · Google Play · Airbnb & more
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <div className="space-y-6">
+            {cards.map((card, i) => (
+              <motion.div key={card.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.07 }} className="space-y-3">
+                <CardVisual
+                  card={card}
+                  reveal={revealId === card.id}
+                  newDetails={newCard?.id === card.id ? newCard : null}
+                />
+
+                {card.status !== "canceled" && (
+                  <div className="flex gap-2 flex-wrap">
+                    <button type="button"
+                      onClick={() => setRevealId(revealId === card.id ? null : card.id)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold"
+                      style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", border: `1px solid ${BORDER}` }}
+                      title={revealId === card.id ? "Hide details" : "Show details (for newly created cards only)"}>
+                      {revealId === card.id ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      {revealId === card.id ? "Hide" : "Details"}
+                    </button>
+
+                    <button type="button"
+                      onClick={() => handleFreeze(card.id)}
+                      disabled={actionLoading === card.id + "-freeze"}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold"
+                      style={{
+                        background: card.status === "frozen" ? "rgba(59,130,246,0.15)" : "rgba(255,255,255,0.06)",
+                        color: card.status === "frozen" ? "#60a5fa" : "rgba(255,255,255,0.6)",
+                        border: `1px solid ${card.status === "frozen" ? "rgba(59,130,246,0.3)" : BORDER}`,
+                      }}>
+                      <Snowflake className="h-3.5 w-3.5" />
+                      {card.status === "frozen" ? "Unfreeze" : "Freeze"}
+                    </button>
+
+                    <button type="button"
+                      onClick={() => handleCancel(card.id)}
+                      disabled={actionLoading === card.id + "-cancel"}
+                      aria-label="Cancel card permanently"
+                      title="Cancel card permanently"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold ml-auto"
+                      style={{ background: "rgba(239,68,68,0.08)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)" }}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            ))}
           </div>
         )}
 
-        {/* ============================================================ */}
-        {/*  1. CARD VISUAL                                              */}
-        {/* ============================================================ */}
-        <div
-          className={`relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1f35] to-[#0F1D35] p-6 ${
-            isActive ? "ring-1 ring-[#C9A84C]/50" : ""
-          }`}
-        >
-          {/* top row */}
-          <div className="flex items-start justify-between">
-            <span className="font-[family-name:var(--font-playfair)] text-3xl font-bold text-[#C9A84C]">
-              K
-            </span>
-            <CreditCard className="h-8 w-8 text-[#6B7489]" />
-          </div>
+        {/* Create new card CTA */}
+        {canCreate && !loading && (
+          <motion.button type="button" onClick={handleCreate} disabled={creating} whileTap={{ scale: 0.98 }}
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold text-white"
+            style={{
+              background: creating ? PANEL : `linear-gradient(135deg, ${TEAL}, #0A8A78)`,
+              border: `1px solid ${creating ? BORDER : "transparent"}`,
+            }}>
+            {creating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            {creating ? "Creating card…" : "Create New Virtual Card"}
+          </motion.button>
+        )}
 
-          {/* card number */}
-          <p className="mt-8 font-mono text-xl tracking-widest text-[#F0F1F5]">
-            &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;
-            &bull;&bull;&bull;&bull; {card.last4}
+        {!canCreate && !loading && (
+          <div className="text-center text-xs py-2" style={{ color: "rgba(255,255,255,0.3)" }}>
+            Maximum 3 active cards reached
+          </div>
+        )}
+
+        {/* International use banner */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}
+          className="rounded-2xl p-4 space-y-3"
+          style={{
+            background: "linear-gradient(135deg, rgba(13,158,138,0.10), rgba(13,158,138,0.04))",
+            border: `1px solid rgba(13,158,138,0.20)`,
+          }}>
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 shrink-0" style={{ color: TEAL }} />
+            <div className="text-sm font-bold text-white">Shop Internationally</div>
+          </div>
+          <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
+            Your KobKlein virtual Visa card works on <strong style={{ color: "rgba(255,255,255,0.8)" }}>any website or app that accepts Visa</strong> — even if they don't ship to Haiti.
           </p>
-
-          {/* bottom row */}
-          <div className="mt-6 flex items-end justify-between">
-            <div>
-              <p className="text-xs uppercase text-[#6B7489]">Cardholder</p>
-              <p className="text-sm font-medium text-[#B8BCC8]">
-                {card.holderName}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs uppercase text-[#6B7489]">Expires</p>
-              <p className="text-sm font-medium text-[#B8BCC8]">
-                {card.expiryMonth}/{card.expiryYear}
-              </p>
-            </div>
-          </div>
-
-          {/* status badge */}
-          <span
-            className={`absolute right-4 top-14 rounded-full px-3 py-0.5 text-xs font-semibold capitalize ${statusColor[card.status]}`}
-          >
-            {card.status}
-          </span>
-        </div>
-
-        {/* ============================================================ */}
-        {/*  2. QUICK ACTIONS                                            */}
-        {/* ============================================================ */}
-        <div className="grid grid-cols-3 gap-3">
-          <button
-            onClick={toggleFreeze}
-            disabled={freezing || card.status === "ordered"}
-            className={`flex flex-col items-center gap-2 rounded-xl p-4 text-xs font-medium transition ${
-              isFrozen
-                ? "bg-red-600/20 text-red-400"
-                : "bg-[#C9A84C]/10 text-[#C9A84C]"
-            } hover:opacity-80 disabled:opacity-40`}
-          >
-            {isFrozen ? (
-              <Unlock className="h-5 w-5" />
-            ) : (
-              <Lock className="h-5 w-5" />
-            )}
-            {freezing
-              ? "Processing..."
-              : isFrozen
-                ? "Unfreeze Card"
-                : "Freeze Card"}
-          </button>
-
-          <button
-            onClick={() =>
-              alert("For security, view full card details in the mobile app.")
-            }
-            className="flex flex-col items-center gap-2 rounded-xl bg-[#0F1D35] p-4 text-xs font-medium text-[#B8BCC8] transition hover:opacity-80"
-          >
-            <Eye className="h-5 w-5" />
-            Show Details
-          </button>
-
-          {card.type === "virtual" && (
-            <button className="flex flex-col items-center gap-2 rounded-xl bg-[#0F1D35] p-4 text-xs font-medium text-[#B8BCC8] transition hover:opacity-80">
-              <CreditCard className="h-5 w-5" />
-              Order Physical
-            </button>
-          )}
-        </div>
-
-        {/* ============================================================ */}
-        {/*  3. CARD DETAILS                                             */}
-        {/* ============================================================ */}
-        <section className="rounded-2xl bg-[#0F1D35] p-6">
-          <h2 className="mb-4 font-semibold text-[#F0F1F5]">Card Details</h2>
-          <dl className="space-y-3 text-sm">
-            {[
-              ["Type", card.type === "virtual" ? "Virtual" : "Physical"],
-              [
-                "Status",
-                <span
-                  key="s"
-                  className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${statusColor[card.status]}`}
-                >
-                  {card.status}
-                </span>,
-              ],
-              ["Daily Limit", htg(card.dailyLimit)],
-              ["Monthly Limit", htg(card.monthlyLimit)],
-              ["Available Balance", htg(card.balance)],
-            ].map(([label, value], i) => (
-              <div key={i} className="flex items-center justify-between">
-                <dt className="text-[#6B7489]">{label}</dt>
-                <dd className="font-medium text-[#B8BCC8]">{value}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-
-        {/* ============================================================ */}
-        {/*  4. RECENT TRANSACTIONS                                      */}
-        {/* ============================================================ */}
-        <section className="rounded-2xl bg-[#0F1D35] p-6">
-          <h2 className="mb-4 font-semibold text-[#F0F1F5]">
-            Recent Transactions
-          </h2>
-
-          {txns.length === 0 ? (
-            <p className="text-sm text-[#6B7489]">No transactions yet.</p>
-          ) : (
-            <ul className="divide-y divide-white/5">
-              {txns.map((tx) => (
-                <li
-                  key={tx.id}
-                  className="flex items-center justify-between py-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-[#B8BCC8]">
-                      {tx.merchant}
-                    </p>
-                    <p className="text-xs text-[#6B7489]">
-                      {new Date(tx.date).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-[#F0F1F5]">
-                      {htg(tx.amount)}
-                    </p>
-                    <span
-                      className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize ${statusColor[tx.status]}`}
-                    >
-                      {tx.status}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        {/* ============================================================ */}
-        {/*  5. CARD SETTINGS                                            */}
-        {/* ============================================================ */}
-        <section className="rounded-2xl bg-[#0F1D35] p-6">
-          <h2 className="mb-4 font-semibold text-[#F0F1F5]">Card Settings</h2>
-          <div className="space-y-4">
-            {(
-              [
-                {
-                  key: "online" as const,
-                  label: "Online Transactions",
-                  icon: Globe,
-                },
-                {
-                  key: "international" as const,
-                  label: "International Transactions",
-                  icon: Shield,
-                },
-                {
-                  key: "contactless" as const,
-                  label: "Contactless Payments",
-                  icon: Wifi,
-                },
-              ] as const
-            ).map(({ key, label, icon: Icon }) => (
-              <div key={key} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Icon className="h-4 w-4 text-[#6B7489]" />
-                  <span className="text-sm text-[#B8BCC8]">{label}</span>
-                </div>
-                <button
-                  disabled={savingSettings || isFrozen}
-                  onClick={() => updateSetting(key)}
-                  className={`relative h-6 w-11 rounded-full transition disabled:opacity-40 ${
-                    card.settings[key] ? "bg-[#C9A84C]" : "bg-[#6B7489]/30"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                      card.settings[key] ? "translate-x-5" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
-              </div>
+          <div className="flex flex-wrap gap-2">
+            {["Netflix", "Amazon", "Apple", "Google Play", "Spotify", "Airbnb", "eBay", "Canva"].map((name) => (
+              <span key={name}
+                className="text-[10px] font-bold px-2 py-1 rounded-lg"
+                style={{ background: `rgba(13,158,138,0.12)`, color: TEAL_BRIGHT, border: `1px solid rgba(13,158,138,0.18)` }}>
+                {name}
+              </span>
             ))}
           </div>
-        </section>
+          <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.25)" }}>
+            Use your card number, expiry, and CVV at checkout — just like any other Visa card.
+          </p>
+        </motion.div>
+
+        {/* Feature info */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.33 }}
+          className="rounded-2xl p-4 space-y-3"
+          style={{ background: CARD_BG, border: `1px solid ${BORDER}` }}>
+          <div className="text-xs font-bold text-white">Card Features</div>
+          {[
+            { icon: Shield, text: "256-bit encrypted — card number never stored in plain text" },
+            { icon: Zap, text: "Add to Apple Pay or Google Pay for tap-to-pay" },
+            { icon: CreditCard, text: "Up to 3 active cards • Freeze/unfreeze anytime" },
+            { icon: Share2, text: "One-time reveal — save your number before dismissing" },
+            { icon: CheckCircle2, text: "KYC level 2 required for issuance" },
+          ].map((f, i) => (
+            <div key={i} className="flex items-start gap-2.5">
+              <f.icon className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: TEAL }} />
+              <span className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>{f.text}</span>
+            </div>
+          ))}
+        </motion.div>
       </div>
-    </main>
+    </div>
   );
 }

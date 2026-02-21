@@ -66,7 +66,7 @@ export class AdminMerchantFeeController {
         active: true,
       },
       include: {
-        Merchant: { select: { businessName: true, paymentCode: true } },
+        merchant: { select: { businessName: true, paymentCode: true } },
       },
     });
 
@@ -147,7 +147,7 @@ export class AdminMerchantFeeController {
       take,
       orderBy: { createdAt: "desc" },
       include: {
-        Merchant: { select: { businessName: true, paymentCode: true } },
+        merchant: { select: { businessName: true, paymentCode: true } },
       },
     });
 

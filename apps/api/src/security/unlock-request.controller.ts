@@ -2,12 +2,12 @@ import { Controller, Post, Body, UseGuards, Req } from "@nestjs/common";
 import { prisma } from "../db/prisma";
 import { SupabaseGuard } from "../auth/supabase.guard";
 
-@Controller("security")
+@Controller("v1/security")
 export class UnlockRequestController {
   @UseGuards(SupabaseGuard)
   @Post("request-unlock")
   async request(@Req() req: any, @Body() body: { reason?: string }) {
-    const userId = req.user.sub;
+    const userId = req.localUser?.id || req.user?.sub;
 
     const existing = await prisma.unlockRequest.findFirst({
       where: { userId, status: "pending" },

@@ -55,7 +55,7 @@ export class TransactionsController {
       const fails = await redis.incr(failKey);
       if (fails === 1) await redis.expire(failKey, 600); // 10 minutes window
 
-      if (fails >= 5) {
+      if ((fails ?? 0) >= 5) {
         await flagRisk({
           userId,
           type: "failed_attempts",

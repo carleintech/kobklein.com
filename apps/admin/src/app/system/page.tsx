@@ -2,10 +2,8 @@
 
 import { Card } from "@/components/card";
 import { Badge } from "@/components/badge";
-import { getAccessToken } from "@auth0/nextjs-auth0";
+import { kkPost } from "@/lib/kobklein-api";
 import { useState } from "react";
-
-const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
 interface ReconResult {
   status: string;
@@ -36,16 +34,7 @@ export default function SystemPage() {
     setLoading(true);
     setError(null);
     try {
-      const token = await getAccessToken();
-      const res = await fetch(`${API}/admin/recon/run`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      const data = await kkPost<ReconResult>("admin/recon/run", {});
       setRecon(data);
     } catch (e: any) {
       setError(e.message || "Failed to run reconciliation");

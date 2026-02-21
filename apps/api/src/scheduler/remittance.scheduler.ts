@@ -1,5 +1,4 @@
 import cron from "node-cron";
-import crypto from "crypto";
 import { prisma } from "../db/prisma";
 import { executeFxTransfer } from "../transfers/fx-transfer.service";
 import { createNotification } from "../notifications/notification.service";
@@ -26,8 +25,8 @@ async function processScheduledRemittances() {
     },
     take: 200, // Batch limit
     include: {
-      User_ScheduledTransfer_senderUserIdToUser: { select: { id: true, firstName: true, isFrozen: true } },
-      User_ScheduledTransfer_recipientUserIdToUser: { select: { id: true, firstName: true, kId: true } },
+      sender: { select: { id: true, firstName: true, isFrozen: true } },
+      recipient: { select: { id: true, firstName: true, kId: true } },
     },
   });
 
@@ -38,21 +37,22 @@ async function processScheduledRemittances() {
   for (const schedule of dueSchedules) {
     try {
       // Skip frozen senders — don't mark as failed, just skip this cycle
-      if (schedule.User_ScheduledTransfer_senderUserIdToUser.isFrozen) {
+      if (schedule.sender.isFrozen) {
         console.log(
           `[remittance] Skipping ${schedule.id} — sender is frozen`,
         );
         await createNotification(
           schedule.senderUserId,
           "Scheduled Transfer Skipped",
-          `Your scheduled transfer of $${Number(schedule.amountUsd)} USD to ${schedule.User_ScheduledTransfer_recipientUserIdToUser.firstName || schedule.User_ScheduledTransfer_recipientUserIdToUser.kId || "family"} was skipped because your account is frozen.`,
+          `Your scheduled transfer of $${Number(schedule.amountUsd)} USD to ${schedule.recipient.firstName || schedule.recipient.kId || "family"} was skipped because your account is frozen.`,
           "system",
         );
         continue;
       }
 
-      // Generate deterministic idempotency key for this run
-      const idempotencyKey = `sched:${schedule.id}:${now.toISOString().slice(0, 10)}:${crypto.randomUUID()}`;
+      // Deterministic idempotency key — same schedule + same UTC date = same key,
+      // preventing duplicate charges if the cron fires more than once in a day.
+      const idempotencyKey = `sched:${schedule.id}:${now.toISOString().slice(0, 10)}`;
 
       const result = await executeFxTransfer({
         senderUserId: schedule.senderUserId,

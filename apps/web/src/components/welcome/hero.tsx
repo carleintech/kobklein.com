@@ -227,6 +227,7 @@ export function WelcomeHero() {
                 alt="KobKlein Digital Card"
                 width={440}
                 height={440}
+                style={{ height: "auto" }}
                 className="drop-shadow-[0_25px_60px_rgba(201,168,76,0.2)] hover:scale-[1.03] transition-transform duration-700"
                 priority
               />

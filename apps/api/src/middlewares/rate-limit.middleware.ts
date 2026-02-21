@@ -28,7 +28,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 
       const MAX = 120; // 120 req/min
 
-      if (count > MAX) {
+      if ((count ?? 0) > MAX) {
         res.status(429).json({
           message: "Too many requests",
           requestId: req.requestId,

@@ -36,7 +36,7 @@ export class AdminPlansController {
     const plans = await prisma.platformPlan.findMany({
       orderBy: [{ role: "asc" }, { tier: "asc" }],
       include: {
-        _count: { select: { UserPlan: true } },
+        _count: { select: { userPlans: true } },
       },
     });
     return { plans };
@@ -115,7 +115,7 @@ export class AdminPlansController {
     const subs = await prisma.userPlan.findMany({
       where,
       include: {
-        PlatformPlan: { select: { slug: true, nameEn: true, role: true, tier: true, priceUsd: true } },
+        plan: { select: { slug: true, nameEn: true, role: true, tier: true, priceUsd: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 100,
@@ -135,7 +135,7 @@ export class AdminPlansController {
     }));
 
     // Filter by role if specified
-    const filtered = role ? result.filter((r) => r.PlatformPlan.role === role) : result;
+    const filtered = role ? result.filter((r) => (r as any).plan?.role === role) : result;
 
     return { subscribers: filtered, total: filtered.length };
   }

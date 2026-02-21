@@ -7,7 +7,7 @@ export class MerchantPublicController {
   async get(@Param("id") id: string) {
     const merchant = await prisma.merchant.findUnique({
       where: { id },
-      include: { User: true },
+      select: { id: true, businessName: true, logoUrl: true, kycStatus: true },
     });
 
     if (!merchant) return { error: "Not found" };

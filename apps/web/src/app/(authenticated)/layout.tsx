@@ -35,11 +35,9 @@ export default async function AuthenticatedLayout({
 
   return (
     <Providers>
-      <div className="shell-bg min-h-screen">
-        <AppShell user={authUser}>
-          {children}
-        </AppShell>
-      </div>
+      <AppShell user={authUser}>
+        {children}
+      </AppShell>
     </Providers>
   );
 }

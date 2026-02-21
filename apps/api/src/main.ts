@@ -1,7 +1,10 @@
-import { initSentry } from "./monitoring/sentry";
 
-// Initialize Sentry BEFORE other imports
-initSentry();
+// 1. Load .env first so SENTRY_DSN is available for instrument.ts
+import { config } from "dotenv";
+config();
+
+// 2. Initialize Sentry BEFORE NestJS boots (reads process.env.SENTRY_DSN)
+import "./instrument";
 
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";

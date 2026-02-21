@@ -37,7 +37,7 @@ model AmlFlag {
   metadata    Json?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime @updatedAt
-  User        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
 
   @@index([createdAt])
   @@index([severity])
@@ -59,7 +59,7 @@ model AuditLog {
   meta         Json?
   referenceId  String?
   toWalletId   String?
-  User         User?    @relation(fields: [actorUserId], references: [id])
+  actorUser    User?    @relation(fields: [actorUserId], references: [id])
 
   @@index([actorUserId])
   @@index([createdAt])
@@ -90,8 +90,8 @@ model Case {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime @updatedAt
   closedAt       DateTime?
-  CaseAction     CaseAction[]
-  CaseMessage    CaseMessage[]
+  actions        CaseAction[]
+  messages       CaseMessage[]
 
   @@index([caseType])
   @@index([referenceId])
@@ -106,7 +106,7 @@ model CaseAction {
   actorUserId String?
   meta        Json?
   createdAt   DateTime @default(now())
-  Case        Case     @relation(fields: [caseId], references: [id])
+  parentCase  Case     @relation(fields: [caseId], references: [id])
 
   @@index([caseId])
 }
@@ -118,7 +118,7 @@ model CaseMessage {
   authorUserId String?
   message      String
   createdAt    DateTime @default(now())
-  Case         Case     @relation(fields: [caseId], references: [id])
+  parentCase   Case     @relation(fields: [caseId], references: [id])
 
   @@index([caseId])
 }
@@ -145,7 +145,7 @@ model DeviceSession {
   label       String?
   revokedAt   DateTime?
   trusted     Boolean   @default(false)
-  User        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -163,7 +163,7 @@ model DiasporaProfile {
   preferredCurrency  String   @default("USD")
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-  User               User     @relation(fields: [userId], references: [id])
+  user               User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -181,8 +181,8 @@ model Distributor {
   locationText        String?
   phonePublic         String?
   tier                String                @default("agent")
-  User                User                  @relation(fields: [userId], references: [id])
-  DistributorRecharge DistributorRecharge[]
+  user                User                  @relation(fields: [userId], references: [id])
+  recharges           DistributorRecharge[]
 
   @@index([status])
 }
@@ -214,7 +214,7 @@ model DistributorRecharge {
   reviewedAt    DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime @updatedAt
-  Distributor   Distributor @relation(fields: [distributorId], references: [id])
+  distributor   Distributor @relation(fields: [distributorId], references: [id])
 
   @@index([createdAt])
   @@index([distributorId])
@@ -268,8 +268,8 @@ model FamilyLink {
   relationship                         String?
   createdAt                            DateTime @default(now())
   isFavorite                           Boolean  @default(false)
-  User_FamilyLink_diasporaUserIdToUser User     @relation("FamilyLink_diasporaUserIdToUser", fields: [diasporaUserId], references: [id])
-  User_FamilyLink_familyUserIdToUser   User     @relation("FamilyLink_familyUserIdToUser", fields: [familyUserId], references: [id])
+  diasporaUser User     @relation("FamilyLink_diasporaUserIdToUser", fields: [diasporaUserId], references: [id])
+  familyUser   User     @relation("FamilyLink_familyUserIdToUser", fields: [familyUserId], references: [id])
 
   @@unique([diasporaUserId, familyUserId])
   @@index([diasporaUserId])
@@ -325,37 +325,46 @@ model FxConversion {
 }
 
 model FxPromoRedemption {
-  id          String      @id @default(cuid())
-  promotionId String
-  userId      String
-  transferId  String?
-  savedAmount Decimal
-  createdAt   DateTime    @default(now())
-  FxPromotion FxPromotion @relation(fields: [promotionId], references: [id])
+  id              String      @id @default(cuid())
+  promotionId     String
+  userId          String
+  transferId      String?
+  savedAmount     Decimal
+  affiliateUserId String?
+  affiliatePaid   Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  promotion       FxPromotion @relation(fields: [promotionId], references: [id])
 
+  @@index([affiliateUserId])
   @@index([promotionId])
   @@index([userId])
 }
 
 model FxPromotion {
-  id                String              @id @default(cuid())
-  name              String
-  fromCurrency      String
-  toCurrency        String
-  discountBps       Int
-  bonusPct          Decimal?
-  minAmount         Decimal?
-  maxAmount         Decimal?
-  code              String?             @unique
-  corridor          String?
-  maxUses           Int?
-  usedCount         Int                 @default(0)
-  startsAt          DateTime
-  endsAt            DateTime
-  active            Boolean             @default(true)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime @updatedAt
-  FxPromoRedemption FxPromoRedemption[]
+  id               String              @id @default(cuid())
+  name             String
+  fromCurrency     String
+  toCurrency       String
+  discountBps      Int
+  bonusPct         Decimal?
+  minAmount        Decimal?
+  maxAmount        Decimal?
+  code             String?             @unique
+  corridor         String?
+  maxUses          Int?
+  usedCount        Int                 @default(0)
+  startsAt         DateTime
+  endsAt           DateTime
+  active           Boolean             @default(true)
+  // Affiliate tracking
+  affiliateUserId  String?
+  affiliatePct     Decimal?            @db.Decimal(8, 4)
+  affiliateLabel   String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([affiliateUserId])
+  redemptions  FxPromoRedemption[]
 
   @@index([code])
   @@index([fromCurrency, toCurrency])
@@ -411,7 +420,7 @@ model KycProfile {
   dob             DateTime?
   fullName        String?
   idNumber        String?
-  User            User      @relation(fields: [userId], references: [id])
+  user            User      @relation(fields: [userId], references: [id])
 }
 
 model LedgerEntry {
@@ -422,7 +431,7 @@ model LedgerEntry {
   createdAt  DateTime @default(now())
   transferId String?
   reference  String?
-  Wallet     Wallet   @relation(fields: [walletId], references: [id])
+  wallet     Wallet   @relation(fields: [walletId], references: [id])
 }
 
 model LimitConfig {
@@ -457,10 +466,10 @@ model Merchant {
   status             String               @default("pending")
   createdAt          DateTime             @default(now())
   updatedAt          DateTime @updatedAt
-  User               User                 @relation(fields: [userId], references: [id])
-  MerchantFeeProfile MerchantFeeProfile?
-  MerchantPosRequest MerchantPosRequest[]
-  MerchantWithdrawal MerchantWithdrawal[]
+  user               User                 @relation(fields: [userId], references: [id])
+  feeProfile         MerchantFeeProfile?
+  posRequests        MerchantPosRequest[]
+  withdrawals        MerchantWithdrawal[]
 }
 
 model MerchantFeeProfile {
@@ -473,7 +482,7 @@ model MerchantFeeProfile {
   active     Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  Merchant   Merchant @relation(fields: [merchantId], references: [id])
+  merchant   Merchant @relation(fields: [merchantId], references: [id])
 }
 
 model MerchantPosRequest {
@@ -489,7 +498,7 @@ model MerchantPosRequest {
   paidAt       DateTime?
   transferId   String?
   createdAt    DateTime  @default(now())
-  Merchant     Merchant  @relation(fields: [merchantId], references: [id])
+  merchant     Merchant  @relation(fields: [merchantId], references: [id])
 
   @@index([expiresAt])
   @@index([merchantId])
@@ -507,7 +516,7 @@ model MerchantWithdrawal {
   distributorId String?
   createdAt     DateTime  @default(now())
   completedAt   DateTime?
-  Merchant      Merchant  @relation(fields: [merchantId], references: [id])
+  merchant      Merchant  @relation(fields: [merchantId], references: [id])
 }
 
 model Notification {
@@ -521,7 +530,7 @@ model Notification {
   createdAt   DateTime @default(now())
   params      Json?
   templateKey String?
-  User        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 model NotificationLog {
@@ -578,8 +587,8 @@ model PaymentRequest {
   status                                String    @default("pending")
   paidAt                                DateTime?
   createdAt                             DateTime  @default(now())
-  User_PaymentRequest_requesteeIdToUser User      @relation("PaymentRequest_requesteeIdToUser", fields: [requesteeId], references: [id])
-  User_PaymentRequest_requesterIdToUser User      @relation("PaymentRequest_requesterIdToUser", fields: [requesterId], references: [id])
+  requestee User      @relation("PaymentRequest_requesteeIdToUser", fields: [requesteeId], references: [id])
+  requester User      @relation("PaymentRequest_requesterIdToUser", fields: [requesterId], references: [id])
 }
 
 model PlatformPlan {
@@ -602,7 +611,7 @@ model PlatformPlan {
   active        Boolean    @default(true)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime @updatedAt
-  UserPlan      UserPlan[]
+  userPlans     UserPlan[]
 
   @@index([role])
   @@index([tier])
@@ -616,7 +625,7 @@ model PushToken {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  User      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([token])
   @@index([userId])
@@ -628,7 +637,7 @@ model ReceiveCode {
   code      String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-  User      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model RecipientInteraction {
@@ -709,7 +718,7 @@ model SanctionsCheck {
   source    String   @default("manual")
   matchData Json?
   checkedAt DateTime @default(now())
-  User      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -729,8 +738,8 @@ model ScheduledTransfer {
   note                                         String?
   createdAt                                    DateTime  @default(now())
   updatedAt                                    DateTime @updatedAt
-  User_ScheduledTransfer_recipientUserIdToUser User      @relation("ScheduledTransfer_recipientUserIdToUser", fields: [recipientUserId], references: [id])
-  User_ScheduledTransfer_senderUserIdToUser    User      @relation("ScheduledTransfer_senderUserIdToUser", fields: [senderUserId], references: [id])
+  recipient User      @relation("ScheduledTransfer_recipientUserIdToUser", fields: [recipientUserId], references: [id])
+  sender    User      @relation("ScheduledTransfer_senderUserIdToUser", fields: [senderUserId], references: [id])
 
   @@index([senderUserId])
   @@index([status, nextRunAt])
@@ -743,7 +752,7 @@ model StepUpToken {
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
-  User      User      @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -763,7 +772,7 @@ model SubscriptionCatalogItem {
   active           Boolean            @default(true)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime @updatedAt
-  SubscriptionPlan SubscriptionPlan[]
+  plans SubscriptionPlan[]
 }
 
 model SubscriptionPlan {
@@ -779,7 +788,7 @@ model SubscriptionPlan {
   active                  Boolean                 @default(true)
   createdAt               DateTime                @default(now())
   updatedAt               DateTime @updatedAt
-  SubscriptionCatalogItem SubscriptionCatalogItem @relation(fields: [itemId], references: [id])
+  catalogItem SubscriptionCatalogItem @relation(fields: [itemId], references: [id])
 
   @@index([itemId])
 }
@@ -833,8 +842,8 @@ model TransferContact {
   lastTransferAt                           DateTime @default(now())
   createdAt                                DateTime @default(now())
   isFavorite                               Boolean  @default(false)
-  User_TransferContact_contactUserIdToUser User     @relation("TransferContact_contactUserIdToUser", fields: [contactUserId], references: [id])
-  User_TransferContact_userIdToUser        User     @relation("TransferContact_userIdToUser", fields: [userId], references: [id])
+  contactUser User     @relation("TransferContact_contactUserIdToUser", fields: [contactUserId], references: [id])
+  owner       User     @relation("TransferContact_userIdToUser", fields: [userId], references: [id])
 
   @@unique([userId, contactUserId])
 }
@@ -847,7 +856,7 @@ model UnlockRequest {
   reviewedBy String?
   reviewedAt DateTime?
   createdAt  DateTime  @default(now())
-  User       User      @relation(fields: [userId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
 }
 
 model User {
@@ -876,29 +885,34 @@ model User {
   profileComplete                                           Boolean             @default(false)
   profilePhotoUrl                                           String?
   transactionPinHash                                        String?
+  referralCode                                              String?             @unique
+  referredBy                                                String?
   updatedAt                                                 DateTime            @updatedAt
-  AmlFlag                                                   AmlFlag[]
-  AuditLog                                                  AuditLog[]
-  DeviceSession                                             DeviceSession[]
-  DiasporaProfile                                           DiasporaProfile?
-  Distributor                                               Distributor?
-  FamilyLink_FamilyLink_diasporaUserIdToUser                FamilyLink[]        @relation("FamilyLink_diasporaUserIdToUser")
-  FamilyLink_FamilyLink_familyUserIdToUser                  FamilyLink[]        @relation("FamilyLink_familyUserIdToUser")
-  KycProfile                                                KycProfile?
-  Merchant                                                  Merchant?
-  Notification                                              Notification[]
-  PaymentRequest_PaymentRequest_requesteeIdToUser           PaymentRequest[]    @relation("PaymentRequest_requesteeIdToUser")
-  PaymentRequest_PaymentRequest_requesterIdToUser           PaymentRequest[]    @relation("PaymentRequest_requesterIdToUser")
-  PushToken                                                 PushToken[]
-  ReceiveCode                                               ReceiveCode[]
-  SanctionsCheck                                            SanctionsCheck[]
-  ScheduledTransfer_ScheduledTransfer_recipientUserIdToUser ScheduledTransfer[] @relation("ScheduledTransfer_recipientUserIdToUser")
-  ScheduledTransfer_ScheduledTransfer_senderUserIdToUser    ScheduledTransfer[] @relation("ScheduledTransfer_senderUserIdToUser")
-  StepUpToken                                               StepUpToken[]
-  TransferContact_TransferContact_contactUserIdToUser       TransferContact[]   @relation("TransferContact_contactUserIdToUser")
-  TransferContact_TransferContact_userIdToUser              TransferContact[]   @relation("TransferContact_userIdToUser")
-  UnlockRequest                                             UnlockRequest[]
-  Wallet                                                    Wallet[]
+
+  @@index([referralCode])
+  @@index([referredBy])
+  amlFlags                   AmlFlag[]
+  auditLogs                  AuditLog[]
+  deviceSessions             DeviceSession[]
+  diasporaProfile            DiasporaProfile?
+  distributor                Distributor?
+  familyLinksAsDiaspora      FamilyLink[]        @relation("FamilyLink_diasporaUserIdToUser")
+  familyLinksAsFamily        FamilyLink[]        @relation("FamilyLink_familyUserIdToUser")
+  kycProfile                 KycProfile?
+  merchant                   Merchant?
+  notifications              Notification[]
+  paymentRequestsReceived    PaymentRequest[]    @relation("PaymentRequest_requesteeIdToUser")
+  paymentRequestsSent        PaymentRequest[]    @relation("PaymentRequest_requesterIdToUser")
+  pushTokens                 PushToken[]
+  receiveCodes               ReceiveCode[]
+  sanctionsChecks            SanctionsCheck[]
+  scheduledTransfersReceived ScheduledTransfer[] @relation("ScheduledTransfer_recipientUserIdToUser")
+  scheduledTransfersSent     ScheduledTransfer[] @relation("ScheduledTransfer_senderUserIdToUser")
+  stepUpTokens               StepUpToken[]
+  contactedBy                TransferContact[]   @relation("TransferContact_contactUserIdToUser")
+  contacts                   TransferContact[]   @relation("TransferContact_userIdToUser")
+  unlockRequests             UnlockRequest[]
+  wallets                    Wallet[]
 }
 
 model UserPlan {
@@ -914,7 +928,7 @@ model UserPlan {
   trialEnd             DateTime?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime @updatedAt
-  PlatformPlan         PlatformPlan @relation(fields: [planId], references: [id])
+  plan                 PlatformPlan @relation(fields: [planId], references: [id])
 
   @@unique([userId, planId])
   @@index([status])
@@ -936,7 +950,7 @@ model VirtualCard {
   status         String           @default("active")
   createdAt      DateTime         @default(now())
   updatedAt      DateTime @updatedAt
-  VirtualCardTxn VirtualCardTxn[]
+  transactions VirtualCardTxn[]
 
   @@index([userId])
 }
@@ -956,7 +970,7 @@ model VirtualCardTxn {
   meta             Json?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime @updatedAt
-  VirtualCard      VirtualCard @relation(fields: [cardId], references: [id])
+  card             VirtualCard @relation(fields: [cardId], references: [id])
 
   @@index([cardId])
   @@index([createdAt])
@@ -970,8 +984,8 @@ model Wallet {
   currency    String
   createdAt   DateTime      @default(now())
   type        WalletType    @default(USER)
-  LedgerEntry LedgerEntry[]
-  User        User          @relation(fields: [userId], references: [id])
+  ledgerEntries LedgerEntry[]
+  user          User          @relation(fields: [userId], references: [id])
 
   @@unique([userId, currency])
 }

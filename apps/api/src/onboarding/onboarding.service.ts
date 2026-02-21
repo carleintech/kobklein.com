@@ -16,6 +16,22 @@ import type {
   DistributorOnboardingDto,
 } from "../validation/onboarding.dto";
 
+/**
+ * Generate a unique K-ID in the format KK-XXXX-XXXX (uppercase alphanumeric).
+ * Retries up to 5 times to avoid collision.
+ */
+async function generateKId(): Promise<string> {
+  for (let i = 0; i < 5; i++) {
+    const part1 = crypto.randomBytes(2).toString("hex").toUpperCase();
+    const part2 = crypto.randomBytes(2).toString("hex").toUpperCase();
+    const kId = `KK-${part1}-${part2}`;
+    const existing = await prisma.user.findUnique({ where: { kId } });
+    if (!existing) return kId;
+  }
+  // Fallback: longer random string
+  return `KK-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+}
+
 @Injectable()
 export class OnboardingService {
   /**
@@ -35,6 +51,10 @@ export class OnboardingService {
     // Hash transaction PIN
     const hashedPin = await bcrypt.hash(dto.transactionPin, 10);
 
+    // Generate K-ID if not already assigned
+    const existingUser = await prisma.user.findUnique({ where: { id: userId }, select: { kId: true } });
+    const kId = existingUser?.kId ?? await generateKId();
+
     // Update user record
     const user = await prisma.user.update({
       where: { id: userId },
@@ -46,6 +66,7 @@ export class OnboardingService {
         profileComplete: true,
         onboardingComplete: true,
         transactionPinHash: hashedPin,
+        kId,
       },
     });
 
@@ -56,6 +77,7 @@ export class OnboardingService {
         id: user.id,
         handle: user.handle,
         role: user.role,
+        kId: user.kId,
       },
     };
   }
@@ -77,6 +99,10 @@ export class OnboardingService {
     // Hash transaction PIN
     const hashedPin = await bcrypt.hash(dto.transactionPin, 10);
 
+    // Generate K-ID if not already assigned
+    const existingUserD = await prisma.user.findUnique({ where: { id: userId }, select: { kId: true } });
+    const kIdD = existingUserD?.kId ?? await generateKId();
+
     // Update user record and create diaspora profile in a transaction
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.update({
@@ -84,11 +110,12 @@ export class OnboardingService {
         data: {
           handle: dto.handle,
           dateOfBirth: new Date(dto.dateOfBirth),
-          country: "HT", // Diaspora users send TO Haiti, but live elsewhere
+          country: "HT",
           role: "diaspora",
           profileComplete: true,
           onboardingComplete: true,
           transactionPinHash: hashedPin,
+          kId: kIdD,
         },
       });
 
@@ -117,6 +144,7 @@ export class OnboardingService {
         id: result.user.id,
         handle: result.user.handle,
         role: result.user.role,
+        kId: result.user.kId,
       },
     };
   }
@@ -132,6 +160,10 @@ export class OnboardingService {
     // Generate unique payment code (6-digit alphanumeric)
     const paymentCode = crypto.randomBytes(3).toString("hex").toUpperCase();
 
+    // Generate K-ID if not already assigned
+    const existingUserM = await prisma.user.findUnique({ where: { id: userId }, select: { kId: true } });
+    const kIdM = existingUserM?.kId ?? await generateKId();
+
     // Update user and create merchant record in transaction
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.update({
@@ -141,6 +173,7 @@ export class OnboardingService {
           profileComplete: true,
           onboardingComplete: true,
           transactionPinHash: hashedPin,
+          kId: kIdM,
         },
       });
 
@@ -168,6 +201,7 @@ export class OnboardingService {
       user: {
         id: result.user.id,
         role: result.user.role,
+        kId: result.user.kId,
       },
       merchant: {
         businessName: result.merchant.businessName,
@@ -185,6 +219,10 @@ export class OnboardingService {
     // Hash transaction PIN
     const hashedPin = await bcrypt.hash(dto.transactionPin, 10);
 
+    // Generate K-ID if not already assigned
+    const existingUserDist = await prisma.user.findUnique({ where: { id: userId }, select: { kId: true } });
+    const kIdDist = existingUserDist?.kId ?? await generateKId();
+
     // Update user and create distributor record in transaction
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.update({
@@ -194,6 +232,7 @@ export class OnboardingService {
           profileComplete: true,
           onboardingComplete: true,
           transactionPinHash: hashedPin,
+          kId: kIdDist,
         },
       });
 
@@ -220,6 +259,7 @@ export class OnboardingService {
       user: {
         id: result.user.id,
         role: result.user.role,
+        kId: result.user.kId,
       },
       distributor: {
         businessName: result.distributor.businessName,

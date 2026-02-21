@@ -1,15 +1,15 @@
 /**
- * Distributor Recharge Service — KobKlein API
+ * distributor Recharge Service — KobKlein API
  *
  * Handles the recharge workflow:
- * 1. Distributor submits recharge request (bank_transfer, mobile_money, cash_deposit)
+ * 1. distributor submits recharge request (bank_transfer, mobile_money, cash_deposit)
  * 2. Admin reviews and approves/rejects
  * 3. On approval, credits distributor's float wallet
  */
 import { prisma } from "../db/prisma";
 import { notifyUser } from "../push/push.service";
 
-// ─── Distributor Actions ─────────────────────────────────────────────
+// ─── distributor Actions ─────────────────────────────────────────────
 
 /**
  * Submit a recharge request.
@@ -78,7 +78,7 @@ export async function listPendingRecharges(options?: {
       take: options?.limit ?? 50,
       skip: options?.offset ?? 0,
       include: {
-        Distributor: {
+        distributor: {
           select: { displayName: true, businessName: true, userId: true },
         },
       },
@@ -99,7 +99,7 @@ export async function approveRecharge(
 ) {
   const recharge = await prisma.distributorRecharge.findUnique({
     where: { id: rechargeId },
-    include: { Distributor: true },
+    include: { distributor: true },
   });
 
   if (!recharge) throw new Error("Recharge not found");
@@ -120,14 +120,14 @@ export async function approveRecharge(
     // Find distributor's float wallet
     const floatWallet = await tx.wallet.findFirst({
       where: {
-        userId: recharge.Distributor.userId,
+        userId: recharge.distributor.userId,
         type: "DISTRIBUTOR",
         currency: recharge.currency,
       },
     });
 
     if (!floatWallet) {
-      throw new Error(`Distributor float wallet not found for ${recharge.currency}`);
+      throw new Error(`distributor float wallet not found for ${recharge.currency}`);
     }
 
     // Credit float wallet
@@ -141,7 +141,7 @@ export async function approveRecharge(
     });
 
     // Notify distributor
-    notifyUser(recharge.Distributor.userId, {
+    notifyUser(recharge.distributor.userId, {
       title: "Recharge Approved ✅",
       body: `Your ${recharge.currency} ${Number(recharge.amount).toLocaleString()} recharge has been approved.`,
       data: { type: "recharge_approved", rechargeId },
@@ -161,7 +161,7 @@ export async function rejectRecharge(
 ) {
   const recharge = await prisma.distributorRecharge.findUnique({
     where: { id: rechargeId },
-    include: { Distributor: true },
+    include: { distributor: true },
   });
 
   if (!recharge) throw new Error("Recharge not found");
@@ -178,7 +178,7 @@ export async function rejectRecharge(
   });
 
   // Notify distributor
-  notifyUser(recharge.Distributor.userId, {
+  notifyUser(recharge.distributor.userId, {
     title: "Recharge Rejected",
     body: note
       ? `Your recharge was rejected: ${note}`

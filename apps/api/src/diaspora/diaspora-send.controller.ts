@@ -39,7 +39,7 @@ export class DiasporaSendController {
     const link = await prisma.familyLink.findFirst({
       where: { id: body.familyLinkId, diasporaUserId },
       include: {
-        User_FamilyLink_familyUserIdToUser: {
+        familyUser: {
           select: { id: true, firstName: true, handle: true },
         },
       },
@@ -69,8 +69,8 @@ export class DiasporaSendController {
           receivedHtg: transfer.receivedHtg,
           recipientName:
             link.nickname ||
-            link.User_FamilyLink_familyUserIdToUser.firstName ||
-            link.User_FamilyLink_familyUserIdToUser.handle,
+            link.familyUser.firstName ||
+            link.familyUser.handle,
         };
       },
     });

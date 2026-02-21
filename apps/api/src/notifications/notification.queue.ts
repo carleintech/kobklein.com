@@ -1,5 +1,6 @@
 import { Queue, Worker, Job } from "bullmq";
 import IORedis from "ioredis";
+import * as net from "net";
 import { sendSMS, isTwilioConfigured } from "./sms.service";
 import { sendEmail, isEmailConfigured } from "./email.service";
 import { notifyUser as pushNotifyUser } from "../push/push.service";
@@ -27,7 +28,25 @@ export interface NotificationJob {
 function createRedisConnection() {
   const url = process.env.REDIS_URL;
   if (!url) throw new Error("REDIS_URL not set — BullMQ queue disabled");
-  return new IORedis(url, { maxRetriesPerRequest: null });
+  const tls = url.startsWith("rediss://") ? { rejectUnauthorized: false } : undefined;
+  const conn = new IORedis(url, {
+    maxRetriesPerRequest: null, // required by BullMQ
+    tls,
+    connectTimeout: 5000,
+    retryStrategy: () => null,  // fail fast — do not reconnect
+    enableOfflineQueue: false,
+  });
+  // Suppress noisy ETIMEDOUT/ECONNREFUSED stack traces on this connection.
+  conn.on("error", () => {});
+  // BullMQ calls conn.duplicate() internally — patch it so duplicates are
+  // also silent.
+  const originalDuplicate = conn.duplicate.bind(conn);
+  (conn as any).duplicate = (...args: any[]) => {
+    const dup: typeof conn = originalDuplicate(...args);
+    dup.on("error", () => {});
+    return dup;
+  };
+  return conn;
 }
 
 // ─── Queue ─────────────────────────────────────────────────────
@@ -141,15 +160,42 @@ async function processNotification(job: Job<NotificationJob>): Promise<void> {
   }
 }
 
+// ─── TCP reachability check ────────────────────────────────────
+
+function checkTCPReachable(url: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    try {
+      const parsed = new URL(url);
+      const host = parsed.hostname;
+      const port = parseInt(parsed.port, 10) || (url.startsWith("rediss://") ? 6380 : 6379);
+      const socket = net.createConnection({ host, port });
+      const timer = setTimeout(() => { socket.destroy(); resolve(false); }, 3000);
+      socket.on("connect", () => { clearTimeout(timer); socket.destroy(); resolve(true); });
+      socket.on("error",   () => { clearTimeout(timer); resolve(false); });
+    } catch {
+      resolve(false);
+    }
+  });
+}
+
 /**
  * Start the BullMQ notification worker.
  * Call this once during app init, after Redis is ready.
  */
-export function startNotificationWorker(): void {
+export async function startNotificationWorker(): Promise<void> {
   if (worker) return; // already running
 
   if (!process.env.REDIS_URL) {
     console.warn("⚠ REDIS_URL not set — notification worker disabled");
+    return;
+  }
+
+  // Pre-flight TCP check — BullMQ requires port 6379 (ioredis).
+  // Skip entirely if the host is unreachable to avoid flooding the console
+  // with ETIMEDOUT stack traces from BullMQ's internal connections.
+  const reachable = await checkTCPReachable(process.env.REDIS_URL);
+  if (!reachable) {
+    console.warn("⚠ Redis TCP endpoint unreachable — notification worker disabled (BullMQ requires port 6379)");
     return;
   }
 

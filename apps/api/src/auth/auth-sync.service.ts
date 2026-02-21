@@ -23,7 +23,9 @@ export async function syncUserFromSupabase(payload: any) {
     `INSERT INTO "User" ("id", "supabaseId", "role", "email", "firstName", "lastName", "phone", "kId", "createdAt", "updatedAt")
      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, now(), now())
      ON CONFLICT ("supabaseId") DO UPDATE SET
-       "role"      = EXCLUDED."role",
+       -- NEVER overwrite role once a user has completed onboarding
+       -- Only use the JWT role if the DB role is still the default "user"
+       "role"      = CASE WHEN "User"."role" IN ('user') THEN EXCLUDED."role" ELSE "User"."role" END,
        "email"     = COALESCE("User"."email",     EXCLUDED."email"),
        "firstName" = COALESCE("User"."firstName", EXCLUDED."firstName"),
        "lastName"  = COALESCE("User"."lastName",  EXCLUDED."lastName"),

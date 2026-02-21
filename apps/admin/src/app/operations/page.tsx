@@ -27,10 +27,10 @@ export default function OperationsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // Try the dedicated withdrawals endpoint first, fallback to recent-activity
+      // Use admin withdrawals list; fallback to recent-activity
       let data: Withdrawal[];
       try {
-        data = await kkGet<Withdrawal[]>("distributor/withdrawals");
+        data = await kkGet<Withdrawal[]>("admin/withdrawals/pending");
       } catch {
         const activity = await kkGet<{ recentWithdrawals?: Withdrawal[] }>("admin/recent-activity");
         data = (activity.recentWithdrawals ?? []).filter((w) => w.status === "pending");
@@ -46,7 +46,7 @@ export default function OperationsPage() {
 
   async function approve(code: string) {
     try {
-      await kkPost(`distributor/withdrawals/${code}/approve`, {});
+      await kkPost(`admin/withdrawals/${code}/approve`, {});
       await load();
     } catch {
       alert("Approval failed — check console for details");

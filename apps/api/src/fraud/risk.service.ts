@@ -34,7 +34,7 @@ export async function enforceTransferVelocity(userId: string) {
   const MAX_PER_MINUTE = 5;
   const MAX_PER_HOUR = 30;
 
-  if (minuteCount > MAX_PER_MINUTE || hourCount > MAX_PER_HOUR) {
+  if ((minuteCount ?? 0) > MAX_PER_MINUTE || (hourCount ?? 0) > MAX_PER_HOUR) {
     // Write a DB flag for admin visibility/audit
     const flagResult = await pool.query(
       `INSERT INTO "RiskFlag" ("id", "userId", "type", "severity", "details", "createdAt")

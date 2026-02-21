@@ -22,7 +22,8 @@ export function MobileNav({ unreadCount = 0 }: { unreadCount?: number }) {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-white/[0.05] bg-[#060D1F]/95 backdrop-blur-md safe-area-pb">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-[#0D9E8A]/[0.20] safe-area-pb"
+         style={{ background: "rgba(5,15,12,0.96)", backdropFilter: "blur(12px)" }}>
       <div className="flex justify-around items-center h-14">
         {TABS.map((tab) => {
           const isActive =

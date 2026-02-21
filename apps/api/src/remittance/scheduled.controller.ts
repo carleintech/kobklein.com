@@ -118,7 +118,7 @@ export class ScheduledRemittanceController {
       where: { senderUserId: userId },
       orderBy: { nextRunAt: "asc" },
       include: {
-        User_ScheduledTransfer_recipientUserIdToUser: {
+        recipient: {
           select: {
             id: true,
             firstName: true,
@@ -141,7 +141,7 @@ export class ScheduledRemittanceController {
         lastRunAt: s.lastRunAt,
         failureCount: s.failureCount,
         note: s.note,
-        User_ScheduledTransfer_recipientUserIdToUser: s.User_ScheduledTransfer_recipientUserIdToUser,
+        recipient: s.recipient,
         createdAt: s.createdAt,
       })),
     };

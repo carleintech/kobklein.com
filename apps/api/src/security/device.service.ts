@@ -28,10 +28,13 @@ export async function registerDeviceSession(userId: string, req: any) {
       data: { userId, fingerprint, ip, userAgent },
     });
 
-    const lang = await getUserLang(userId);
-    const msg = renderTemplate("security_new_device", lang, { ip: ip || "unknown" });
-
-    await createNotification(userId, msg.title, msg.body, "security");
+    // Skip notification for loopback/localhost IPs (dev environment)
+    const isLocalhost = !ip || ip === "::1" || ip === "127.0.0.1" || ip.startsWith("::ffff:127.");
+    if (!isLocalhost) {
+      const lang = await getUserLang(userId);
+      const msg = renderTemplate("security_new_device", lang, { ip: ip || "unknown" });
+      await createNotification(userId, msg.title, msg.body, "security");
+    }
 
     return { isNew: true };
   }

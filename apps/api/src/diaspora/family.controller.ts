@@ -106,7 +106,7 @@ export class FamilyController {
     const links = await prisma.familyLink.findMany({
       where: { diasporaUserId },
       include: {
-        User_FamilyLink_familyUserIdToUser: {
+        familyUser: {
           select: {
             id: true,
             firstName: true,
@@ -157,7 +157,7 @@ export class FamilyController {
           relationship: link.relationship,
           isFavorite: link.isFavorite,
           createdAt: link.createdAt,
-          familyUser: link.User_FamilyLink_familyUserIdToUser,
+          familyUser: link.familyUser,
           recentTransfers,
           walletId: wallet?.id,
         };
@@ -237,7 +237,7 @@ export class FamilyController {
     const link = await prisma.familyLink.findFirst({
       where: { id: body.familyLinkId, diasporaUserId },
       include: {
-        User_FamilyLink_familyUserIdToUser: {
+        familyUser: {
           select: { id: true, firstName: true, handle: true },
         },
       },
@@ -264,8 +264,8 @@ export class FamilyController {
           transferId: transfer.transferId,
           recipientName:
             link.nickname ||
-            link.User_FamilyLink_familyUserIdToUser?.firstName ||
-            link.User_FamilyLink_familyUserIdToUser?.handle ||
+            link.familyUser?.firstName ||
+            link.familyUser?.handle ||
             "Family",
         };
       },
@@ -362,7 +362,7 @@ export class FamilyController {
         requesterId: { in: familyIds },
       },
       include: {
-        User_PaymentRequest_requesterIdToUser: {
+        requester: {
           select: { id: true, firstName: true, handle: true },
         },
       },
@@ -375,7 +375,7 @@ export class FamilyController {
       amount: Number(r.amount),
       status: r.status,
       createdAt: r.createdAt,
-      requester: r.User_PaymentRequest_requesterIdToUser,
+      requester: r.requester,
     }));
 
     return {
