@@ -68,9 +68,13 @@ export class AdminOverviewController {
       countLedger("merchant_payment", month),
     ]);
 
-    const [cashIn30d, cashOut30d] = await Promise.all([
+    const [cashIn30d, cashOut30d, cashInToday, cashOutToday, cashInAll, cashOutAll] = await Promise.all([
       sumLedger("cash_in_credit", month),
       sumLedger("cash_out_debit", month),
+      sumLedger("cash_in_credit", today),
+      sumLedger("cash_out_debit", today),
+      sumLedger("cash_in_credit"),
+      sumLedger("cash_out_debit"),
     ]);
 
     const [subsToday, subs7d, subs30d, subsAll] = await Promise.all([
@@ -121,19 +125,40 @@ export class AdminOverviewController {
     const activeWalletCount = activeWallets.length;
 
     // ── OPS ────────────────────────────────────────────────
-    const [pendingKyc, delinquentSubs, activeMerchants, activeDistributors] =
+    const [pendingKyc, delinquentSubs, activeMerchants, activeDistributors, pendingWithdrawals, openCases, stuckEvents] =
       await Promise.all([
         prisma.user.count({ where: { kycTier: 0 } }),
-        prisma.subscriptionProxy.count({
-          where: { status: "delinquent" },
-        }),
+        prisma.subscriptionProxy.count({ where: { status: "delinquent" } }),
         prisma.merchant.count({ where: { status: "active" } }),
         prisma.distributor.count({ where: { status: "active" } }),
+        prisma.withdrawal.count({ where: { status: "pending" } }),
+        prisma.case.count({ where: { status: "open" } }),
+        prisma.domainEvent.count({
+          where: {
+            status: "queued",
+            createdAt: { lt: new Date(Date.now() - 5 * 60 * 1000) }, // older than 5 min
+          },
+        }),
       ]);
+
+    // ── FLAT FIELDS (for dashboard KPI cards) ──────────────
+    const platformBalance = cashInAll - cashOutAll;
+    const todayVolume = cashInToday + cashOutToday + merchantToday;
 
     return {
       ok: true,
       generatedAt: now,
+
+      // Flat fields consumed by the Command Center KPI cards
+      platformBalance,
+      todayVolume,
+      todayCashIn: cashInToday,
+      todayCashOut: cashOutToday,
+      activeUsers: activeWalletCount,
+      activeAgents: activeDistributors,
+      pendingWithdrawals,
+      openCases,
+      stuckEvents,
 
       volume: {
         merchantPayments: {
