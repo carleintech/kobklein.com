@@ -1,18 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { kkGet, kkPost, ApiError } from "@/lib/kobklein-api";
-import { ApiUnavailableBanner } from "@/components/api-status-banner";
-import { Card, CardContent } from "@kobklein/ui/card";
-import { Button } from "@kobklein/ui/button";
-import { Input } from "@kobklein/ui/input";
-import { Badge } from "@kobklein/ui/badge";
 import {
+  ChevronDown,
+  ChevronUp,
+  Loader2,
   Search,
-  UserCog,
   ShieldCheck,
   ShieldX,
+  UserCog,
+  Users,
 } from "lucide-react";
+import { type FormEvent, useCallback, useState } from "react";
+import { ApiError, kkGet, kkPost } from "@/lib/kobklein-api";
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type UserResult = {
   id: string;
@@ -26,242 +27,444 @@ type UserResult = {
   isFrozen: boolean;
 };
 
+// ── Style maps ────────────────────────────────────────────────────────────────
+
+const ROLE_STYLE: Record<string, { text: string; bg: string }> = {
+  client: {
+    text: "text-sky-400",
+    bg: "bg-sky-500/10 border-sky-500/25",
+  },
+  diaspora: {
+    text: "text-violet-400",
+    bg: "bg-violet-500/10 border-violet-500/25",
+  },
+  merchant: {
+    text: "text-kob-gold",
+    bg: "bg-kob-gold/10 border-kob-gold/25",
+  },
+  distributor: {
+    text: "text-orange-400",
+    bg: "bg-orange-500/10 border-orange-500/25",
+  },
+  admin: {
+    text: "text-red-400",
+    bg: "bg-red-500/10 border-red-500/25",
+  },
+};
+
+const TIER_STYLE: Record<number, { text: string; bg: string }> = {
+  0: { text: "text-kob-muted", bg: "bg-white/5 border-white/10" },
+  1: { text: "text-sky-400", bg: "bg-sky-500/10 border-sky-500/20" },
+  2: {
+    text: "text-emerald-400",
+    bg: "bg-emerald-500/10 border-emerald-500/20",
+  },
+  3: { text: "text-kob-gold", bg: "bg-kob-gold/10 border-kob-gold/20" },
+};
+
+function roleStyle(role: string) {
+  return (
+    ROLE_STYLE[role] ?? {
+      text: "text-kob-muted",
+      bg: "bg-white/5 border-white/10",
+    }
+  );
+}
+
+function tierStyle(tier: number) {
+  return TIER_STYLE[tier] ?? TIER_STYLE[1];
+}
+
+function initials(u: UserResult): string {
+  return (
+    ((u.firstName?.[0] ?? "") + (u.lastName?.[0] ?? "")).toUpperCase() || "?"
+  );
+}
+
+const ROLES = [
+  "client",
+  "diaspora",
+  "merchant",
+  "distributor",
+  "admin",
+] as const;
+
+// ── User Card ─────────────────────────────────────────────────────────────────
+
+function UserCard({
+  user,
+  onAction,
+}: {
+  user: UserResult;
+  onAction: () => void;
+}) {
+  const [roleOpen, setRoleOpen] = useState(false);
+  const [newRole, setNewRole] = useState(user.role);
+  const [submitting, setSubmitting] = useState<"freeze" | "role" | null>(null);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const rs = roleStyle(user.role);
+  const ts = tierStyle(user.kycTier);
+
+  async function handleFreeze() {
+    setSubmitting("freeze");
+    setError("");
+    setSuccess("");
+    try {
+      await kkPost("v1/admin/users/freeze", {
+        userId: user.id,
+        frozen: !user.isFrozen,
+      });
+      setSuccess(
+        user.isFrozen ? "Account successfully unfrozen" : "Account frozen",
+      );
+      onAction();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Action failed");
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  async function handleSetRole() {
+    if (!newRole) return;
+    setSubmitting("role");
+    setError("");
+    setSuccess("");
+    try {
+      await kkPost("v1/admin/users/set-role", {
+        userId: user.id,
+        role: newRole,
+      });
+      setSuccess(`Role updated to "${newRole}"`);
+      setRoleOpen(false);
+      onAction();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Role update failed");
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  return (
+    <div
+      className={`rounded-2xl border bg-[#080E20] overflow-hidden transition-colors ${
+        roleOpen ? "border-kob-gold/20" : "border-white/8"
+      }`}
+    >
+      {/* ── Main row ── */}
+      <div className="flex items-center gap-4 px-5 py-4">
+        {/* Avatar */}
+        <div
+          className={`h-10 w-10 rounded-xl border flex items-center justify-center shrink-0 ${rs.bg}`}
+        >
+          <span className={`text-sm font-bold ${rs.text}`}>
+            {initials(user)}
+          </span>
+        </div>
+
+        {/* Details */}
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-bold text-kob-text">
+              {user.firstName} {user.lastName}
+            </p>
+            {user.kId && (
+              <span className="px-2 py-0.5 rounded-md border border-kob-gold/30 bg-kob-gold/8 text-[10px] font-mono font-semibold text-kob-gold">
+                {user.kId}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 text-[11px] font-mono text-kob-muted">
+            {user.phone && <span>{user.phone}</span>}
+            {user.email && <span className="truncate">{user.email}</span>}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* Role */}
+            <span
+              className={`px-2 py-0.5 rounded-md border text-[10px] font-semibold capitalize ${rs.bg} ${rs.text}`}
+            >
+              {user.role}
+            </span>
+
+            {/* KYC tier */}
+            <span
+              className={`px-2 py-0.5 rounded-md border text-[10px] font-semibold ${ts.bg} ${ts.text}`}
+            >
+              KYC T{user.kycTier}
+            </span>
+
+            {/* Frozen / Active */}
+            {user.isFrozen ? (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-red-500/30 bg-red-500/10 text-[10px] font-semibold text-red-400">
+                <ShieldX className="h-3 w-3" />
+                Frozen
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-emerald-500/25 bg-emerald-500/10 text-[10px] font-semibold text-emerald-400">
+                <ShieldCheck className="h-3 w-3" />
+                Active
+              </span>
+            )}
+          </div>
+
+          <p className="text-[9px] font-mono text-kob-muted/50 truncate">
+            {user.id}
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Freeze / Unfreeze */}
+          {user.isFrozen ? (
+            <button
+              type="button"
+              disabled={submitting !== null}
+              onClick={handleFreeze}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-40"
+            >
+              {submitting === "freeze" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-3.5 w-3.5" />
+              )}
+              Unfreeze
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={submitting !== null}
+              onClick={handleFreeze}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-semibold text-kob-muted hover:text-red-400 hover:border-red-500/25 hover:bg-red-500/8 transition-all disabled:opacity-40"
+            >
+              {submitting === "freeze" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ShieldX className="h-3.5 w-3.5" />
+              )}
+              Freeze
+            </button>
+          )}
+
+          {/* Change Role toggle */}
+          <button
+            type="button"
+            disabled={submitting !== null}
+            onClick={() => {
+              setRoleOpen((v) => !v);
+              setNewRole(user.role);
+              setError("");
+              setSuccess("");
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-semibold transition-all disabled:opacity-40 ${
+              roleOpen
+                ? "bg-kob-gold/10 border-kob-gold/30 text-kob-gold"
+                : "bg-white/5 border-white/10 text-kob-muted hover:text-kob-text hover:border-white/20"
+            }`}
+          >
+            <UserCog className="h-3.5 w-3.5" />
+            Role
+            {roleOpen ? (
+              <ChevronUp className="h-3 w-3" />
+            ) : (
+              <ChevronDown className="h-3 w-3" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Inline feedback ── */}
+      {(success || error) && (
+        <div
+          className={`mx-5 mb-3 px-3 py-2 rounded-xl text-[11px] font-medium ${
+            error
+              ? "bg-red-500/8 border border-red-500/20 text-red-400"
+              : "bg-emerald-500/8 border border-emerald-500/20 text-emerald-400"
+          }`}
+        >
+          {error || success}
+        </div>
+      )}
+
+      {/* ── Role change panel ── */}
+      {roleOpen && (
+        <div className="px-5 pb-5 pt-0 border-t border-kob-gold/10">
+          <div className="pt-4 space-y-3">
+            <p className="text-[10px] text-kob-gold/70 uppercase tracking-widest font-semibold">
+              Change Role — {user.firstName} {user.lastName}
+            </p>
+            <div className="flex items-center gap-3">
+              <select
+                value={newRole}
+                onChange={(e) => setNewRole(e.target.value)}
+                aria-label="New role"
+                className="flex-1 max-w-50 h-9 rounded-xl bg-white/5 border border-white/10 focus:border-kob-gold/40 focus:outline-none px-3 text-xs text-kob-text appearance-none transition-colors"
+              >
+                {ROLES.map((r) => (
+                  <option key={r} value={r} className="bg-[#0F1626]">
+                    {r.charAt(0).toUpperCase() + r.slice(1)}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                type="button"
+                disabled={submitting !== null || newRole === user.role}
+                onClick={handleSetRole}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-kob-gold text-kob-black text-[11px] font-bold hover:bg-kob-gold-light transition-all disabled:opacity-40"
+              >
+                {submitting === "role" ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <UserCog className="h-3.5 w-3.5" />
+                )}
+                Update Role
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setRoleOpen(false);
+                  setNewRole(user.role);
+                  setError("");
+                }}
+                className="px-3 py-2 rounded-xl border border-white/8 text-[11px] text-kob-muted hover:text-kob-text transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function UsersPage() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<UserResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [apiDown, setApiDown] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserResult | null>(null);
-  const [newRole, setNewRole] = useState("");
-  const [roleMessage, setRoleMessage] = useState("");
-  const [roleLoading, setRoleLoading] = useState(false);
-  const [freezeLoading, setFreezeLoading] = useState<string | null>(null);
-  const [freezeMessage, setFreezeMessage] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
 
-  async function handleSearch(e: React.FormEvent) {
+  const refresh = useCallback(async (q: string) => {
+    if (q.trim().length < 2) return;
+    try {
+      const data = await kkGet<{ users: UserResult[] }>(
+        `v1/admin/users/search?q=${encodeURIComponent(q.trim())}`,
+      );
+      setResults(data?.users ?? []);
+    } catch {
+      // silent refresh
+    }
+  }, []);
+
+  async function handleSearch(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (query.length < 2) return;
+    if (query.trim().length < 2) return;
     setSearching(true);
     setApiDown(false);
     try {
-      const data = await kkGet<any>(`v1/admin/users/search?q=${encodeURIComponent(query)}`);
-      setResults(data?.users || []);
-    } catch (e: any) {
+      const data = await kkGet<{ users: UserResult[] }>(
+        `v1/admin/users/search?q=${encodeURIComponent(query.trim())}`,
+      );
+      setResults(data?.users ?? []);
+      setHasSearched(true);
+    } catch (e: unknown) {
       if (e instanceof ApiError && e.isApiUnavailable) setApiDown(true);
-      console.error("Search failed:", e);
     } finally {
       setSearching(false);
     }
   }
 
-  async function refreshResults() {
-    if (query.length >= 2) {
-      const data = await kkGet<any>(`v1/admin/users/search?q=${encodeURIComponent(query)}`);
-      setResults(data?.users || []);
-    }
-  }
-
-  async function handleSetRole() {
-    if (!selectedUser || !newRole) return;
-    setRoleLoading(true);
-    setRoleMessage("");
-    try {
-      await kkPost("v1/admin/users/set-role", {
-        userId: selectedUser.id,
-        role: newRole,
-      });
-      setRoleMessage(`Role updated to "${newRole}"`);
-      await refreshResults();
-      setSelectedUser(null);
-    } catch (e: any) {
-      setRoleMessage(`Error: ${e.message}`);
-    } finally {
-      setRoleLoading(false);
-    }
-  }
-
-  async function handleFreeze(user: UserResult) {
-    const newFrozen = !user.isFrozen;
-    setFreezeLoading(user.id);
-    setFreezeMessage("");
-    try {
-      await kkPost("v1/admin/users/freeze", {
-        userId: user.id,
-        frozen: newFrozen,
-      });
-      setFreezeMessage(
-        newFrozen
-          ? `Account for ${user.firstName} ${user.lastName} has been frozen`
-          : `Account for ${user.firstName} ${user.lastName} has been unfrozen`
-      );
-      await refreshResults();
-    } catch (e: any) {
-      setFreezeMessage(`Error: ${e.message}`);
-    } finally {
-      setFreezeLoading(null);
-    }
-  }
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <div>
-        <h1 className="text-xl font-semibold">User Management</h1>
-        <p className="text-sm text-muted-foreground">Search users by K-ID, phone, handle, or name</p>
+        <h1 className="text-xl font-bold text-kob-text tracking-tight">
+          User Management
+        </h1>
+        <p className="text-xs text-kob-muted mt-0.5">
+          Search by K-ID, phone, handle, or name · freeze accounts · manage
+          roles
+        </p>
       </div>
 
-      {apiDown && <ApiUnavailableBanner />}
-
-      {/* Search */}
-      <Card className="rounded-2xl">
-        <CardContent className="p-5">
-          <form onSubmit={handleSearch} className="flex gap-3 items-end max-w-lg">
-            <div className="flex-1">
-              <label className="text-xs text-muted-foreground mb-1 block">Search Users</label>
-              <Input
-                placeholder="K-ID, phone, @handle, or name..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                required
-                minLength={2}
-              />
-            </div>
-            <Button type="submit" disabled={searching} className="gap-2">
-              <Search className="h-4 w-4" />
-              {searching ? "Searching..." : "Search"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* Results */}
-      {results.length > 0 && (
-        <div className="space-y-3">
-          {results.map((user) => (
-            <Card key={user.id} className="rounded-2xl">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">
-                        {user.firstName} {user.lastName}
-                      </span>
-                      {user.kId && (
-                        <span className="text-xs font-mono text-muted-foreground">{user.kId}</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      {user.phone && <span>{user.phone}</span>}
-                      {user.email && <span>{user.email}</span>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="default">{user.role}</Badge>
-                      <Badge variant={user.kycTier >= 2 ? "default" : "outline"}>
-                        KYC {user.kycTier}
-                      </Badge>
-                      {user.isFrozen ? (
-                        <Badge variant="destructive" className="gap-1">
-                          <ShieldX className="h-3 w-3" /> Frozen
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="gap-1">
-                          <ShieldCheck className="h-3 w-3" /> Active
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="text-xs font-mono text-muted-foreground">{user.id}</div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    {user.isFrozen ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={freezeLoading === user.id}
-                        onClick={() => handleFreeze(user)}
-                        className="gap-1 border-emerald-600 text-emerald-400 hover:bg-emerald-900/30 hover:text-emerald-300"
-                      >
-                        <ShieldCheck className="h-4 w-4" />
-                        {freezeLoading === user.id ? "Unfreezing..." : "Unfreeze"}
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={freezeLoading === user.id}
-                        onClick={() => handleFreeze(user)}
-                        className="gap-1 border-red-600 text-red-400 hover:bg-red-900/30 hover:text-red-300"
-                      >
-                        <ShieldX className="h-4 w-4" />
-                        {freezeLoading === user.id ? "Freezing..." : "Freeze"}
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedUser(user);
-                        setNewRole(user.role);
-                        setRoleMessage("");
-                      }}
-                      className="gap-1"
-                    >
-                      <UserCog className="h-4 w-4" />
-                      Change Role
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      {/* ── API offline banner ───────────────────────────────────────────── */}
+      {apiDown && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-red-500/25 bg-red-500/8">
+          <span className="h-2 w-2 rounded-full bg-red-400 shrink-0" />
+          <p className="text-xs text-red-400 font-medium">
+            User API is unreachable — search results may be unavailable
+          </p>
         </div>
       )}
 
-      {/* Freeze Feedback */}
-      {freezeMessage && (
-        <Card className="rounded-2xl">
-          <CardContent className="p-4">
-            <p className={`text-sm ${freezeMessage.startsWith("Error") ? "text-red-400" : "text-emerald-400"}`}>
-              {freezeMessage}
-            </p>
-          </CardContent>
-        </Card>
+      {/* ── Search bar ──────────────────────────────────────────────────── */}
+      <form
+        onSubmit={handleSearch}
+        className="flex items-center gap-3 p-4 rounded-2xl border border-white/8 bg-[#080E20]"
+      >
+        <div className="relative flex-1 max-w-lg">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-kob-muted pointer-events-none" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="K-ID, phone, @handle, or name…"
+            minLength={2}
+            required
+            className="w-full h-9 rounded-xl bg-white/5 border border-white/10 focus:border-kob-gold/40 focus:outline-none pl-9 pr-3 text-xs text-kob-text placeholder:text-kob-muted/60 transition-colors"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={searching || query.trim().length < 2}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-kob-gold text-kob-black text-[11px] font-bold hover:bg-kob-gold-light transition-all disabled:opacity-40"
+        >
+          {searching ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Search className="h-3.5 w-3.5" />
+          )}
+          {searching ? "Searching…" : "Search"}
+        </button>
+      </form>
+
+      {/* ── Empty / no results ──────────────────────────────────────────── */}
+      {hasSearched && !searching && results.length === 0 && (
+        <div className="rounded-2xl border border-white/8 bg-[#080E20] flex flex-col items-center justify-center py-14 gap-3">
+          <Users className="h-10 w-10 text-kob-muted/40" />
+          <p className="text-sm font-semibold text-kob-text">No users found</p>
+          <p className="text-xs text-kob-muted">
+            No results for &quot;{query}&quot; — try a different query
+          </p>
+        </div>
       )}
 
-      {/* Role Change Modal */}
-      {selectedUser && (
-        <Card className="rounded-2xl border-[#C9A84C]/30">
-          <CardContent className="p-5">
-            <h2 className="font-medium mb-3 flex items-center gap-2">
-              <UserCog className="h-4 w-4 text-[#C9A84C]" />
-              Change Role — {selectedUser.firstName} {selectedUser.lastName}
-            </h2>
-            <div className="flex gap-3 items-end max-w-md">
-              <div className="flex-1">
-                <label className="text-xs text-muted-foreground mb-1 block">New Role</label>
-                <select
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value)}
-                  className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-                >
-                  <option value="client">Client</option>
-                  <option value="diaspora">Diaspora</option>
-                  <option value="merchant">Merchant</option>
-                  <option value="distributor">Distributor</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-              <Button onClick={handleSetRole} disabled={roleLoading} className="bg-[#C9A84C] hover:bg-[#E2CA6E] text-[#060D1F] font-semibold">
-                {roleLoading ? "Saving..." : "Update Role"}
-              </Button>
-              <Button variant="ghost" onClick={() => setSelectedUser(null)}>Cancel</Button>
-            </div>
-            {roleMessage && (
-              <p className={`mt-3 text-sm ${roleMessage.startsWith("Error") ? "text-red-400" : "text-emerald-400"}`}>
-                {roleMessage}
-              </p>
-            )}
-          </CardContent>
-        </Card>
+      {/* ── Results ─────────────────────────────────────────────────────── */}
+      {results.length > 0 && (
+        <>
+          <div className="flex items-center justify-between px-1">
+            <p className="text-[10px] text-kob-muted uppercase tracking-widest">
+              {results.length} result{results.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+          <div className="space-y-3">
+            {results.map((user) => (
+              <UserCard
+                key={user.id}
+                user={user}
+                onAction={() => refresh(query)}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
