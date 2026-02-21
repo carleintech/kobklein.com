@@ -4,7 +4,7 @@ import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { pool } from "../db/pool";
 
-@Controller("admin/liquidity")
+@Controller("v1/admin/liquidity")
 export class LiquidityController {
   @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
