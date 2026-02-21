@@ -19,7 +19,7 @@ export async function apiFetch<T = unknown>(
   }
 
   // Normalize: ensure every path is under /v1 regardless of how callers wrote it
-  const normalizedPath = path.startsWith("/v1") ? path : `/v1${path.startsWith("/") ? "" : "/"}${path.replace(/^\//, "")}`;
+  const normalizedPath = path.startsWith("/v1/") ? path : `/v1/${path.replace(/^\//, "")}`;
   const res = await fetch(`${API}${normalizedPath}`, {
     ...init,
     headers: {
