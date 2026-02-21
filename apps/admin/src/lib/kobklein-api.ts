@@ -47,8 +47,13 @@ async function parseError(res: Response): Promise<ApiError> {
 /*  Public helpers                                                     */
 /* ------------------------------------------------------------------ */
 
+/** Normalize: ensure path always has the v1/ segment */
+function norm(path: string): string {
+  return path.startsWith("v1/") ? path : `v1/${path}`;
+}
+
 export async function kkGet<T>(path: string): Promise<T> {
-  const res = await fetch(`/api/kobklein/${path}`, { cache: "no-store" });
+  const res = await fetch(`/api/kobklein/${norm(path)}`, { cache: "no-store" });
   if (!res.ok) throw await parseError(res);
   return res.json();
 }
@@ -58,7 +63,7 @@ export async function kkPost<T>(
   body?: unknown,
   idempotencyKey?: string,
 ): Promise<T> {
-  const res = await fetch(`/api/kobklein/${path}`, {
+  const res = await fetch(`/api/kobklein/${norm(path)}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -71,7 +76,7 @@ export async function kkPost<T>(
 }
 
 export async function kkPatch<T>(path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`/api/kobklein/${path}`, {
+  const res = await fetch(`/api/kobklein/${norm(path)}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : "{}",
@@ -81,7 +86,7 @@ export async function kkPatch<T>(path: string, body?: unknown): Promise<T> {
 }
 
 export async function kkDelete<T>(path: string): Promise<T> {
-  const res = await fetch(`/api/kobklein/${path}`, { method: "DELETE" });
+  const res = await fetch(`/api/kobklein/${norm(path)}`, { method: "DELETE" });
   if (!res.ok) throw await parseError(res);
   return res.json();
 }

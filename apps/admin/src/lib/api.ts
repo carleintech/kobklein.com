@@ -1,10 +1,9 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { auth0 } from "./auth0";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
 /**
- * Server-side fetch that automatically attaches the Supabase access token.
+ * Server-side fetch that automatically attaches the Auth0 access token.
  * Use in Server Components, Route Handlers, and Server Actions.
  */
 export async function apiFetch<T = unknown>(
@@ -13,24 +12,15 @@ export async function apiFetch<T = unknown>(
 ): Promise<T> {
   let token = "";
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll(); },
-          setAll() {},
-        },
-      },
-    );
-    const { data: { session } } = await supabase.auth.getSession();
-    token = session?.access_token ?? "";
+    const { token: accessToken } = await auth0.getAccessToken();
+    token = accessToken ?? "";
   } catch {
     // No session / token — caller handles empty data gracefully
   }
 
-  const res = await fetch(`${API}${path}`, {
+  // Normalize: ensure every path is under /v1 regardless of how callers wrote it
+  const normalizedPath = path.startsWith("/v1") ? path : `/v1${path.startsWith("/") ? "" : "/"}${path.replace(/^\//, "")}`;
+  const res = await fetch(`${API}${normalizedPath}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",

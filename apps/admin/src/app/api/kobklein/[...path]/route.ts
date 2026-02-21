@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { auth0 } from "@/lib/auth0";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
@@ -9,21 +8,16 @@ async function handler(
   ctx: { params: Promise<{ path: string[] }> },
 ) {
   try {
-    // Read session from chunked Supabase SSR cookies
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll(); },
-          setAll() {},
-        },
-      },
-    );
+    // Get Auth0 access token for the current admin session
+    let accessToken: string;
+    try {
+      const result = await auth0.getAccessToken();
+      accessToken = result.token ?? "";
+    } catch {
+      accessToken = "";
+    }
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
+    if (!accessToken) {
       return NextResponse.json({ message: "Missing access token" }, { status: 401 });
     }
 
@@ -36,7 +30,7 @@ async function handler(
     incoming.searchParams.forEach((v, k) => url.searchParams.set(k, v));
 
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${session.access_token}`,
+      Authorization: `Bearer ${accessToken}`,
       "Content-Type": req.headers.get("content-type") || "application/json",
     };
 
