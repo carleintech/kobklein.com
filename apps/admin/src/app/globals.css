@@ -113,3 +113,22 @@ body {
   background: rgba(201, 168, 76, 0.3);
   color: #F0F1F5;
 }
+
+/* ═══ LAYOUT HELPERS ═══ */
+.shell-topbar-offset { padding-top: var(--topbar-h); }
+.shell-sidebar-offset { margin-left: var(--sidebar-w); }
+.sidebar-fixed {
+  position: fixed;
+  top: var(--topbar-h);
+  left: 0;
+  width: var(--sidebar-w);
+  height: calc(100vh - var(--topbar-h));
+}
+.topbar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--topbar-h);
+  z-index: 50;
+}

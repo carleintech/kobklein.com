@@ -1,193 +1,68 @@
-import { Card as ShadcnCard, CardContent } from "@kobklein/ui/card";
-import { Card as KpiCard } from "@/components/card";
-import { Badge } from "@/components/badge";
-import { DataTable } from "@/components/data-table";
+import { LiveSystemOverview } from "@/components/dashboard/live-system-overview";
+import { MonitoringSection } from "@/components/dashboard/monitoring-section";
+import { SystemManagement } from "@/components/dashboard/system-management";
+import { UserRoleOverview } from "@/components/dashboard/user-role-overview";
 import { apiGet } from "@/lib/api";
-import {
-  DollarSign,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Users,
-  UserCheck,
-  Clock,
-  AlertTriangle,
-  FileText,
-} from "lucide-react";
 
-function fmt(n: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "HTG", minimumFractionDigits: 0 }).format(n);
-}
+type DailyRow = { date: string; volume: number };
+type DailyApiRow = { day: string; volume: number };
 
-function timeAgo(d: string) {
-  const s = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
-  if (s < 60) return `${s}s`;
-  if (s < 3600) return `${Math.floor(s / 60)}m`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h`;
-  return `${Math.floor(s / 86400)}d`;
-}
-
-export default async function OverviewPage() {
-  const [overview, activity] = await Promise.all([
-    apiGet<any>("/admin/overview", null),
-    apiGet<any>("/admin/recent-activity", null),
+export default async function CommandCenterPage() {
+  const [overview, dailyRaw] = await Promise.all([
+    apiGet<Record<string, unknown>>("admin/overview", null),
+    apiGet<DailyApiRow[]>("admin/analytics/daily-volume?days=14", []),
   ]);
 
+  // Normalize day → date field for MonitoringSection
+  const dailyVolume: DailyRow[] = (dailyRaw ?? []).map((r) => ({
+    date: r.day,
+    volume: r.volume,
+  }));
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const isLive = overview !== null;
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-semibold">Command Center</h1>
-        <p className="text-sm text-muted-foreground">Real-time platform overview</p>
+    <div className="space-y-5">
+      {/* ── Page Header ──────────────────────────────────────── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-kob-text tracking-tight">Command Center</h1>
+          <p className="text-xs text-kob-muted mt-0.5">{dateStr}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {isLive ? (
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-medium text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Live Data
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-[11px] font-medium text-yellow-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-yellow-400" />
+              API Offline
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* KPI Cards */}
-      {overview ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard
-            title="Platform Balance"
-            value={fmt(overview.platformBalance)}
-            sub="Total liability"
-            icon={<DollarSign size={16} />}
-          />
-          <KpiCard
-            title="Today Volume"
-            value={fmt(overview.todayVolume)}
-            sub={`In: ${fmt(overview.todayCashIn)} · Out: ${fmt(overview.todayCashOut)}`}
-            icon={<ArrowUpRight size={16} />}
-          />
-          <KpiCard
-            title="Active Users"
-            value={overview.activeUsers}
-            sub="Last 30 days"
-            icon={<Users size={16} />}
-          />
-          <KpiCard
-            title="Active Agents"
-            value={overview.activeAgents}
-            icon={<UserCheck size={16} />}
-          />
-          <KpiCard
-            title="Pending Withdrawals"
-            value={overview.pendingWithdrawals}
-            accent={overview.pendingWithdrawals > 10 ? "yellow" : "default"}
-            icon={<Clock size={16} />}
-          />
-          <KpiCard
-            title="Open Cases"
-            value={overview.openCases}
-            accent={overview.openCases > 0 ? "red" : "green"}
-            icon={<FileText size={16} />}
-          />
-          <KpiCard
-            title="Stuck Events"
-            value={overview.stuckEvents}
-            accent={overview.stuckEvents > 0 ? "red" : "green"}
-            icon={<AlertTriangle size={16} />}
-          />
-          <KpiCard
-            title="Cash In vs Out"
-            value={
-              overview.todayCashOut > 0
-                ? `${((overview.todayCashIn / overview.todayCashOut) * 100).toFixed(0)}%`
-                : "—"
-            }
-            sub="Today ratio"
-            icon={<ArrowDownLeft size={16} />}
-          />
-        </div>
-      ) : (
-        <ShadcnCard className="rounded-2xl border-yellow-600/30 bg-yellow-950/20">
-          <CardContent className="p-8 text-center">
-            <AlertTriangle className="h-8 w-8 text-yellow-400 mx-auto mb-3" />
-            <p className="text-sm font-medium text-yellow-300">Unable to fetch overview data</p>
-            <p className="text-xs text-[#7A8394] mt-2">
-              The API server is not responding. Run{" "}
-              <code className="font-mono bg-white/5 px-1.5 py-0.5 rounded text-[#C4C7CF]">pnpm dev</code>{" "}
-              from the project root to start all services.
-            </p>
-          </CardContent>
-        </ShadcnCard>
-      )}
+      {/* ── Hero: Live System Overview ────────────────────────── */}
+      <LiveSystemOverview overview={overview} />
 
-      {/* Recent Activity */}
-      {activity && (
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Recent Transfers */}
-          <ShadcnCard className="rounded-2xl">
-           <CardContent className="p-5">
-            <h2 className="text-sm font-medium text-muted-foreground mb-3">Recent Transfers</h2>
-            <DataTable
-              columns={[
-                { key: "amount", label: "Amount", render: (r: any) => fmt(r.amount) },
-                { key: "currency", label: "Cur" },
-                {
-                  key: "status",
-                  label: "Status",
-                  render: (r: any) => (
-                    <Badge variant={r.status === "posted" ? "green" : r.status === "reversed" ? "red" : "default"}>
-                      {r.status}
-                    </Badge>
-                  ),
-                },
-                { key: "createdAt", label: "Age", render: (r: any) => timeAgo(r.createdAt) },
-              ]}
-              rows={activity.recentTransfers?.slice(0, 8) ?? []}
-              emptyMessage="No transfers yet"
-            />
-           </CardContent>
-          </ShadcnCard>
+      {/* ── Transaction Volume + Platform Health ──────────────── */}
+      <MonitoringSection dailyVolume={dailyVolume} overview={overview} />
 
-          {/* Recent Deposits */}
-          <ShadcnCard className="rounded-2xl">
-           <CardContent className="p-5">
-            <h2 className="text-sm font-medium text-muted-foreground mb-3">Recent Deposits</h2>
-            <DataTable
-              columns={[
-                { key: "amount", label: "Amount", render: (r: any) => fmt(r.amount) },
-                { key: "currency", label: "Cur" },
-                { key: "source", label: "Source" },
-                { key: "createdAt", label: "Age", render: (r: any) => timeAgo(r.createdAt) },
-              ]}
-              rows={activity.recentDeposits?.slice(0, 8) ?? []}
-              emptyMessage="No deposits yet"
-            />
-           </CardContent>
-          </ShadcnCard>
-
-          {/* Recent Withdrawals */}
-          <ShadcnCard className="rounded-2xl">
-           <CardContent className="p-5">
-            <h2 className="text-sm font-medium text-muted-foreground mb-3">Recent Withdrawals</h2>
-            <DataTable
-              columns={[
-                { key: "amount", label: "Amount", render: (r: any) => fmt(Number(r.amount)) },
-                { key: "currency", label: "Cur" },
-                { key: "code", label: "Code" },
-                {
-                  key: "status",
-                  label: "Status",
-                  render: (r: any) => (
-                    <Badge
-                      variant={
-                        r.status === "completed" ? "green"
-                        : r.status === "pending" ? "yellow"
-                        : r.status === "reversed" ? "red"
-                        : "default"
-                      }
-                    >
-                      {r.status}
-                    </Badge>
-                  ),
-                },
-                { key: "createdAt", label: "Age", render: (r: any) => timeAgo(r.createdAt) },
-              ]}
-              rows={activity.recentWithdrawals?.slice(0, 8) ?? []}
-              emptyMessage="No withdrawals yet"
-            />
-           </CardContent>
-          </ShadcnCard>
-        </div>
-      )}
+      {/* ── Network + System Management ──────────────────────── */}
+      <div className="grid xl:grid-cols-2 gap-4">
+        <UserRoleOverview overview={overview} />
+        <SystemManagement overview={overview} />
+      </div>
     </div>
   );
 }
