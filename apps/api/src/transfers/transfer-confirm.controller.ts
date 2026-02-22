@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
 import { SupabaseGuard } from "../auth/supabase.guard";
 import { FreezeGuard } from "../security/freeze.guard";
 import { AuditService } from "../audit/audit.service";
@@ -24,21 +24,50 @@ export class TransferConfirmController {
   ) {
     const userId = req.localUser?.id || req.user?.sub;
 
-    // Verify OTP + consume challenge
-    const payload = await consumeOtpChallenge({
-      userId,
-      challengeId: body.challengeId,
-      otpCode: body.otpCode,
-    });
+    // Known business errors that should return 400 (not 500)
+    const BUSINESS_ERRORS = [
+      "Insufficient balance",
+      "Sender account is frozen",
+      "Recipient account is frozen",
+      "Invalid challenge",
+      "Challenge already used",
+      "Challenge expired",
+      "Invalid OTP",
+      "OTP not found",
+      "OTP expired",
+      "Too many attempts",
+      "Cannot transfer to yourself",
+      "Amount must be positive",
+    ];
 
-    // Execute transfer using stored payload
-    const result = await executeTransfer({
-      senderUserId: userId,
-      recipientUserId: payload.recipientUserId,
-      amount: payload.amount,
-      currency: payload.currency,
-      idempotencyKey: payload.idempotencyKey,
-    });
+    let payload: Record<string, any>;
+    try {
+      payload = await consumeOtpChallenge({
+        userId,
+        challengeId: body.challengeId,
+        otpCode: body.otpCode,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Verification failed";
+      throw new BadRequestException(msg);
+    }
+
+    let result: { transferId?: string };
+    try {
+      result = await executeTransfer({
+        senderUserId: userId,
+        recipientUserId: payload.recipientUserId,
+        amount: payload.amount,
+        currency: payload.currency,
+        idempotencyKey: payload.idempotencyKey,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Transfer failed";
+      if (BUSINESS_ERRORS.some((e) => msg.includes(e))) {
+        throw new BadRequestException(msg);
+      }
+      throw err;
+    }
 
     // Audit
     await this.auditService.logFinancialAction({
