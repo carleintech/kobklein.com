@@ -76,6 +76,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/dashboard";
+  const notice = searchParams.get("notice");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -318,6 +319,38 @@ function LoginForm() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* Auth callback notices */}
+                  {notice === "confirmed" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="px-4 py-3 rounded-xl bg-[#1F6F4A]/15 border border-[#1F6F4A]/30 text-sm text-emerald-400 flex items-center gap-2"
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                      Email confirmed! Your account is ready — sign in below.
+                    </motion.div>
+                  )}
+                  {notice === "link_expired" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-400 flex items-center gap-2"
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                      That confirmation link has expired. Sign in to receive a new one.
+                    </motion.div>
+                  )}
+                  {notice === "link_invalid" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 flex items-center gap-2"
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                      That link is no longer valid. Please sign in or request a new confirmation email.
+                    </motion.div>
+                  )}
+
                   {error && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}

@@ -15,6 +15,15 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const next = searchParams.get("next");
 
+  // Supabase sends error params when the link is invalid or expired
+  const errorCode = searchParams.get("error_code");
+  if (errorCode === "otp_expired") {
+    return NextResponse.redirect(`${origin}/login?notice=link_expired`);
+  }
+  if (searchParams.get("error")) {
+    return NextResponse.redirect(`${origin}/login?notice=link_invalid`);
+  }
+
   if (code) {
     const supabase = await createServerSupabase();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -50,11 +59,11 @@ export async function GET(request: Request) {
         return NextResponse.redirect(`${origin}${dashboard}`);
       }
 
-      // Fallback to /dashboard if no user data
-      return NextResponse.redirect(`${origin}/dashboard`);
+      // Email confirmed — redirect to login with success notice
+      return NextResponse.redirect(`${origin}/login?notice=confirmed`);
     }
   }
 
   // If something went wrong, redirect to login with error
-  return NextResponse.redirect(`${origin}/login?error=callback_failed`);
+  return NextResponse.redirect(`${origin}/login?notice=link_invalid`);
 }
