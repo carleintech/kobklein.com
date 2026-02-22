@@ -1,10 +1,11 @@
 import { prisma } from "../db/prisma";
 import { createOtp, verifyOtp } from "../auth/otp.service";
 import { createNotification, enqueueSMS } from "../notifications/notification.service";
+import { sendEmail } from "../notifications/email.service";
 
 /**
  * Create an OTP challenge for step-up verification.
- * Sends OTP via in-app notification + SMS (best-effort).
+ * Delivers OTP via email (primary) + in-app notification + SMS (best-effort).
  */
 export async function createOtpChallenge(params: {
   userId: string;
@@ -13,28 +14,48 @@ export async function createOtpChallenge(params: {
 }) {
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-  // Get user phone for OTP delivery
   const user = await prisma.user.findUnique({
     where: { id: params.userId },
-    select: { phone: true },
+    select: { phone: true, email: true },
   });
 
   if (!user?.phone) {
     throw new Error("User phone not found");
   }
 
-  // Generate OTP via existing system
   const otpCode = await createOtp(params.userId, params.purpose, user.phone);
 
-  // Deliver OTP via in-app notification (primary channel)
-  await createNotification(
+  // Primary: email delivery
+  if (user.email) {
+    sendEmail(
+      user.email,
+      "KobKlein — Security Verification Code",
+      `
+      <div style="font-family:Inter,sans-serif;max-width:480px;margin:0 auto;background:#080B14;color:#F2F2F2;border-radius:12px;padding:32px;">
+        <h2 style="color:#C6A756;margin:0 0 8px;">Security Verification</h2>
+        <p style="color:#C4C7CF;margin:0 0 24px;">Use the code below to confirm your transaction. It expires in 5 minutes.</p>
+        <div style="background:#151B2E;border-radius:8px;padding:24px;text-align:center;font-size:36px;font-weight:700;letter-spacing:0.4em;color:#E1C97A;">
+          ${otpCode}
+        </div>
+        <p style="color:#7A8394;font-size:12px;margin:24px 0 0;">Never share this code. KobKlein will never ask for it.</p>
+      </div>
+      `,
+    ).catch((err) => {
+      console.warn("[OTP] Email delivery failed (non-fatal):", err);
+    });
+  }
+
+  // Secondary: in-app notification
+  createNotification(
     params.userId,
     "Security Verification Code",
     `Your KobKlein verification code is: ${otpCode}. Valid for 5 minutes. Never share this code.`,
     "security",
-  );
+  ).catch((err) => {
+    console.warn("[OTP] In-app notification failed (non-fatal):", err);
+  });
 
-  // Also attempt SMS delivery (best-effort, non-blocking)
+  // Tertiary: SMS
   enqueueSMS(
     user.phone,
     `KobKlein: Kòd verifikasyon ou se ${otpCode}. Válido 5 minit. Pa pataje kòd sa a.`,

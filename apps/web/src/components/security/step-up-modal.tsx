@@ -45,7 +45,7 @@ export default function StepUpModal({ open, onClose, onVerify }: Props) {
             </div>
             <h2 className="text-lg font-semibold">Security Verification</h2>
             <p className="text-sm text-muted-foreground">
-              Check your KobKlein notifications for your 6-digit verification code.
+              Check your email for your 6-digit verification code. It expires in 5 minutes.
             </p>
           </div>
 
