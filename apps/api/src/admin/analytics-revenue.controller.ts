@@ -4,7 +4,7 @@ import { SupabaseGuard } from "../auth/supabase.guard";
 import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 
-@Controller("admin/analytics")
+@Controller("v1/admin/analytics")
 export class AnalyticsRevenueController {
   @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")
