@@ -16,6 +16,7 @@ export async function attemptTransfer(data: {
     transferId?: string;
     otpRequired?: boolean;
     challengeId?: string;
+    otpCode?: string;
     riskLevel?: string;
     riskScore?: number;
   }>("v1/transfers/attempt", data, key);
