@@ -75,7 +75,7 @@ export async function createOtpChallenge(params: {
     },
   });
 
-  return challenge.id;
+  return { challengeId: challenge.id, otpCode };
 }
 
 /**

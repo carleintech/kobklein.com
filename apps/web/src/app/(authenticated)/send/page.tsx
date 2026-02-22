@@ -112,6 +112,7 @@ function SendPage() {
   const [recipientTrust,  setRecipientTrust]  = useState("new");
   const [selectedR,       setSelectedR]       = useState<Recipient | null>(null);
   const [challengeId,     setChallengeId]     = useState<string | null>(null);
+  const [otpCode,         setOtpCode]         = useState<string | null>(null);
   const [receipt,         setReceipt]         = useState<any>(null);
   const [error,           setError]           = useState<string | null>(null);
   const [smartRecipients, setSmartRecipients] = useState<Recipient[]>([]);
@@ -222,7 +223,11 @@ function SendPage() {
     try {
       const result = await attemptTransfer({ recipientUserId, amount: Number(amount), currency: fromCurrency });
       if (result.otpRequired && result.challengeId) {
-        setChallengeId(result.challengeId); setStepUpOpen(true); setState("otp"); return;
+        setChallengeId(result.challengeId);
+        setOtpCode(result.otpCode ?? null);
+        setStepUpOpen(true);
+        setState("otp");
+        return;
       }
       if (result.ok) {
         setReceipt(result); optimisticDebit(fromCurrency, Number(amount));
@@ -251,7 +256,7 @@ function SendPage() {
   function reset() {
     setState("idle"); setPhone(""); setAmount(""); setRecipientUserId("");
     setRecipientName(""); setRecipientTrust("new"); setSelectedR(null);
-    setChallengeId(null); setReceipt(null); setError(null); setFxPreview(null);
+    setChallengeId(null); setOtpCode(null); setReceipt(null); setError(null); setFxPreview(null);
     setLookupResult(null); setLookupError(null);
     refresh();
   }
@@ -469,6 +474,7 @@ function SendPage() {
           onClose={() => { setStepUpOpen(false); setState("confirming"); }}
           onVerify={handleStepUpVerify}
           challengeId={challengeId || undefined}
+          otpCode={otpCode || undefined}
         />
       </div>
     );

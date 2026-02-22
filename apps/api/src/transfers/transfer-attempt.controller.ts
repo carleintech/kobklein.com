@@ -99,7 +99,7 @@ export class TransferAttemptController {
 
     // MEDIUM RISK → OTP step-up
     if (risk.riskLevel === "medium") {
-      const challengeId = await createOtpChallenge({
+      const { challengeId, otpCode } = await createOtpChallenge({
         userId,
         purpose: "transfer",
         payload: {
@@ -113,6 +113,7 @@ export class TransferAttemptController {
       return {
         otpRequired: true,
         challengeId,
+        otpCode,
         riskLevel: risk.riskLevel,
         riskScore: risk.score,
       };
