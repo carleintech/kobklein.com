@@ -8,7 +8,6 @@ import {
   LineChart,
   ResponsiveContainer,
   Tooltip,
-  type TooltipProps,
   XAxis,
   YAxis,
 } from "recharts";
@@ -27,7 +26,11 @@ function ChartTooltip({
   active,
   payload,
   label,
-}: TooltipProps<number, string>) {
+}: {
+  active?: boolean;
+  payload?: { value?: number }[];
+  label?: string;
+}) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-white/10 bg-[#0F1626] px-3 py-2 text-xs shadow-lg">

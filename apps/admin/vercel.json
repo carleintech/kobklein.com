@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm --filter admin build",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "outputDirectory": ".next",
+  "framework": "nextjs"
+}

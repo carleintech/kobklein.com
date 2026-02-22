@@ -3,9 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { kkGet, kkPost, kkDelete } from "@/lib/kobklein-api";
-import { Card, CardContent } from "@kobklein/ui/card";
-import { Badge } from "@kobklein/ui/badge";
-import { Button } from "@kobklein/ui/button";
 import {
   RefreshCw,
   Smartphone,
@@ -27,6 +24,8 @@ type Device = {
   createdAt: string;
 };
 
+type DevicesResponse = { devices: Device[] };
+
 export default function UserDevicesPage() {
   const params = useParams();
   const userId = params.id as string;
@@ -38,7 +37,7 @@ export default function UserDevicesPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await kkGet<any>(`v1/admin/devices/${userId}`);
+      const data = await kkGet<DevicesResponse>(`v1/admin/devices/${userId}`);
       setDevices(data?.devices || []);
     } catch (e) {
       console.error("Failed to load devices:", e);
@@ -47,15 +46,17 @@ export default function UserDevicesPage() {
     }
   }, [userId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function handleRevoke(deviceId: string) {
     setActionLoading(deviceId);
     try {
       await kkDelete(`v1/admin/devices/${deviceId}/revoke`);
       await load();
-    } catch (e: any) {
-      alert(`Revoke failed: ${e.message}`);
+    } catch (e: unknown) {
+      alert(`Revoke failed: ${e instanceof Error ? e.message : "unknown error"}`);
     } finally {
       setActionLoading(null);
     }
@@ -67,8 +68,10 @@ export default function UserDevicesPage() {
     try {
       await kkPost(`v1/admin/devices/revoke-all/${userId}`, {});
       await load();
-    } catch (e: any) {
-      alert(`Revoke all failed: ${e.message}`);
+    } catch (e: unknown) {
+      alert(
+        `Revoke all failed: ${e instanceof Error ? e.message : "unknown error"}`,
+      );
     } finally {
       setActionLoading(null);
     }
@@ -84,82 +87,104 @@ export default function UserDevicesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center gap-3">
-        <Link href="/users" className="text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" />
+        <Link
+          href="/users"
+          className="flex items-center justify-center w-8 h-8 rounded-lg border border-white/8 bg-[#080E20] text-kob-muted hover:text-kob-text hover:border-white/15 transition-colors"
+        >
+          <ArrowLeft size={14} />
         </Link>
         <div>
-          <h1 className="text-xl font-semibold">User Devices</h1>
-          <p className="text-sm text-muted-foreground">{userId}</p>
+          <h1 className="text-xl font-semibold text-kob-text">User Devices</h1>
+          <p className="text-sm text-kob-muted font-mono">{userId}</p>
         </div>
         <div className="ml-auto flex gap-2">
-          <Button
-            variant="destructive"
-            size="sm"
+          <button
+            type="button"
             onClick={handleRevokeAll}
             disabled={actionLoading === "all"}
+            className="rounded-lg bg-red-600/80 hover:bg-red-600 text-white px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-40"
           >
             Revoke All
-          </Button>
-          <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          </Button>
+          </button>
+          <button
+            type="button"
+            aria-label="Refresh"
+            onClick={load}
+            disabled={loading}
+            className="flex items-center gap-1.5 rounded-lg border border-white/8 bg-[#080E20] px-3 py-1.5 text-xs text-kob-muted hover:text-kob-text hover:border-white/15 transition-colors disabled:opacity-40"
+          >
+            <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
+          </button>
         </div>
       </div>
 
-      {devices.length === 0 ? (
-        <Card className="rounded-2xl">
-          <CardContent className="p-8 text-center text-muted-foreground">
-            <Smartphone className="h-5 w-5 mx-auto mb-2" />
-            No devices found for this user
-          </CardContent>
-        </Card>
-      ) : (
+      {/* Empty state */}
+      {devices.length === 0 && !loading && (
+        <div className="rounded-xl border border-white/8 bg-[#080E20] p-8 text-center text-kob-muted">
+          <Smartphone size={20} className="mx-auto mb-2" />
+          No devices found for this user
+        </div>
+      )}
+
+      {loading && devices.length === 0 && (
+        <div className="flex items-center justify-center py-16 text-kob-muted">
+          <RefreshCw size={20} className="animate-spin mr-2" />
+          Loading devices…
+        </div>
+      )}
+
+      {/* Device list */}
+      {devices.length > 0 && (
         <div className="space-y-3">
           {devices.map((d) => (
-            <Card key={d.id} className={`rounded-2xl ${d.revokedAt ? "opacity-50" : ""}`}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Smartphone className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">
-                          {d.label || parseUA(d.userAgent)}
+            <div
+              key={d.id}
+              className={`rounded-xl border border-white/8 bg-[#080E20] p-4 transition-opacity ${d.revokedAt ? "opacity-50" : ""}`}
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Smartphone size={18} className="text-kob-muted shrink-0" />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm text-kob-text">
+                        {d.label || parseUA(d.userAgent)}
+                      </span>
+                      {d.trusted && (
+                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-emerald-500/15 text-emerald-400">
+                          <Shield size={10} /> Trusted
                         </span>
-                        {d.trusted && (
-                          <Badge variant="default" className="gap-1 text-xs">
-                            <Shield className="h-3 w-3" /> Trusted
-                          </Badge>
-                        )}
-                        {d.revokedAt && (
-                          <Badge variant="destructive" className="text-xs">Revoked</Badge>
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        IP: {d.ip} &middot; Last seen: {new Date(d.lastSeenAt).toLocaleString()}
-                      </div>
-                      <div className="text-xs text-muted-foreground truncate max-w-[400px]">
-                        {d.userAgent}
-                      </div>
+                      )}
+                      {d.revokedAt && (
+                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-red-500/15 text-red-400">
+                          Revoked
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-kob-muted mt-0.5">
+                      IP: {d.ip} &middot; Last seen:{" "}
+                      {new Date(d.lastSeenAt).toLocaleString()}
+                    </div>
+                    <div className="text-xs text-kob-muted truncate max-w-100">
+                      {d.userAgent}
                     </div>
                   </div>
-
-                  {!d.revokedAt && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleRevoke(d.id)}
-                      disabled={actionLoading === d.id}
-                      className="gap-1"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                      Revoke
-                    </Button>
-                  )}
                 </div>
-              </CardContent>
-            </Card>
+
+                {!d.revokedAt && (
+                  <button
+                    type="button"
+                    onClick={() => handleRevoke(d.id)}
+                    disabled={actionLoading === d.id}
+                    className="flex items-center gap-1.5 rounded-lg bg-red-600/80 hover:bg-red-600 text-white px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-40 shrink-0"
+                  >
+                    <Trash2 size={12} />
+                    Revoke
+                  </button>
+                )}
+              </div>
+            </div>
           ))}
         </div>
       )}
