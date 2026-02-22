@@ -1,9 +1,10 @@
 import { prisma } from "../db/prisma";
 import { createOtp, verifyOtp } from "../auth/otp.service";
+import { createNotification, enqueueSMS } from "../notifications/notification.service";
 
 /**
  * Create an OTP challenge for step-up verification.
- * Sends OTP via existing system, stores pending transaction payload.
+ * Sends OTP via in-app notification + SMS (best-effort).
  */
 export async function createOtpChallenge(params: {
   userId: string;
@@ -24,6 +25,22 @@ export async function createOtpChallenge(params: {
 
   // Generate OTP via existing system
   const otpCode = await createOtp(params.userId, params.purpose, user.phone);
+
+  // Deliver OTP via in-app notification (primary channel)
+  await createNotification(
+    params.userId,
+    "Security Verification Code",
+    `Your KobKlein verification code is: ${otpCode}. Valid for 5 minutes. Never share this code.`,
+    "security",
+  );
+
+  // Also attempt SMS delivery (best-effort, non-blocking)
+  enqueueSMS(
+    user.phone,
+    `KobKlein: Kòd verifikasyon ou se ${otpCode}. Válido 5 minit. Pa pataje kòd sa a.`,
+  ).catch((err) => {
+    console.warn("[OTP] SMS delivery failed (non-fatal):", err);
+  });
 
   // Store challenge with payload
   const challenge = await prisma.otpChallenge.create({
