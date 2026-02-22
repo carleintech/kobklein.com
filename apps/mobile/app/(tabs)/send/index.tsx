@@ -1,90 +1,180 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Send, ArrowRight, CheckCircle2, Shield } from "lucide-react-native";
-import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
+import { CheckCircle2, Send, Shield } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useToast } from "@/components/ui/Toast";
+import { colors, fonts, radii, spacing } from "@/constants/theme";
 import { useWalletStore } from "@/context/wallet-store";
-import { kkPost } from "@/lib/api";
 import { formatCurrency } from "@/hooks/useFormatCurrency";
-import { colors, fonts, spacing, radii } from "@/constants/theme";
 import i18n from "@/i18n";
+import { kkPost } from "@/lib/api";
 
 type Step = "input" | "preview" | "otp" | "success";
 
-interface TransferPreview {
-  attemptId: string;
-  fromCurrency: string;
-  toCurrency: string;
-  sendAmount: number;
-  receiveAmount: number;
-  fxRate: number | null;
-  fee: number;
-  total: number;
-  recipientName: string;
+const DIGIT_KEYS = ["d0", "d1", "d2", "d3", "d4", "d5"] as const;
+
+interface RecipientInfo {
+  recipientId: string;
+  firstName: string | null;
+  lastName: string | null;
+  handle: string | null;
+  kId: string | null;
+}
+
+interface AttemptResponse {
+  ok?: boolean;
+  transferId?: string;
+  otpRequired?: boolean;
+  challengeId?: string;
+  otpCode?: string;
+  riskLevel?: string;
+  riskScore?: number;
+}
+
+function recipientDisplayName(r: RecipientInfo): string {
+  const full = [r.firstName, r.lastName].filter(Boolean).join(" ");
+  return full || r.handle || r.kId || "Unknown";
 }
 
 export default function SendScreen() {
-  const insets = useSafeAreaInsets();
-  const router = useRouter();
-  const params = useLocalSearchParams<{ to?: string }>();
+  const insets   = useSafeAreaInsets();
+  const router   = useRouter();
+  const params   = useLocalSearchParams<{ to?: string }>();
   const { show } = useToast();
   const { optimisticDebit, refresh } = useWalletStore();
 
-  const [step, setStep] = useState<Step>("input");
-  const [recipient, setRecipient] = useState(params.to ?? "");
-  const [amount, setAmount] = useState("");
+  const [step, setStep]         = useState<Step>("input");
+  const [query, setQuery]       = useState(params.to ?? "");
+  const [amount, setAmount]     = useState("");
   const [currency, setCurrency] = useState("HTG");
-  const [preview, setPreview] = useState<TransferPreview | null>(null);
-  const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handlePreview = useCallback(async () => {
+  const [recipient, setRecipient]   = useState<RecipientInfo | null>(null);
+  const [resolving, setResolving]   = useState(false);
+
+  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [otpCode, setOtpCode]         = useState<string | null>(null);
+  const [manualOtp, setManualOtp]     = useState("");
+  const [transferId, setTransferId]   = useState<string | null>(null);
+  const [loading, setLoading]         = useState(false);
+
+  /* ── Resolve recipient ──────────────────────────────────────────── */
+  const handleResolve = useCallback(async () => {
+    const q = query.trim();
+    if (!q) return;
+    setResolving(true);
+    setRecipient(null);
+    try {
+      const res = await kkPost<{
+        exists: boolean;
+        selfMatch?: boolean;
+        recipientId?: string;
+        firstName?: string | null;
+        lastName?: string | null;
+        handle?: string | null;
+        kId?: string | null;
+      }>("/v1/transfers/check-recipient", { query: q });
+
+      if (!res.exists) {
+        show(
+          res.selfMatch ? "Cannot send to yourself." : "Recipient not found.",
+          "error",
+        );
+        return;
+      }
+      setRecipient({
+        recipientId: res.recipientId ?? "",
+        firstName: res.firstName ?? null,
+        lastName: res.lastName ?? null,
+        handle: res.handle ?? null,
+        kId: res.kId ?? null,
+      });
+    } catch (err: unknown) {
+      show(err instanceof Error ? err.message : i18n.t("error.generic"), "error");
+    } finally {
+      setResolving(false);
+    }
+  }, [query, show]);
+
+  /* ── Attempt transfer ───────────────────────────────────────────── */
+  const handleAttempt = useCallback(async () => {
     if (!recipient || !amount) return;
+    const numAmount = parseFloat(amount);
+    if (Number.isNaN(numAmount) || numAmount <= 0) {
+      show("Enter a valid amount.", "error");
+      return;
+    }
     setLoading(true);
     try {
-      const data = await kkPost<TransferPreview>("/v1/transfers/attempt", {
-        recipientIdentifier: recipient,
-        amount: parseFloat(amount),
-        currency,
-      });
-      setPreview(data);
-      setStep("preview");
-    } catch (err: any) {
-      show(err?.message ?? i18n.t("error.generic"), "error");
-    }
-    setLoading(false);
-  }, [recipient, amount, currency]);
+      const idempotencyKey = crypto.randomUUID();
+      const res = await kkPost<AttemptResponse>(
+        "/v1/transfers/attempt",
+        { recipientUserId: recipient.recipientId, amount: numAmount, currency },
+        { "Idempotency-Key": idempotencyKey },
+      );
 
+      if (res.otpRequired && res.challengeId) {
+        setChallengeId(res.challengeId);
+        setOtpCode(res.otpCode ?? null);
+        setStep("otp");
+      } else if (res.ok && res.transferId) {
+        optimisticDebit(currency, numAmount);
+        setTransferId(res.transferId);
+        setStep("success");
+      }
+    } catch (err: unknown) {
+      show(err instanceof Error ? err.message : i18n.t("error.generic"), "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [recipient, amount, currency, optimisticDebit, show]);
+
+  /* ── Confirm OTP ────────────────────────────────────────────────── */
   const handleConfirm = useCallback(async () => {
-    if (!preview) return;
+    const code = otpCode ?? manualOtp;
+    if (!challengeId || !code || code.length < 6) return;
     setLoading(true);
     try {
-      await kkPost("/v1/transfers/confirm", {
-        attemptId: preview.attemptId,
-        otp,
-      });
-      optimisticDebit(preview.fromCurrency, preview.total);
-      setStep("success");
-    } catch (err: any) {
-      show(err?.message ?? i18n.t("error.generic"), "error");
+      const res = await kkPost<{ ok: boolean; transferId?: string }>(
+        "/v1/transfers/confirm",
+        { challengeId, otpCode: code },
+      );
+      if (res.ok) {
+        optimisticDebit(currency, parseFloat(amount));
+        setTransferId(res.transferId ?? null);
+        setStep("success");
+      }
+    } catch (err: unknown) {
+      show(err instanceof Error ? err.message : i18n.t("error.generic"), "error");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, [preview, otp]);
+  }, [challengeId, otpCode, manualOtp, currency, amount, optimisticDebit, show]);
 
   const handleDone = () => {
     refresh();
     router.back();
+  };
+
+  const reset = () => {
+    setStep("input");
+    setQuery("");
+    setAmount("");
+    setRecipient(null);
+    setChallengeId(null);
+    setOtpCode(null);
+    setManualOtp("");
+    setTransferId(null);
   };
 
   return (
@@ -98,146 +188,194 @@ export default function SendScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
         >
-          {/* Step: Input */}
+          {/* ── INPUT ───────────────────────────────────────────── */}
           {step === "input" && (
             <View style={styles.form}>
-              <Input
-                label={i18n.t("send.to")}
-                value={recipient}
-                onChangeText={setRecipient}
-                placeholder="K-ID, phone, or @handle"
-                autoCapitalize="none"
-                icon={<Send size={16} color={colors.textMuted} />}
-              />
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>{i18n.t("send.to")}</Text>
+                <View style={styles.inputRow}>
+                  <TextInput
+                    style={[styles.input, styles.flex]}
+                    value={query}
+                    onChangeText={(t) => { setQuery(t); setRecipient(null); }}
+                    placeholder="K-ID, phone, or @handle"
+                    placeholderTextColor={colors.textMuted}
+                    autoCapitalize="none"
+                    returnKeyType="search"
+                    onSubmitEditing={handleResolve}
+                  />
+                  <TouchableOpacity
+                    style={styles.lookupBtn}
+                    onPress={handleResolve}
+                    disabled={resolving || !query.trim()}
+                  >
+                    {resolving
+                      ? <ActivityIndicator size="small" color={colors.gold} />
+                      : <Send size={18} color={colors.gold} />}
+                  </TouchableOpacity>
+                </View>
 
-              <Input
-                label={i18n.t("send.amount")}
-                value={amount}
-                onChangeText={setAmount}
-                placeholder="0.00"
-                keyboardType="decimal-pad"
-              />
+                {recipient && (
+                  <View style={styles.recipientChip}>
+                    <Text style={styles.recipientName}>
+                      {recipientDisplayName(recipient)}
+                    </Text>
+                    {recipient.kId && (
+                      <Text style={styles.recipientSub}>{recipient.kId}</Text>
+                    )}
+                  </View>
+                )}
+              </View>
 
-              {/* Currency Selector */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>{i18n.t("send.amount")}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={amount}
+                  onChangeText={setAmount}
+                  placeholder="0.00"
+                  placeholderTextColor={colors.textMuted}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+
               <View style={styles.currencyRow}>
                 {["HTG", "USD"].map((c) => (
-                  <Button
+                  <TouchableOpacity
                     key={c}
-                    variant={currency === c ? "primary" : "secondary"}
-                    size="sm"
+                    style={[styles.currencyBtn, currency === c && styles.currencyBtnActive]}
                     onPress={() => setCurrency(c)}
-                    style={styles.currencyBtn}
                   >
-                    {c === "HTG" ? "🇭🇹 HTG" : "🇺🇸 USD"}
-                  </Button>
+                    <Text style={[styles.currencyText, currency === c && styles.currencyTextActive]}>
+                      {c === "HTG" ? "🇭🇹 HTG" : "🇺🇸 USD"}
+                    </Text>
+                  </TouchableOpacity>
                 ))}
               </View>
 
-              <Button onPress={handlePreview} loading={loading} size="lg">
-                {i18n.t("send.preview")}
-              </Button>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnGold, (!recipient || !amount) && styles.btnDisabled]}
+                onPress={() => { if (recipient && amount) setStep("preview"); }}
+                disabled={!recipient || !amount}
+              >
+                <Text style={styles.btnGoldText}>Review Transfer</Text>
+              </TouchableOpacity>
             </View>
           )}
 
-          {/* Step: Preview */}
-          {step === "preview" && preview && (
+          {/* ── PREVIEW ─────────────────────────────────────────── */}
+          {step === "preview" && recipient && (
             <View style={styles.form}>
-              <Card variant="gold">
-                <View style={styles.previewHeader}>
-                  <Text style={styles.previewLabel}>{i18n.t("send.theyReceive")}</Text>
-                  <Text style={styles.previewAmount}>
-                    {formatCurrency(preview.receiveAmount, preview.toCurrency)}
-                  </Text>
-                  <Text style={styles.previewRecipient}>
-                    {preview.recipientName}
-                  </Text>
-                </View>
-              </Card>
-
-              <Card>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{i18n.t("send.amount")}</Text>
-                  <Text style={styles.detailValue}>
-                    {formatCurrency(preview.sendAmount, preview.fromCurrency)}
-                  </Text>
-                </View>
-                {preview.fxRate && (
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>{i18n.t("send.rate")}</Text>
-                    <Text style={styles.detailValue}>
-                      1 {preview.fromCurrency} = {preview.fxRate.toFixed(2)} {preview.toCurrency}
-                    </Text>
-                  </View>
+              <View style={styles.summaryCard}>
+                <Text style={styles.summaryLabel}>You're sending</Text>
+                <Text style={styles.summaryAmount}>
+                  {formatCurrency(parseFloat(amount) || 0, currency)}
+                </Text>
+                <Text style={styles.summaryTo}>to</Text>
+                <Text style={styles.summaryRecipient}>
+                  {recipientDisplayName(recipient)}
+                </Text>
+                {recipient.kId && (
+                  <Text style={styles.summaryKid}>{recipient.kId}</Text>
                 )}
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{i18n.t("send.fee")}</Text>
-                  <Text style={styles.detailValue}>
-                    {formatCurrency(preview.fee, preview.fromCurrency)}
-                  </Text>
-                </View>
-                <View style={[styles.detailRow, styles.totalRow]}>
-                  <Text style={styles.totalLabel}>{i18n.t("send.total")}</Text>
-                  <Text style={styles.totalValue}>
-                    {formatCurrency(preview.total, preview.fromCurrency)}
-                  </Text>
-                </View>
-              </Card>
+              </View>
 
-              <Button onPress={() => setStep("otp")} size="lg">
-                {i18n.t("send.confirm")}
-              </Button>
-              <Button onPress={() => setStep("input")} variant="ghost" size="sm">
-                {i18n.t("back")}
-              </Button>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnGold, loading && styles.btnDisabled]}
+                onPress={handleAttempt}
+                disabled={loading}
+              >
+                {loading
+                  ? <ActivityIndicator size="small" color={colors.black} />
+                  : <Text style={styles.btnGoldText}>Send Now</Text>}
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.btnGhost} onPress={() => setStep("input")} disabled={loading}>
+                <Text style={styles.btnGhostText}>{i18n.t("back")}</Text>
+              </TouchableOpacity>
             </View>
           )}
 
-          {/* Step: OTP */}
+          {/* ── OTP ─────────────────────────────────────────────── */}
           {step === "otp" && (
             <View style={styles.form}>
-              <Card>
-                <View style={styles.otpContainer}>
-                  <Shield size={32} color={colors.gold} />
-                  <Text style={styles.otpTitle}>{i18n.t("send.enterOtp")}</Text>
-                  <Text style={styles.otpSub}>
-                    {i18n.t("send.otpSent", { phone: "****" })}
-                  </Text>
+              <View style={styles.otpCard}>
+                <View style={styles.otpIconWrap}>
+                  <Shield size={28} color={colors.gold} />
                 </View>
-              </Card>
+                <Text style={styles.otpTitle}>Security Verification</Text>
+                <Text style={styles.otpSub}>
+                  {otpCode
+                    ? "Your code is ready. Tap Confirm & Send."
+                    : "Enter the 6-digit verification code."}
+                </Text>
 
-              <Input
-                value={otp}
-                onChangeText={setOtp}
-                placeholder="000000"
-                keyboardType="number-pad"
-                maxLength={6}
-                style={{ textAlign: "center", fontSize: 24, letterSpacing: 8 }}
-              />
+                {otpCode ? (
+                  <View style={styles.digitRow}>
+                    {DIGIT_KEYS.map((key, i) => (
+                      <View key={key} style={styles.digitBox}>
+                        <Text style={styles.digitText}>{otpCode[i] ?? ""}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <TextInput
+                    style={styles.otpInput}
+                    value={manualOtp}
+                    onChangeText={(v) => setManualOtp(v.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="000000"
+                    placeholderTextColor={colors.textMuted}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                  />
+                )}
+              </View>
 
-              <Button onPress={handleConfirm} loading={loading} size="lg">
-                {i18n.t("confirm")}
-              </Button>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnGold, loading && styles.btnDisabled]}
+                onPress={handleConfirm}
+                disabled={loading}
+              >
+                {loading
+                  ? <ActivityIndicator size="small" color={colors.black} />
+                  : <Text style={styles.btnGoldText}>Confirm & Send</Text>}
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.btnGhost} onPress={reset} disabled={loading}>
+                <Text style={styles.btnGhostText}>Cancel</Text>
+              </TouchableOpacity>
             </View>
           )}
 
-          {/* Step: Success */}
+          {/* ── SUCCESS ─────────────────────────────────────────── */}
           {step === "success" && (
             <View style={styles.successContainer}>
-              <CheckCircle2 size={64} color={colors.emerald} />
+              <View style={styles.successIcon}>
+                <CheckCircle2 size={56} color={colors.emerald} />
+              </View>
               <Text style={styles.successTitle}>{i18n.t("send.success")}</Text>
-              {preview && (
-                <Text style={styles.successAmount}>
-                  {formatCurrency(preview.receiveAmount, preview.toCurrency)}
+              {recipient && (
+                <Text style={styles.successRecipient}>
+                  {formatCurrency(parseFloat(amount) || 0, currency)} sent to{" "}
+                  {recipientDisplayName(recipient)}
                 </Text>
               )}
-              <Text style={styles.successSub}>
-                sent to {preview?.recipientName}
-              </Text>
+              {transferId && (
+                <Text style={styles.successRef}>Ref: {transferId.slice(0, 12)}…</Text>
+              )}
 
-              <Button onPress={handleDone} size="lg" style={{ marginTop: 32 }}>
-                {i18n.t("done")}
-              </Button>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnGold, { marginTop: spacing["3xl"] }]}
+                onPress={handleDone}
+              >
+                <Text style={styles.btnGoldText}>{i18n.t("done")}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.btnGhost} onPress={reset}>
+                <Text style={styles.btnGhostText}>Send Again</Text>
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -261,76 +399,179 @@ const styles = StyleSheet.create({
   },
   scroll: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: 40,
+    paddingBottom: 48,
   },
   form: {
     gap: spacing.lg,
   },
-  currencyRow: {
-    flexDirection: "row",
-    gap: 10,
+  fieldGroup: {
+    gap: spacing.sm,
   },
-  currencyBtn: {
-    flex: 1,
-  },
-  previewHeader: {
-    alignItems: "center",
-    paddingVertical: spacing.md,
-  },
-  previewLabel: {
+  label: {
     fontFamily: fonts.sansMedium,
     fontSize: 12,
     color: colors.textMuted,
     textTransform: "uppercase",
     letterSpacing: 0.8,
   },
-  previewAmount: {
-    fontFamily: fonts.serif,
-    fontSize: 36,
-    color: colors.gold,
-    marginTop: 4,
-  },
-  previewRecipient: {
-    fontFamily: fonts.sansMedium,
-    fontSize: 14,
-    color: colors.textBody,
-    marginTop: 4,
-  },
-  detailRow: {
+  inputRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 8,
+    alignItems: "center",
+    gap: spacing.sm,
   },
-  detailLabel: {
+  input: {
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.borderGold,
+    backgroundColor: colors.panel,
+    paddingHorizontal: spacing.lg,
     fontFamily: fonts.sans,
+    fontSize: 15,
+    color: colors.textHeading,
+  },
+  lookupBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.borderGold,
+    backgroundColor: colors.panel,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  recipientChip: {
+    backgroundColor: "rgba(31,111,74,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(31,111,74,0.3)",
+    borderRadius: 10,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  recipientName: {
+    fontFamily: fonts.sansSemiBold,
+    fontSize: 14,
+    color: colors.emerald,
+  },
+  recipientSub: {
+    fontFamily: fonts.sans,
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  currencyRow: {
+    flexDirection: "row",
+    gap: spacing.md,
+  },
+  currencyBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.borderGold,
+    backgroundColor: colors.panel,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  currencyBtnActive: {
+    backgroundColor: "rgba(198,167,86,0.15)",
+    borderColor: colors.gold,
+  },
+  currencyText: {
+    fontFamily: fonts.sansMedium,
     fontSize: 14,
     color: colors.textMuted,
   },
-  detailValue: {
-    fontFamily: fonts.sansMedium,
-    fontSize: 14,
-    color: colors.textHeading,
-  },
-  totalRow: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    marginTop: 4,
-    paddingTop: 12,
-  },
-  totalLabel: {
-    fontFamily: fonts.sansSemiBold,
-    fontSize: 14,
-    color: colors.textHeading,
-  },
-  totalValue: {
-    fontFamily: fonts.sansBold,
-    fontSize: 16,
+  currencyTextActive: {
     color: colors.gold,
   },
-  otpContainer: {
+  btn: {
+    height: 54,
+    borderRadius: 14,
     alignItems: "center",
-    gap: 8,
-    paddingVertical: spacing.lg,
+    justifyContent: "center",
+  },
+  btnGold: {
+    backgroundColor: colors.gold,
+    shadowColor: colors.gold,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  btnGoldText: {
+    fontFamily: fonts.sansBold,
+    fontSize: 15,
+    color: colors.black,
+    letterSpacing: 0.3,
+  },
+  btnGhost: {
+    alignItems: "center",
+    paddingVertical: spacing.md,
+  },
+  btnGhostText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  btnDisabled: { opacity: 0.5 },
+  // Preview
+  summaryCard: {
+    backgroundColor: colors.panel,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    borderColor: colors.borderGold,
+    padding: spacing["2xl"],
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  summaryLabel: {
+    fontFamily: fonts.sans,
+    fontSize: 12,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  summaryAmount: {
+    fontFamily: fonts.serif,
+    fontSize: 40,
+    color: colors.gold,
+    marginVertical: 4,
+  },
+  summaryTo: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  summaryRecipient: {
+    fontFamily: fonts.sansSemiBold,
+    fontSize: 18,
+    color: colors.textHeading,
+  },
+  summaryKid: {
+    fontFamily: fonts.sans,
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  // OTP
+  otpCard: {
+    backgroundColor: colors.panel,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    borderColor: colors.borderGold,
+    padding: spacing["2xl"],
+    alignItems: "center",
+    gap: spacing.lg,
+  },
+  otpIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: "rgba(198,167,86,0.10)",
+    borderWidth: 1,
+    borderColor: colors.borderGold,
+    alignItems: "center",
+    justifyContent: "center",
   },
   otpTitle: {
     fontFamily: fonts.sansSemiBold,
@@ -341,27 +582,69 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
     fontSize: 13,
     color: colors.textMuted,
+    textAlign: "center",
   },
+  digitRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  digitBox: {
+    width: 40,
+    height: 48,
+    borderRadius: 10,
+    backgroundColor: "rgba(198,167,86,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(198,167,86,0.30)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  digitText: {
+    fontFamily: fonts.sansBold,
+    fontSize: 20,
+    color: colors.goldLight,
+  },
+  otpInput: {
+    height: 56,
+    width: "100%",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.borderGold,
+    backgroundColor: "rgba(198,167,86,0.06)",
+    textAlign: "center",
+    fontFamily: fonts.sansBold,
+    fontSize: 28,
+    letterSpacing: 12,
+    color: colors.goldLight,
+  },
+  // Success
   successContainer: {
     alignItems: "center",
     paddingTop: spacing["5xl"],
+    gap: spacing.md,
+  },
+  successIcon: {
+    width: 96,
+    height: 96,
+    borderRadius: 28,
+    backgroundColor: "rgba(31,111,74,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.md,
   },
   successTitle: {
     fontFamily: fonts.serif,
-    fontSize: 24,
+    fontSize: 26,
     color: colors.emerald,
-    marginTop: spacing.lg,
   },
-  successAmount: {
-    fontFamily: fonts.serif,
-    fontSize: 36,
-    color: colors.textHeading,
-    marginTop: 8,
-  },
-  successSub: {
+  successRecipient: {
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: 15,
+    color: colors.textBody,
+    textAlign: "center",
+  },
+  successRef: {
+    fontFamily: fonts.sans,
+    fontSize: 11,
     color: colors.textMuted,
-    marginTop: 4,
   },
 });

@@ -1,122 +1,94 @@
 /**
- * Auth0 Authentication for KobKlein Mobile
+ * Supabase Authentication — KobKlein Mobile
  *
- * Uses expo-auth-session for PKCE flow + expo-secure-store for tokens.
+ * Provides email/password and OAuth (Google/Apple) auth
+ * backed by Supabase, whose JWTs are accepted by the NestJS API.
  */
-import * as AuthSession from "expo-auth-session";
+import { makeRedirectUri } from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
-import * as SecureStore from "expo-secure-store";
-import { setToken, clearToken } from "./api";
+import { supabase } from "./supabase";
 
 WebBrowser.maybeCompleteAuthSession();
 
-const AUTH0_DOMAIN = process.env.EXPO_PUBLIC_AUTH0_DOMAIN ?? "";
-const AUTH0_CLIENT_ID = process.env.EXPO_PUBLIC_AUTH0_CLIENT_ID ?? "";
-const AUTH0_AUDIENCE = process.env.EXPO_PUBLIC_AUTH0_AUDIENCE ?? "";
-const REFRESH_TOKEN_KEY = "kobklein_refresh_token";
-
-const redirectUri = AuthSession.makeRedirectUri({ scheme: "kobklein" });
-
-const discovery: AuthSession.DiscoveryDocument = {
-  authorizationEndpoint: `https://${AUTH0_DOMAIN}/authorize`,
-  tokenEndpoint: `https://${AUTH0_DOMAIN}/oauth/token`,
-  revocationEndpoint: `https://${AUTH0_DOMAIN}/oauth/revoke`,
-};
-
 /* ------------------------------------------------------------------ */
-/*  Login                                                              */
+/*  Email + Password                                                   */
 /* ------------------------------------------------------------------ */
 
-export async function login(): Promise<string | null> {
-  const request = new AuthSession.AuthRequest({
-    clientId: AUTH0_CLIENT_ID,
-    redirectUri,
-    scopes: ["openid", "profile", "email", "offline_access"],
-    responseType: AuthSession.ResponseType.Code,
-    usePKCE: true,
-    extraParams: {
-      audience: AUTH0_AUDIENCE,
+export async function signInWithPassword(
+  email: string,
+  password: string,
+): Promise<void> {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw new Error(error.message);
+}
+
+export async function signUp(
+  email: string,
+  password: string,
+  firstName: string,
+  lastName: string,
+): Promise<{ needsEmailConfirmation: boolean }> {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { firstName, lastName, role: "user" },
+    },
+  });
+  if (error) throw new Error(error.message);
+
+  // If no session returned, email confirmation is required
+  const needsEmailConfirmation = !data.session;
+  return { needsEmailConfirmation };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Google OAuth                                                        */
+/* ------------------------------------------------------------------ */
+
+export async function signInWithGoogle(): Promise<void> {
+  const redirectUri = makeRedirectUri({ scheme: "kobklein", path: "auth/callback" });
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: redirectUri,
+      skipBrowserRedirect: true,
     },
   });
 
-  const result = await request.promptAsync(discovery);
-
-  if (result.type !== "success" || !result.params.code) {
-    return null;
+  if (error || !data.url) {
+    throw new Error(error?.message ?? "Google OAuth failed");
   }
 
-  // Exchange code for tokens
-  const tokenResponse = await AuthSession.exchangeCodeAsync(
-    {
-      clientId: AUTH0_CLIENT_ID,
-      code: result.params.code,
-      redirectUri,
-      extraParams: {
-        code_verifier: request.codeVerifier ?? "",
-      },
-    },
-    discovery,
-  );
+  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUri);
 
-  if (tokenResponse.accessToken) {
-    await setToken(tokenResponse.accessToken);
-  }
-
-  if (tokenResponse.refreshToken) {
-    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokenResponse.refreshToken);
-  }
-
-  return tokenResponse.accessToken ?? null;
-}
-
-/* ------------------------------------------------------------------ */
-/*  Token refresh                                                      */
-/* ------------------------------------------------------------------ */
-
-export async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
-  if (!refreshToken) return null;
-
-  try {
-    const tokenResponse = await AuthSession.refreshAsync(
-      {
-        clientId: AUTH0_CLIENT_ID,
-        refreshToken,
-      },
-      discovery,
-    );
-
-    if (tokenResponse.accessToken) {
-      await setToken(tokenResponse.accessToken);
+  if (result.type === "success" && result.url) {
+    const url = new URL(result.url);
+    const code = url.searchParams.get("code");
+    if (code) {
+      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+      if (exchangeError) throw new Error(exchangeError.message);
     }
-
-    if (tokenResponse.refreshToken) {
-      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokenResponse.refreshToken);
-    }
-
-    return tokenResponse.accessToken ?? null;
-  } catch {
-    // Refresh failed — force re-login
-    await logout();
-    return null;
   }
 }
 
 /* ------------------------------------------------------------------ */
-/*  Logout                                                             */
+/*  Password reset                                                      */
 /* ------------------------------------------------------------------ */
 
-export async function logout(): Promise<void> {
-  await clearToken();
-  await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+export async function sendPasswordResetEmail(email: string): Promise<void> {
+  const redirectUri = makeRedirectUri({ scheme: "kobklein", path: "auth/reset" });
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: redirectUri,
+  });
+  if (error) throw new Error(error.message);
+}
 
-  // Clear Auth0 session
-  try {
-    await WebBrowser.openAuthSessionAsync(
-      `https://${AUTH0_DOMAIN}/v2/logout?client_id=${AUTH0_CLIENT_ID}&returnTo=${redirectUri}`,
-      redirectUri,
-    );
-  } catch {
-    // Silent fail — token already cleared
-  }
+/* ------------------------------------------------------------------ */
+/*  Sign out                                                            */
+/* ------------------------------------------------------------------ */
+
+export async function signOut(): Promise<void> {
+  await supabase.auth.signOut();
 }

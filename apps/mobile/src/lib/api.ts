@@ -34,18 +34,21 @@ async function request<T>(
   method: string,
   path: string,
   body?: unknown,
+  extraHeaders?: Record<string, string>,
 ): Promise<T> {
   const token = await getToken();
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    ...extraHeaders,
   };
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const url = `${BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const url = `${BASE_URL}${normalizedPath}`;
 
   const res = await fetch(url, {
     method,
@@ -55,7 +58,13 @@ async function request<T>(
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`API ${res.status}: ${text}`);
+    // Try to parse NestJS error response for a better message
+    try {
+      const json = JSON.parse(text);
+      throw new Error(json.message ?? text);
+    } catch {
+      throw new Error(`API ${res.status}: ${text}`);
+    }
   }
 
   // Handle 204 No Content
@@ -72,8 +81,12 @@ export function kkGet<T>(path: string): Promise<T> {
   return request<T>("GET", path);
 }
 
-export function kkPost<T>(path: string, body?: unknown): Promise<T> {
-  return request<T>("POST", path, body);
+export function kkPost<T>(
+  path: string,
+  body?: unknown,
+  extraHeaders?: Record<string, string>,
+): Promise<T> {
+  return request<T>("POST", path, body, extraHeaders);
 }
 
 export function kkPatch<T>(path: string, body?: unknown): Promise<T> {

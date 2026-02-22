@@ -14,16 +14,21 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@expo-google-fonts/inter": "^0.2.3",
+    "@expo-google-fonts/playfair-display": "^0.2.3",
+    "@react-navigation/bottom-tabs": "^7.0.0",
+    "@react-navigation/native": "^7.0.0",
+    "@supabase/supabase-js": "^2.97.0",
     "expo": "~52.0.0",
     "expo-auth-session": "~6.0.0",
     "expo-camera": "~16.0.0",
     "expo-constants": "~17.0.0",
     "expo-crypto": "~14.0.0",
+    "expo-device": "~7.0.0",
     "expo-font": "~13.0.0",
     "expo-haptics": "~14.0.0",
     "expo-image": "~2.0.0",
     "expo-linking": "~7.0.0",
-    "expo-device": "~7.0.0",
     "expo-localization": "~16.0.0",
     "expo-notifications": "~0.29.0",
     "expo-router": "~4.0.0",
@@ -31,6 +36,8 @@
     "expo-splash-screen": "~0.29.0",
     "expo-status-bar": "~2.0.0",
     "expo-web-browser": "~14.0.0",
+    "i18n-js": "^4.4.3",
+    "lucide-react-native": "^0.460.0",
     "react": "18.3.1",
     "react-native": "0.76.5",
     "react-native-gesture-handler": "~2.20.0",
@@ -39,18 +46,12 @@
     "react-native-screens": "~4.4.0",
     "react-native-svg": "~15.8.0",
     "react-native-web": "~0.19.13",
-    "@expo-google-fonts/inter": "^0.2.3",
-    "@expo-google-fonts/playfair-display": "^0.2.3",
-    "@react-navigation/native": "^7.0.0",
-    "@react-navigation/bottom-tabs": "^7.0.0",
-    "lucide-react-native": "^0.460.0",
-    "zustand": "^5.0.0",
-    "i18n-js": "^4.4.3"
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.0",
     "@types/react": "~18.3.0",
-    "typescript": "~5.6.0",
-    "eslint": "^9.0.0"
+    "eslint": "^9.0.0",
+    "typescript": "~5.6.0"
   }
 }
