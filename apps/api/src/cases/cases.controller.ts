@@ -5,7 +5,7 @@ import { SupabaseGuard } from '../auth/supabase.guard';
 import { findRecipientUserId } from './case.service';
 import { createNotification } from '../notifications/notification.service';
 
-@Controller('cases')
+@Controller('v1/cases')
 @UseGuards(SupabaseGuard)
 export class CasesController {
   constructor(

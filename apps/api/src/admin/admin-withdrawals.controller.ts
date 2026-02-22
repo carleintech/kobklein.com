@@ -10,7 +10,7 @@ import { RolesGuard } from "../policies/roles.guard";
  * GET  admin/withdrawals/pending    — list all pending withdrawal codes
  * POST admin/withdrawals/:code/approve — mark a withdrawal as completed
  */
-@Controller("admin/withdrawals")
+@Controller("v1/admin/withdrawals")
 export class AdminWithdrawalsController {
   @UseGuards(SupabaseGuard, RolesGuard)
   @Roles("admin")

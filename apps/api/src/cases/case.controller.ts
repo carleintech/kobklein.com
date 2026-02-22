@@ -11,7 +11,7 @@ import {
   addCaseNote,
 } from "./case.service";
 
-@Controller("admin/cases")
+@Controller("v1/admin/cases")
 export class CaseController {
   // ── Create a new case ──────────────────────────────────────────────
   @UseGuards(SupabaseGuard, RolesGuard)

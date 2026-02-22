@@ -6,7 +6,7 @@ import { RolesGuard } from "../policies/roles.guard";
 import { AuditService } from "../audit/audit.service";
 import { createNotification } from "../notifications/notification.service";
 
-@Controller("admin/cases")
+@Controller("v1/admin/cases")
 export class CaseHoldsController {
   constructor(private auditService: AuditService) {}
 
