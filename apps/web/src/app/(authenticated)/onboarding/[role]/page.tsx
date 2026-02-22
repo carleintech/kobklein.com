@@ -46,12 +46,24 @@ export default function OnboardingPage() {
 
     setLoading(true);
     try {
+      // Strip fields that are not in the DTO for the given role.
+      // The API has forbidNonWhitelisted: true — any extra key = 400.
+      // - `country` is only accepted by client DTO
+      // - `dateOfBirth` is only accepted by client + diaspora DTOs
+      const payload = { ...formData };
+      if (role !== "client") {
+        delete payload.country;
+      }
+      if (role === "merchant" || role === "distributor") {
+        delete payload.dateOfBirth;
+      }
+
       // The proxy at /api/kobklein/[...path] injects the Bearer token from
       // server-side cookies automatically — no manual session fetch needed.
       const response = await fetch(`/api/kobklein/v1/onboarding/${role}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
