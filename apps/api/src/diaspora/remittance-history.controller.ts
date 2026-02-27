@@ -2,6 +2,13 @@ import { Controller, Get, Query, Req, UseGuards } from "@nestjs/common";
 import { SupabaseGuard } from "../auth/supabase.guard";
 import { prisma } from "../db/prisma";
 
+/** Shape of each month's remittance data — named to avoid inline-type `never[]` inference */
+type RemittanceMonthEntry = {
+  month: string;
+  sent: number;
+  savedVsWesternUnion: number;
+};
+
 /**
  * GET /v1/diaspora/remittance-history?months=6
  *
@@ -56,7 +63,7 @@ export class RemittanceHistoryController {
     }
 
     // Build ordered array with all N months (0 for months with no transfers)
-    const result: { month: string; sent: number; savedVsWesternUnion: number }[] = [];
+    const result: RemittanceMonthEntry[] = [];
 
     for (let i = months - 1; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -78,11 +85,12 @@ export class RemittanceHistoryController {
 }
 
 function buildEmptyMonths(now: Date, months: number) {
-  const result = [];
+  const entries: RemittanceMonthEntry[] = [];
   for (let i = months - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const label = d.toLocaleString("en-US", { month: "short", year: "2-digit" });
-    result.push({ month: label, sent: 0, savedVsWesternUnion: 0 });
+    const entry: RemittanceMonthEntry = { month: label, sent: 0, savedVsWesternUnion: 0 };
+    entries.push(entry);
   }
-  return { months: result, totalSent: 0 };
+  return { months: entries, totalSent: 0 };
 }

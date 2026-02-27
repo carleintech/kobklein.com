@@ -26,12 +26,14 @@ function deriveTraining(meta: Record<string, unknown>, createdAt: string) {
   if (completedAt) {
     const daysSince = (now - new Date(completedAt).getTime()) / 86_400_000;
     const dueAt = new Date(new Date(completedAt).getTime() + 180 * 86_400_000).toISOString();
-    return { status: (daysSince < 180 ? "compliant" : "overdue") as const, completedAt, dueAt };
+    const status: "compliant" | "overdue" = daysSince < 180 ? "compliant" : "overdue";
+    return { status, completedAt, dueAt };
   }
 
   const daysSinceCreation = (now - new Date(createdAt).getTime()) / 86_400_000;
+  const status: "pending" | "overdue" = daysSinceCreation < 30 ? "pending" : "overdue";
   return {
-    status: (daysSinceCreation < 30 ? "pending" : "overdue") as const,
+    status,
     completedAt: null,
     dueAt: null,
   };
