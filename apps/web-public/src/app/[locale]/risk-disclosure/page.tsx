@@ -11,7 +11,7 @@ const sections = [
     number: "2",
     title: "Digital Currency & Electronic Money Risks",
     content:
-      "Digital wallets and electronic money services carry inherent risks. The value stored in your KobKlein wallet is denominated in Haitian Gourdes (HTG) or other supported currencies and is subject to exchange rate fluctuations. Unlike traditional bank deposits, funds stored in digital wallets may not be protected by government deposit insurance programs such as FDIC (United States) or CDIC (Canada). KobKlein maintains segregated accounts and reserves to protect user funds, but no system is without risk.",
+      "Digital wallets and electronic money services carry inherent risks. The value stored in your KobKlein wallet is denominated in Haitian Gourdes (HTG) or other supported currencies and is subject to exchange rate fluctuations. Unlike traditional bank deposits, funds stored in digital wallets may not be protected by government deposit insurance programs. KobKlein works to maintain appropriate protections for user funds through its banking partners and operational controls, but no system is without risk.",
   },
   {
     number: "3",
@@ -23,13 +23,13 @@ const sections = [
     number: "4",
     title: "Technology & Cybersecurity Risks",
     content:
-      "Digital financial services depend on technology infrastructure including servers, networks, mobile devices, and the internet. Service interruptions, system failures, cyberattacks, or software defects could temporarily or permanently affect your ability to access your account or complete transactions. While KobKlein employs bank-grade encryption, multi-factor authentication, and continuous security monitoring, no system can guarantee complete protection against all cyber threats. Users are responsible for maintaining the security of their devices and login credentials.",
+      "Digital financial services depend on technology infrastructure including servers, networks, mobile devices, and the internet. Service interruptions, system failures, cyberattacks, or software defects could temporarily or permanently affect your ability to access your account or complete transactions. While KobKlein employs industry-standard encryption, multi-factor authentication, and continuous security monitoring, no system can guarantee complete protection against all cyber threats. Users are responsible for maintaining the security of their devices and login credentials.",
   },
   {
     number: "5",
     title: "Regulatory & Legal Risks",
     content:
-      "KobKlein operates across multiple jurisdictions including Haiti, the United States, Canada, and the European Union. Changes in laws, regulations, or government policies in any of these jurisdictions could affect the availability, features, or terms of our services. Regulatory actions could require KobKlein to modify, suspend, or terminate certain services. Users in specific jurisdictions may be subject to local financial regulations, tax obligations, and reporting requirements that are their responsibility to understand and comply with.",
+      "KobKlein is operating initially in Haiti with diaspora support channels in the United States, and through licensed payment corridor partners in other jurisdictions. Changes in laws, regulations, or government policies in any operating jurisdiction could affect the availability, features, or terms of our services. Regulatory actions could require KobKlein to modify, suspend, or terminate certain services in specific markets. Users in all jurisdictions are subject to applicable local financial regulations, tax obligations, and reporting requirements that are their responsibility to understand and comply with.",
   },
   {
     number: "6",
@@ -92,7 +92,7 @@ export default async function RiskDisclosurePage({
             Risk Disclosure Statement
           </h1>
           <p className="text-kob-muted">
-            Effective Date: January 1, 2025 &middot; Last Updated: February 1, 2025
+            Effective Date: January 1, 2025 &middot; Last Updated: February 26, 2026
           </p>
         </div>
       </section>

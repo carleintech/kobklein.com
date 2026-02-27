@@ -19,12 +19,12 @@ const sections = [
   {
     number: "4",
     title: "Services Description",
-    content: "KobKlein provides digital wallet, payment, and money transfer services including: K-Pay instant transfers between KobKlein users, K-Card virtual and physical payment cards, K-Link diaspora family panel for cross-border transfers, K-Agent cash-in/cash-out distributor network, K-Code and K-Scan payment codes, and merchant payment acceptance tools. Service availability may vary by jurisdiction.",
+    content: "KobKlein is developing and deploying digital wallet, payment, and money transfer services including: K-Pay peer-to-peer transfers between KobKlein users, K-Card virtual payment card functionality (physical card planned in a future phase), K-Link diaspora family panel for cross-border funding, K-Agent cash-in/cash-out network (subject to regional availability and partner onboarding), K-Code and K-Scan payment codes, and merchant payment acceptance tools. Services are being deployed on a phased basis; availability varies by jurisdiction and is subject to applicable regulatory frameworks and partner approvals.",
   },
   {
     number: "5",
     title: "Fees and Charges",
-    content: "KobKlein charges fees for certain transactions as disclosed in our fee schedule. K-Pay transfers between KobKlein users under $500 HTG are free. International remittances are subject to a $1.99 USD flat fee. K-Card transactions are subject to a 2.5% processing fee. Cash-out at K-Agent locations incurs a 1% fee. All fees are subject to change with 30 days notice to users.",
+    content: "KobKlein charges fees for certain transactions as disclosed in our current fee schedule, which is published separately and may be updated periodically. Fees referenced in any marketing materials are indicative and starting points only; the fee schedule applicable at the time of each transaction governs. K-Pay transfers between KobKlein users are free up to applicable threshold limits. International remittances are subject to fees starting from $1.99 USD per transaction, subject to corridor and partner conditions. Cash-out at K-Agent locations is subject to applicable service fees. All fees are subject to change with reasonable prior notice to users.",
   },
   {
     number: "6",
@@ -59,7 +59,7 @@ const sections = [
   {
     number: "12",
     title: "Governing Law",
-    content: "These Terms shall be governed by and construed in accordance with the laws of the State of Florida, United States, without regard to its conflict of law provisions. For users in Haiti, additional protections under the Law on Electronic Money Institutions (BRH Circular 117) shall apply. Users in Canada and the EU are entitled to additional consumer protections as required by local law.",
+    content: "These Terms shall be governed by and construed in accordance with the laws of the State of Florida, United States, without regard to its conflict of law provisions. Users in Haiti are subject to applicable Haitian financial laws and regulations, and KobKlein designs its operations to align with applicable Haitian regulatory frameworks. Users in other jurisdictions are subject to any applicable mandatory local consumer protection or financial services laws. Nothing in these Terms limits rights you may have under applicable mandatory local law.",
   },
   {
     number: "13",
