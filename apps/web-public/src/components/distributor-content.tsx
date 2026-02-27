@@ -58,40 +58,40 @@ const benefitIcons = [DollarSign, Users, HeadphonesIcon, TrendingUp] as const;
 const howItWorks = [
 	{
 		number: "01",
-		title: "Apply Online",
+		title: "Submit Application",
 		description:
-			"Fill out a short application. We review your business location, capacity, and community reach.",
+			"Provide business information, location details, and identification documentation. All applications are subject to compliance review and approval.",
 		Icon: Smartphone,
 	},
 	{
 		number: "02",
-		title: "Get Trained & Equipped",
+		title: "Compliance Review & Training",
 		description:
-			"Receive your K-Agent kit with training materials, signage, and access to the K-Agent dashboard.",
+			"Approved applicants receive compliance orientation, operational training materials, and access to the K-Agent dashboard.",
 		Icon: Store,
 	},
 	{
 		number: "03",
-		title: "Start Earning",
+		title: "Begin Operating (Upon Activation)",
 		description:
-			"Begin processing cash-in and cash-out transactions. Earn commissions on every transaction instantly.",
+			"Activation is subject to liquidity requirements, regional approval, and partner authorization. Commission structure confirmed upon onboarding.",
 		Icon: Banknote,
 	},
 ];
 
 const stats = [
-	{ value: "5-8%", label: "Commission per Transaction" },
+	{ value: "Volume", label: "Commission Model (Based on Transaction Volume)" },
 	{ value: "2 min", label: "Average Transaction Time" },
 	{ value: "24/7", label: "Dashboard & Support" },
-	{ value: "500+", label: "Active K-Agents" },
+	{ value: "Haiti", label: "Initial Deployment Focus" },
 ];
 
 const requirements = [
-	"Valid business registration or government ID",
+	"Valid identification (government-issued)",
 	"Physical location accessible to customers",
-	"Smartphone with internet access",
-	"Initial float capital (starting from $100)",
-	"Commitment to serve the community",
+	"Smartphone with secure internet access",
+	"Initial float capital (amount determined during onboarding)",
+	"Commitment to KobKlein compliance policies",
 ];
 
 /* ── Types ── */
@@ -479,9 +479,7 @@ export function DistributorContent({
 							</span>
 						</h2>
 						<p className="text-kob-muted text-lg mb-8 max-w-xl mx-auto">
-							We&apos;re expanding across
-							Haiti and diaspora communities.
-							Your neighborhood could be next.
+							Initial rollout focused on select regions within Haiti. Expansion plans will be announced as regulatory approvals and partner authorizations expand.
 						</p>
 					</motion.div>
 
@@ -501,10 +499,6 @@ export function DistributorContent({
 							"Jérémie",
 							"Hinche",
 							"Petit-Goâve",
-							"Miami",
-							"Montreal",
-							"New York",
-							"Paris",
 						].map((city, i) => (
 							<motion.div
 								key={city}
@@ -588,7 +582,7 @@ export function DistributorContent({
 							{[
 								{
 									icon: Shield,
-									label: "Licensed & Regulated",
+									label: "Compliance-First Framework",
 								},
 								{
 									icon: Clock,

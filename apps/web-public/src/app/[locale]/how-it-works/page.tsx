@@ -70,51 +70,51 @@ const steps = [
 		number: "01",
 		title: "Download the App",
 		description:
-			"Get KobKlein from the App Store or Google Play. The app is lightweight, works on any smartphone, and supports English, French, and Haitian Creole.",
+			"Get KobKlein from the App Store or Google Play. The app is lightweight, low-bandwidth optimized, and multilingual (Kreyòl, French, English).",
 		details: [
 			"Available on iOS 15+ and Android 8+",
-			"Under 30 MB download size",
-			"Works on low-bandwidth connections",
-			"Offline mode for viewing balances",
+			"Optimized for emerging market connectivity",
+			"Secure cloud-based infrastructure",
+			"Offline balance viewing capability",
 		],
 	},
 	{
 		icon: UserPlus,
 		number: "02",
-		title: "Sign Up & Verify",
+		title: "Create & Verify Your Wallet",
 		description:
-			"Create your account in under 3 minutes. Our streamlined KYC process uses your government ID and a selfie to verify your identity securely.",
+			"Secure onboarding using identity verification aligned with AML/KYC standards. Approval timelines may vary based on compliance review.",
 		details: [
-			"Phone number registration",
-			"Government ID scan via camera",
-			"AI-powered selfie verification",
-			"Instant or same-day approval",
+			"Phone-based registration",
+			"Government ID verification",
+			"Biometric confirmation",
+			"Tiered limits based on verification level",
 		],
 	},
 	{
 		icon: Wallet,
 		number: "03",
-		title: "Add Funds",
+		title: "Fund via Licensed Partner",
 		description:
-			"Load your wallet through multiple channels: bank transfer, K-Agent cash deposit, mobile money, or receive funds from the diaspora.",
+			"Users may fund wallets through authorized financial and distribution partners. Availability may vary by region and regulatory approval.",
 		details: [
-			"Bank transfer from any Haitian bank",
-			"Cash deposit at 5,000+ K-Agent locations",
-			"Mobile money interoperability",
-			"International remittance from 15+ countries",
+			"Bank transfer (via partner institutions)",
+			"Authorized K-Agent cash-in",
+			"Wallet-to-wallet transfers",
+			"Diaspora funding through licensed payment corridors",
 		],
 	},
 	{
 		icon: CreditCard,
 		number: "04",
-		title: "Start Paying",
+		title: "Pay, Transfer, or Withdraw",
 		description:
-			"Pay merchants with QR codes, send money to anyone with a phone number, pay bills, or use your K-Card at any Visa-accepting location worldwide.",
+			"KobKlein enables secure digital transactions within its ecosystem. Future card-based purchasing is subject to licensed partner approval.",
 		details: [
-			"QR code payments at local merchants",
-			"Instant peer-to-peer transfers",
-			"Bill payment for utilities and services",
-			"K-Card for online and international purchases",
+			"QR-based merchant payments",
+			"Instant wallet-to-wallet transfers",
+			"Authorized cash-out via K-Agents",
+			"K-Card online purchasing (subject to partner approval)",
 		],
 	},
 ];
@@ -136,11 +136,11 @@ const userTypes = [
 		icon: Globe,
 		title: "Diaspora",
 		description:
-			"Send money home to Haiti instantly with the lowest fees in the market. Your family receives funds directly in their KobKlein wallet, ready to spend or withdraw.",
+			"Send structured support to family in Haiti through licensed payment channels. Transparent pricing displayed before confirmation. Near real-time wallet delivery, subject to verification and partner processing.",
 		features: [
-			"Low remittance fees",
-			"Real-time delivery",
-			"Exchange rate lock",
+			"Transparent fee structure",
+			"Near real-time delivery",
+			"FX rate shown before confirmation",
 			"Scheduled transfers",
 		],
 	},
@@ -148,24 +148,24 @@ const userTypes = [
 		icon: Store,
 		title: "Merchants",
 		description:
-			"Accept digital payments with zero hardware investment. Generate QR codes, track sales in real time, and receive next-day settlement to your bank account.",
+			"Accept digital payments with no expensive hardware. Generate QR codes, track sales in real time, and receive structured settlement to your KobKlein wallet.",
 		features: [
 			"QR code acceptance",
-			"Sales analytics",
-			"Inventory tools",
-			"Staff accounts",
+			"Transaction reporting",
+			"Merchant dashboard",
+			"Structured settlement",
 		],
 	},
 	{
 		icon: MapPin,
-		title: "K-Agents",
+		title: "Authorized K-Agents",
 		description:
-			"Become a KobKlein distribution partner and earn commissions on every cash-in, cash-out, and registration you facilitate. Join our network of 5,000+ agents.",
+			"Become an authorized KobKlein distribution partner and earn commissions on managed cash-in and cash-out transactions within your community.",
 		features: [
 			"Commission earnings",
 			"Agent dashboard",
-			"Training & support",
-			"Territory exclusivity",
+			"Compliance training",
+			"Float management tools",
 		],
 	},
 ];
@@ -187,7 +187,7 @@ const techFeatures = [
 		icon: FileCheck,
 		title: "Regulatory Compliance",
 		description:
-			"Licensed by the Banque de la R\u00e9publique d\u2019Ha\u00efti. Fully compliant with AML/CFT regulations, KYC standards, and international data protection laws.",
+			"KobKlein operates under a partner-based financial services model designed to align with applicable regulatory frameworks. AML/KYC procedures are integrated throughout the platform.",
 	},
 	{
 		icon: Shield,
@@ -439,7 +439,7 @@ export default function HowItWorksPage() {
 							</span>
 						</h2>
 						<p className="mt-4 text-kob-body max-w-xl mx-auto">
-							Bank-grade security infrastructure protecting every
+							Enterprise-level security architecture protecting every
 							transaction, every account, every day.
 						</p>
 						<div className="mt-6 mx-auto w-24 h-0.5 bg-gradient-to-r from-transparent via-kob-gold to-transparent" />
@@ -517,9 +517,9 @@ export default function HowItWorksPage() {
 							</h2>
 							<div className="mt-2 mb-6 mx-auto w-24 h-0.5 bg-gradient-to-r from-transparent via-kob-gold to-transparent" />
 							<p className="text-kob-body max-w-xl mx-auto mb-10">
-								Download KobKlein today and join hundreds of
-								thousands of Haitians building a better
-								financial future.
+								Join the KobKlein pilot program and be part of
+								building Haiti&apos;s digital payment infrastructure.
+								Simple. Structured. Secure.
 							</p>
 							<div className="flex flex-col sm:flex-row gap-4 justify-center">
 								<a
