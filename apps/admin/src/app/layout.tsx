@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Auth0Provider } from "@auth0/nextjs-auth0";
-import { auth0 } from "@/lib/auth0";
+import { createAdminServerClient } from "@/lib/supabase-server";
+import { resolveAdminRole } from "@/lib/admin-role";
 import { Shell } from "@/components/shell/shell";
 import { AdminProviders } from "./providers";
+import { SentryInit } from "@/components/sentry-init";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,16 +16,24 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth0.getSession();
+  const supabase = await createAdminServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const adminRole = resolveAdminRole(user as unknown as Record<string, unknown> | undefined);
+  const isAuthenticated = !!user;
 
   return (
     <html lang="en">
       <body>
-        <Auth0Provider user={session?.user}>
-          <AdminProviders>
+        <SentryInit />
+        <AdminProviders role={adminRole}>
+          {isAuthenticated ? (
             <Shell>{children}</Shell>
-          </AdminProviders>
-        </Auth0Provider>
+          ) : (
+            // Auth pages / portal render without the shell chrome
+            <>{children}</>
+          )}
+        </AdminProviders>
       </body>
     </html>
   );

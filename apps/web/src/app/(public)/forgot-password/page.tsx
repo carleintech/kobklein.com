@@ -94,7 +94,7 @@ export default function ForgotPasswordPage() {
                   </p>
                 </div>
 
-                <div className="w-full rounded-xl bg-[#0A1422] border border-white/[0.05] p-4">
+                <div className="w-full rounded-xl bg-[#081510] border border-white/[0.05] p-4">
                   <p className="text-xs text-[#5A6B82] leading-relaxed">
                     Didn't receive it? Check your spam folder or{" "}
                     <button

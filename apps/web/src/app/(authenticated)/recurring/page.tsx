@@ -65,7 +65,7 @@ function recipientInitials(s: Schedule): string {
 
 const AVATAR_COLORS = [
   ["#C9A84C", "#9F7F2C"],
-  ["#3B82F6", "#1D4ED8"],
+  ["#0D9E8A", "#077A60"],
   ["#10B981", "#059669"],
   ["#8B5CF6", "#7C3AED"],
   ["#F97316", "#EA580C"],
@@ -85,7 +85,7 @@ function daysUntil(dateStr: string): number {
 function StatusPill({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; dot: string; label: string }> = {
     active:   { bg: "bg-[#10B981]/10",  text: "text-[#10B981]", dot: "bg-[#10B981]", label: "Active" },
-    paused:   { bg: "bg-[#F59E0B]/10",  text: "text-[#F59E0B]", dot: "bg-[#F59E0B]", label: "Paused" },
+    paused:   { bg: "bg-[#C9A84C]/10",  text: "text-[#C9A84C]", dot: "bg-[#C9A84C]", label: "Paused" },
     failed:   { bg: "bg-red-500/10",    text: "text-red-400",   dot: "bg-red-400",   label: "Failed" },
     canceled: { bg: "bg-[#3A4558]/40",  text: "text-[#5A6B82]", dot: "bg-[#3A4558]", label: "Canceled" },
   };
@@ -165,7 +165,7 @@ function CancelModal({
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={onCancel}
-            className="h-11 rounded-xl bg-[#162038] border border-white/[0.07] text-sm font-bold text-[#B8BCC8] hover:text-[#F0F1F5] transition-all"
+            className="h-11 rounded-xl bg-[#0D2018] border border-white/[0.07] text-sm font-bold text-[#B8BCC8] hover:text-[#F0F1F5] transition-all"
           >
             Keep It
           </button>
@@ -208,7 +208,7 @@ function ScheduleCard({
         isCanceled ? "opacity-50" : ""
       }`}
       style={{
-        background: "#0E1829",
+        background: "#091C14",
         borderColor: s.status === "active" ? "rgba(16,185,129,0.12)" : "rgba(255,255,255,0.06)",
       }}
     >
@@ -259,7 +259,7 @@ function ScheduleCard({
 
         {/* Next run banner */}
         {s.status === "active" && s.nextRunAt && days !== null && (
-          <div className="mt-3 rounded-xl bg-[#162038] border border-white/[0.05] px-3 py-2 flex items-center justify-between">
+          <div className="mt-3 rounded-xl bg-[#0D2018] border border-white/[0.05] px-3 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-[#7A8394]">
               <Clock className="h-3.5 w-3.5 text-[#C9A84C]" />
               Next transfer
@@ -270,8 +270,8 @@ function ScheduleCard({
               </span>
               <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
                 days <= 1 ? "bg-[#C9A84C]/15 text-[#C9A84C]" :
-                days <= 3 ? "bg-[#F59E0B]/15 text-[#F59E0B]" :
-                "bg-[#162038] text-[#5A6B82]"
+                days <= 3 ? "bg-[#C9A84C]/15 text-[#C9A84C]" :
+                "bg-[#0D2018] text-[#5A6B82]"
               }`}>
                 {days === 0 ? "Today!" : days === 1 ? "Tomorrow" : `${days}d`}
               </span>
@@ -294,7 +294,7 @@ function ScheduleCard({
               <button
                 onClick={() => onPause(s.id)}
                 disabled={loading}
-                className="flex-1 h-9 rounded-xl bg-[#162038] border border-white/[0.06] text-xs font-bold text-[#7A8394] hover:text-[#B8BCC8] hover:bg-[#1A2640] transition-all flex items-center justify-center gap-1.5"
+                className="flex-1 h-9 rounded-xl bg-[#0D2018] border border-white/[0.06] text-xs font-bold text-[#7A8394] hover:text-[#B8BCC8] hover:bg-[#122A1E] transition-all flex items-center justify-center gap-1.5"
               >
                 {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Pause className="h-3.5 w-3.5" /> Pause</>}
               </button>
@@ -336,13 +336,13 @@ function StatsStrip({ schedules }: { schedules: Schedule[] }) {
   const stats = [
     { label: "Active", value: active.length, icon: CheckCircle2, color: "#10B981" },
     { label: "Monthly est.", value: `$${Math.round(monthlyUsd)}`, icon: TrendingUp, color: "#C9A84C" },
-    { label: "Total", value: schedules.length, icon: Calendar, color: "#3B82F6" },
+    { label: "Total", value: schedules.length, icon: Calendar, color: "#0D9E8A" },
   ];
 
   return (
     <div className="grid grid-cols-3 gap-3">
       {stats.map((s) => (
-        <div key={s.label} className="rounded-2xl bg-[#0E1829] border border-white/[0.06] p-3 text-center">
+        <div key={s.label} className="rounded-2xl bg-[#091C14] border border-white/[0.06] p-3 text-center">
           <s.icon className="h-4 w-4 mx-auto mb-1" style={{ color: s.color }} />
           <div className="text-base font-black text-[#F0F1F5]">{s.value}</div>
           <div className="text-[10px] text-[#5A6B82] mt-0.5">{s.label}</div>
@@ -471,12 +471,12 @@ export default function RecurringPage() {
                   className={`flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-bold transition-all shrink-0 border ${
                     filter === f
                       ? "border-[#C9A84C]/40 bg-[#C9A84C]/10 text-[#C9A84C]"
-                      : "border-white/[0.06] bg-[#0E1829] text-[#5A6B82] hover:text-[#B8BCC8]"
+                      : "border-white/[0.06] bg-[#091C14] text-[#5A6B82] hover:text-[#B8BCC8]"
                   }`}
                 >
                   {f.charAt(0).toUpperCase() + f.slice(1)}
                   <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${
-                    filter === f ? "bg-[#C9A84C]/20" : "bg-[#162038]"
+                    filter === f ? "bg-[#C9A84C]/20" : "bg-[#0D2018]"
                   }`}>{count}</span>
                 </button>
               );

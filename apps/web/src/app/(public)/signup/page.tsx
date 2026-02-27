@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { createBrowserSupabase } from "@/lib/supabase";
+import { trackEvent } from "@/lib/analytics";
 import {
   Eye,
   EyeOff,
@@ -202,6 +203,7 @@ export default function SignupPage() {
         return;
       }
 
+      trackEvent("Signup", { role: selectedRole ?? "client" });
       setStep("success");
     } catch {
       setError("Something went wrong. Please try again.");

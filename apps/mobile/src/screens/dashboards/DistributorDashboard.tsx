@@ -77,7 +77,7 @@ export default function DistributorDashboard() {
       {/* Today's Stats */}
       <View style={styles.statsRow}>
         <Card style={styles.statCard}>
-          <Coins size={18} color={colors.emerald} />
+          <Coins size={18} color={colors.gold} />
           <Text style={styles.statValue}>
             {formatCurrency(summary.todayCommissions, "HTG")}
           </Text>
@@ -97,10 +97,10 @@ export default function DistributorDashboard() {
 
       {[
         {
-          icon: <ArrowDownToLine size={20} color={colors.emerald} />,
+          icon: <ArrowDownToLine size={20} color={colors.gold} />,
           label: i18n.t("distributor.cashIn"),
           sub: "Deposit cash for customers",
-          color: colors.emerald,
+          color: colors.gold,
           route: "/distributor/cash-in" as const,
         },
         {

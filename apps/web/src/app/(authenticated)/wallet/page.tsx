@@ -8,9 +8,9 @@ import { kkPost } from "@/lib/kobklein-api";
 import { useToast } from "@kobklein/ui";
 import {
   ArrowDownLeft, ArrowUpRight, Banknote, RefreshCw,
-  Send, QrCode, CreditCard, Eye, EyeOff, TrendingUp,
+  Send, QrCode, Eye, EyeOff, TrendingUp,
   TrendingDown, Shield, Lock, ChevronRight, Wallet,
-  ArrowRightLeft, Clock, Filter, Search, Wifi,
+  Clock, Filter, Search, Wifi,
   Zap,
 } from "lucide-react";
 import {
@@ -57,18 +57,14 @@ function timeAgo(d: string) {
   return new Date(d).toLocaleDateString("fr-HT", { day: "numeric", month: "short" });
 }
 
-function shortDate(d: string) {
-  return new Date(d).toLocaleDateString("fr-HT", { day: "numeric", month: "short" });
-}
-
 const TX_CONFIG: Record<string, {
   label: string; icon: typeof Send;
-  gradient: string; textColor: string; sign: "+" | "-"; bgDot: string;
+  textColor: string; sign: "+" | "-"; bgDot: string;
 }> = {
-  deposit:           { label: "Deposit",   icon: ArrowDownLeft,  gradient: "from-emerald-500/20 to-emerald-500/5",  textColor: "#22C55E", sign: "+", bgDot: "bg-emerald-500/20" },
-  transfer_sent:     { label: "Sent",      icon: ArrowUpRight,   gradient: "from-rose-500/20   to-rose-500/5",      textColor: "#F43F5E", sign: "-", bgDot: "bg-rose-500/20"    },
-  transfer_received: { label: "Received",  icon: ArrowDownLeft,  gradient: "from-emerald-500/20 to-emerald-500/5", textColor: "#22C55E", sign: "+", bgDot: "bg-emerald-500/20" },
-  withdrawal:        { label: "Cash Out",  icon: Banknote,       gradient: "from-amber-500/20  to-amber-500/5",     textColor: "#F59E0B", sign: "-", bgDot: "bg-amber-500/20"   },
+  deposit:           { label: "Deposit",   icon: ArrowDownLeft,  textColor: "#16C784", sign: "+", bgDot: "rgba(22,199,132,0.12)"  },
+  transfer_sent:     { label: "Sent",      icon: ArrowUpRight,   textColor: "#FF74D4", sign: "-", bgDot: "rgba(255,116,212,0.12)" },
+  transfer_received: { label: "Received",  icon: ArrowDownLeft,  textColor: "#16C784", sign: "+", bgDot: "rgba(22,199,132,0.12)"  },
+  withdrawal:        { label: "Cash Out",  icon: Banknote,       textColor: "#D4AF37", sign: "-", bgDot: "rgba(212,175,55,0.12)"  },
 };
 
 // Build sparkline data from timeline (last 14 days)
@@ -120,17 +116,13 @@ function AnimatedBalance({ value, hidden }: { value: number; hidden: boolean }) 
 
   if (hidden) {
     return (
-      <span className="tracking-[0.3em] text-[#4A5A72]">
+      <span className="tracking-[0.3em]" style={{ color: "var(--dash-text-faint, #6E558B)" }}>
         ••••••••
       </span>
     );
   }
 
-  return (
-    <span>
-      {fmtHTG(displayed)}
-    </span>
-  );
+  return <span>{fmtHTG(displayed)}</span>;
 }
 
 // ─── Custom tooltip for chart ─────────────────────────────────────────────────
@@ -138,9 +130,10 @@ function AnimatedBalance({ value, hidden }: { value: number; hidden: boolean }) 
 function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[#0E2018] border border-[#0D9E8A]/20 rounded-xl px-3 py-2 shadow-2xl">
-      <p className="text-[10px] text-[#5A6B82] mb-0.5">{label}</p>
-      <p className="text-sm font-bold text-[#C9A84C]">
+    <div className="rounded-xl px-3 py-2 shadow-2xl"
+         style={{ background: "var(--dash-shell-bg, #1C0A35)", border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.28))" }}>
+      <p className="text-[10px] mb-0.5" style={{ color: "var(--dash-text-faint, #6E558B)" }}>{label}</p>
+      <p className="text-sm font-bold" style={{ color: "var(--dash-accent, #D4AF37)" }}>
         {fmtHTG(payload[0].value)} HTG
       </p>
     </div>
@@ -150,26 +143,29 @@ function ChartTooltip({ active, payload, label }: any) {
 // ─── Quick action button ──────────────────────────────────────────────────────
 
 function QuickAction({
-  icon: Icon, label, gradient, onClick,
+  icon: Icon, label, accentColor, onClick,
 }: {
-  icon: typeof Send; label: string; gradient: string; onClick?: () => void;
+  icon: typeof Send; label: string; accentColor?: string; onClick?: () => void;
 }) {
+  const color = accentColor ?? "var(--dash-accent, #D4AF37)";
   return (
     <motion.button
-      whileHover={{ scale: 1.05, y: -2 }}
+      whileHover={{ scale: 1.06, y: -2 }}
       whileTap={{ scale: 0.97 }}
       onClick={onClick}
       className="flex flex-col items-center gap-2 group"
     >
       <div
-        className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gradient}
-                    flex items-center justify-center
-                    border border-[#0D9E8A]/[0.20] shadow-lg
-                    group-hover:border-[#0D9E8A]/[0.30] transition-all duration-200`}
+        className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-200"
+        style={{
+          background: `${color}18`,
+          border: `1px solid ${color}30`,
+        }}
       >
-        <Icon className="h-5 w-5 text-[#E0E4EE]" />
+        <Icon className="h-5 w-5 transition-colors" style={{ color }} />
       </div>
-      <span className="text-[10px] font-semibold text-[#4A5A72] group-hover:text-[#B0BBCC] transition-colors">
+      <span className="text-[10px] font-semibold transition-colors"
+            style={{ color: "var(--dash-text-faint, #6E558B)" }}>
         {label}
       </span>
     </motion.button>
@@ -181,48 +177,55 @@ function QuickAction({
 function TxRow({ item, index }: { item: TimelineItem; index: number }) {
   const cfg = TX_CONFIG[item.type] ?? TX_CONFIG.deposit;
   const Icon = cfg.icon;
-  const isPos = cfg.sign === "+";
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.04, duration: 0.3 }}
-      className="group flex items-center gap-3 px-4 py-3
-                 hover:bg-[#122B22] rounded-xl transition-colors cursor-pointer"
+      className="group flex items-center gap-3 px-4 py-3 rounded-xl transition-colors cursor-pointer"
+      style={{ ["--hover-bg" as string]: "var(--dash-shell-bg, #1C0A35)" }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--dash-shell-bg, #1C0A35)")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >
       {/* Icon dot */}
-      <div className={`w-10 h-10 rounded-2xl ${cfg.bgDot} border border-[#0D9E8A]/[0.10]
-                       flex items-center justify-center shrink-0`}>
+      <div
+        className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
+        style={{ background: cfg.bgDot, border: `1px solid ${cfg.textColor}20` }}
+      >
         <Icon className="h-4 w-4" style={{ color: cfg.textColor }} />
       </div>
 
       {/* Details */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-[#E0E4EE] truncate">{cfg.label}</span>
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#0E2018] text-[#4A5A72]">
+          <span className="text-sm font-semibold truncate" style={{ color: "var(--dash-text-primary, #E6DBF7)" }}>
+            {cfg.label}
+          </span>
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                style={{ background: "var(--dash-shell-bg, #1C0A35)", color: "var(--dash-text-faint, #6E558B)" }}>
             {item.currency}
           </span>
         </div>
-        <p className="text-xs text-[#5A6B82] truncate mt-0.5">{item.detail || "—"}</p>
+        <p className="text-xs truncate mt-0.5" style={{ color: "var(--dash-text-faint, #6E558B)" }}>
+          {item.detail || "—"}
+        </p>
       </div>
 
       {/* Amount + time */}
       <div className="text-right shrink-0">
-        <p
-          className="text-sm font-bold tabular-nums"
-          style={{ color: cfg.textColor }}
-        >
+        <p className="text-sm font-bold tabular-nums" style={{ color: cfg.textColor }}>
           {cfg.sign}{fmtHTG(item.amount)}
         </p>
-        <p className="text-[10px] text-[#5A6B82] mt-0.5 flex items-center justify-end gap-1">
+        <p className="text-[10px] mt-0.5 flex items-center justify-end gap-1"
+           style={{ color: "var(--dash-text-faint, #6E558B)" }}>
           <Clock className="h-2.5 w-2.5" />
           {timeAgo(item.createdAt)}
         </p>
       </div>
 
-      <ChevronRight className="h-3.5 w-3.5 text-[#4A5A72] group-hover:text-[#4A5A72] transition-colors shrink-0" />
+      <ChevronRight className="h-3.5 w-3.5 shrink-0 transition-colors"
+                    style={{ color: "var(--dash-text-faint, #6E558B)" }} />
     </motion.div>
   );
 }
@@ -231,7 +234,8 @@ function TxRow({ item, index }: { item: TimelineItem; index: number }) {
 
 function Skeleton({ className = "" }: { className?: string }) {
   return (
-    <div className={`rounded-lg bg-[#122B22] animate-pulse ${className}`} />
+    <div className={`rounded-lg animate-pulse ${className}`}
+         style={{ background: "var(--dash-shell-bg, #1C0A35)" }} />
   );
 }
 
@@ -255,7 +259,6 @@ export default function WalletPage() {
     else setRefreshing(true);
     try {
       const bal = await apiGet<{ balances: BalanceInfo[]; totalBalance?: number; availableBalance?: number; heldBalance?: number }>("v1/wallets/balance");
-      // Merge top-level totals into the USER wallet entry
       const enriched = (bal.balances || []).map((b: BalanceInfo) =>
         b.type === "USER"
           ? {
@@ -307,11 +310,9 @@ export default function WalletPage() {
   const available    = mainWallet?.availableBalance ?? totalBalance;
   const held         = mainWallet?.heldBalance ?? 0;
 
-  // Income / expense summary from timeline
   const totalIn  = timeline.filter((t) => TX_CONFIG[t.type]?.sign === "+").reduce((s, t) => s + t.amount, 0);
   const totalOut = timeline.filter((t) => TX_CONFIG[t.type]?.sign === "-").reduce((s, t) => s + t.amount, 0);
 
-  // Filtered + searched timeline
   const filtered = timeline.filter((t) => {
     const matchFilter =
       filter === "all"        ? true :
@@ -343,18 +344,26 @@ export default function WalletPage() {
       {/* ── Page header ─────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[#F0F1F5]">My Wallet</h1>
-          <p className="text-xs text-[#5A6B82] mt-0.5">Manage your funds &amp; activity</p>
+          <h1 className="text-xl font-bold" style={{ color: "var(--dash-accent, #D4AF37)" }}>
+            My Wallet
+          </h1>
+          <p className="text-xs mt-0.5" style={{ color: "var(--dash-text-faint, #6E558B)" }}>
+            Manage your funds &amp; activity
+          </p>
         </div>
         <motion.button
           whileTap={{ rotate: 360 }}
           transition={{ duration: 0.5 }}
           onClick={handleRefresh}
           disabled={refreshing}
-          className="p-2 rounded-xl bg-[#122B22] border border-[#0D9E8A]/[0.12]
-                     hover:bg-[#163528] transition-colors"
+          className="p-2 rounded-xl transition-colors"
+          style={{
+            background: "var(--dash-shell-bg, #1C0A35)",
+            border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.28))",
+          }}
         >
-          <RefreshCw className={`h-4 w-4 text-[#4A5A72] ${refreshing ? "animate-spin" : ""}`} />
+          <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+                     style={{ color: "var(--dash-accent, #D4AF37)" }} />
         </motion.button>
       </div>
 
@@ -372,9 +381,9 @@ export default function WalletPage() {
           className="relative rounded-2xl overflow-hidden select-none"
           style={{
             width: "340px",
-            aspectRatio: "1.586 / 1",   /* standard credit-card ratio */
-            background: "linear-gradient(135deg, #062820 0%, #0A3028 30%, #0D9E8A 65%, #0B7A6A 80%, #062820 100%)",
-            boxShadow: "0 32px 80px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(13,158,138,0.30), 0 0 60px -20px rgba(13,158,138,0.35), inset 0 1px 0 rgba(255,255,255,0.08)",
+            aspectRatio: "1.586 / 1",
+            background: "linear-gradient(135deg, #1C0A35 0%, #2E1060 30%, #D4AF37 65%, #F0D060 80%, #1C0A35 100%)",
+            boxShadow: "0 32px 80px -12px rgba(0,0,0,0.75), 0 0 0 1px rgba(212,175,55,0.30), 0 0 60px -20px rgba(212,175,55,0.40), inset 0 1px 0 rgba(255,255,255,0.08)",
           }}
         >
           {/* ── Noise texture overlay ── */}
@@ -383,21 +392,20 @@ export default function WalletPage() {
 
           {/* ── Holographic shimmer diagonal ── */}
           <div className="absolute inset-0 pointer-events-none"
-               style={{ background: "linear-gradient(125deg, transparent 20%, rgba(255,255,255,0.06) 40%, rgba(201,168,76,0.08) 50%, rgba(255,255,255,0.04) 60%, transparent 80%)" }} />
+               style={{ background: "linear-gradient(125deg, transparent 20%, rgba(255,255,255,0.06) 40%, rgba(212,175,55,0.10) 50%, rgba(255,255,255,0.04) 60%, transparent 80%)" }} />
 
           {/* ── Top glow arc ── */}
           <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full pointer-events-none"
-               style={{ background: "radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 65%)" }} />
+               style={{ background: "radial-gradient(circle, rgba(212,175,55,0.22) 0%, transparent 65%)" }} />
 
-          {/* ── Bottom left teal glow ── */}
+          {/* ── Bottom left purple glow ── */}
           <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full pointer-events-none"
-               style={{ background: "radial-gradient(circle, rgba(13,158,138,0.20) 0%, transparent 65%)" }} />
+               style={{ background: "radial-gradient(circle, rgba(138,80,200,0.25) 0%, transparent 65%)" }} />
 
           <div className="relative z-10 h-full flex flex-col justify-between p-4">
 
             {/* ── ROW 1: Brand + Contactless + Hide ── */}
             <div className="flex items-start justify-between">
-              {/* Brand */}
               <div className="flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/images/logos/logo.png" alt="KobKlein" className="w-5 h-5 rounded-md object-contain" />
@@ -407,14 +415,13 @@ export default function WalletPage() {
                 </span>
               </div>
 
-              {/* Right: contactless + hide + live */}
               <div className="flex items-center gap-2.5">
-                {/* Contactless icon */}
                 <Wifi className="h-4 w-4 text-white/40 rotate-90" />
                 {/* Live pill */}
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-[9px] font-black text-emerald-400 tracking-widest">LIVE</span>
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full"
+                     style={{ background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.30)" }}>
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
+                  <span className="text-[9px] font-black tracking-widest text-[#D4AF37]">LIVE</span>
                 </div>
                 {/* Hide/show */}
                 <motion.button
@@ -435,10 +442,9 @@ export default function WalletPage() {
               {/* EMV Chip */}
               <div className="w-8 h-6 rounded-md shrink-0"
                    style={{
-                     background: "linear-gradient(135deg, #C9A84C 0%, #E2CA6E 40%, #9F7F2C 70%, #C9A84C 100%)",
+                     background: "linear-gradient(135deg, #D4AF37 0%, #F0D060 40%, #9F7F2C 70%, #D4AF37 100%)",
                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.3)",
                    }}>
-                {/* Chip lines */}
                 <div className="w-full h-full grid grid-rows-3 gap-px p-1 opacity-40">
                   <div className="bg-[#9F7F2C] rounded-sm" />
                   <div className="grid grid-cols-3 gap-px">
@@ -465,10 +471,10 @@ export default function WalletPage() {
                     className="flex items-end gap-1.5 justify-end"
                   >
                     <span className="text-2xl font-black tabular-nums leading-none text-white"
-                          style={{ textShadow: "0 0 30px rgba(201,168,76,0.35)" }}>
+                          style={{ textShadow: "0 0 30px rgba(212,175,55,0.40)" }}>
                       <AnimatedBalance value={totalBalance} hidden={hidden} />
                     </span>
-                    <span className="text-sm font-bold text-[#C9A84C] mb-0.5">HTG</span>
+                    <span className="text-sm font-bold text-[#D4AF37] mb-0.5">HTG</span>
                   </motion.div>
                 )}
               </div>
@@ -476,18 +482,16 @@ export default function WalletPage() {
 
             {/* ── ROW 3: Card number + Available/Held ── */}
             <div className="flex items-end justify-between">
-              {/* Card number */}
               <div>
                 <p className="text-[11px] font-mono font-bold text-white/30 tracking-[0.22em] mb-1">
                   {mainWallet?.walletId
                     ? `•••• •••• •••• ${mainWallet.walletId.slice(-4)}`
                     : "•••• •••• •••• ••••"}
                 </p>
-                {/* Available + held */}
                 <div className="flex items-center gap-3">
                   <div>
                     <p className="text-[8px] text-white/30 uppercase tracking-widest">Available</p>
-                    <p className="text-xs font-bold text-emerald-300">
+                    <p className="text-xs font-bold text-[#D4AF37]">
                       {hidden ? "••••" : `${fmtHTG(available)}`}
                     </p>
                   </div>
@@ -496,7 +500,7 @@ export default function WalletPage() {
                       <div className="w-px h-5 bg-white/10" />
                       <div>
                         <p className="text-[8px] text-white/30 uppercase tracking-widest">On Hold</p>
-                        <p className="text-xs font-bold text-amber-300">
+                        <p className="text-xs font-bold text-[#A596C9]">
                           {hidden ? "••••" : `${fmtHTG(held)}`}
                         </p>
                       </div>
@@ -505,12 +509,12 @@ export default function WalletPage() {
                 </div>
               </div>
 
-              {/* Network logo — two overlapping circles like Mastercard */}
+              {/* Network logo — two overlapping circles */}
               <div className="flex items-center shrink-0">
                 <div className="w-5 h-5 rounded-full opacity-80"
-                     style={{ background: "#C9A84C", marginRight: "-7px" }} />
+                     style={{ background: "#D4AF37", marginRight: "-7px" }} />
                 <div className="w-5 h-5 rounded-full opacity-60"
-                     style={{ background: "#0D9E8A" }} />
+                     style={{ background: "#8A50C8" }} />
               </div>
             </div>
           </div>
@@ -523,20 +527,24 @@ export default function WalletPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="h-14 rounded-2xl overflow-hidden border border-[#0D9E8A]/[0.12] bg-[#0B1A16]"
+          className="h-14 rounded-2xl overflow-hidden"
+          style={{
+            background: "var(--dash-shell-bg, #1C0A35)",
+            border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.20))",
+          }}
         >
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={sparkline} margin={{ top: 4, bottom: 0, left: 0, right: 0 }}>
               <defs>
                 <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#C9A84C" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#C9A84C" stopOpacity={0}   />
+                  <stop offset="5%"  stopColor="#D4AF37" stopOpacity={0.30} />
+                  <stop offset="95%" stopColor="#D4AF37" stopOpacity={0}   />
                 </linearGradient>
               </defs>
               <XAxis dataKey="label" hide />
               <YAxis hide />
               <Tooltip content={<ChartTooltip />} />
-              <Area type="monotone" dataKey="value" stroke="#C9A84C" strokeWidth={1.5}
+              <Area type="monotone" dataKey="value" stroke="#D4AF37" strokeWidth={1.5}
                     fill="url(#goldGrad)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
@@ -545,10 +553,10 @@ export default function WalletPage() {
 
       {/* ── Quick actions ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-4 gap-3">
-        <QuickAction icon={Send}           label="Send"    gradient="from-blue-500/30 to-blue-600/20"     onClick={() => router.push("/send")} />
-        <QuickAction icon={ArrowRightLeft} label="Request" gradient="from-purple-500/30 to-purple-600/20" onClick={() => router.push("/recurring/create")} />
-        <QuickAction icon={QrCode}         label="K-Scan"  gradient="from-teal-500/30 to-teal-600/20"     onClick={() => router.push("/pay")} />
-        <QuickAction icon={CreditCard}     label="K-Card"  gradient="from-[#C9A84C]/30 to-[#9F7F2C]/20" />
+        <QuickAction icon={Send}          label="Send"     accentColor="#D4AF37"  onClick={() => router.push("/send")} />
+        <QuickAction icon={ArrowDownLeft} label="Refill"   accentColor="#16C784"  onClick={() => router.push("/wallet/refill")} />
+        <QuickAction icon={Banknote}      label="Cash Out" accentColor="#D4AF37"  onClick={() => router.push("/wallet/cashout")} />
+        <QuickAction icon={QrCode}        label="K-Scan"   accentColor="#A596C9"  onClick={() => router.push("/pay")} />
       </div>
 
       {/* ── Stats row ─────────────────────────────────────────────────────────── */}
@@ -558,16 +566,20 @@ export default function WalletPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-2xl p-4 border border-emerald-500/10"
-          style={{ background: "linear-gradient(135deg, rgba(34,197,94,0.08) 0%, rgba(34,197,94,0.03) 100%)" }}
+          className="rounded-2xl p-4"
+          style={{
+            background: "linear-gradient(135deg, rgba(22,199,132,0.08) 0%, rgba(22,199,132,0.03) 100%)",
+            border: "1px solid rgba(22,199,132,0.15)",
+          }}
         >
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-              <TrendingUp className="h-3 w-3 text-emerald-400" />
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center"
+                 style={{ background: "rgba(22,199,132,0.15)" }}>
+              <TrendingUp className="h-3 w-3 text-[#16C784]" />
             </div>
-            <span className="text-[10px] font-bold text-emerald-400/70 uppercase tracking-wider">Money In</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#16C784]">Money In</span>
           </div>
-          <p className="text-base font-black text-emerald-400 tabular-nums">
+          <p className="text-base font-black tabular-nums text-[#16C784]">
             {hidden ? "••••" : `${fmtHTG(totalIn)}`}
             <span className="text-[10px] ml-1 font-medium opacity-60">HTG</span>
           </p>
@@ -578,16 +590,20 @@ export default function WalletPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="rounded-2xl p-4 border border-rose-500/10"
-          style={{ background: "linear-gradient(135deg, rgba(244,63,94,0.08) 0%, rgba(244,63,94,0.03) 100%)" }}
+          className="rounded-2xl p-4"
+          style={{
+            background: "linear-gradient(135deg, rgba(255,116,212,0.08) 0%, rgba(255,116,212,0.03) 100%)",
+            border: "1px solid rgba(255,116,212,0.15)",
+          }}
         >
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg bg-rose-500/15 flex items-center justify-center">
-              <TrendingDown className="h-3 w-3 text-rose-400" />
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center"
+                 style={{ background: "rgba(255,116,212,0.15)" }}>
+              <TrendingDown className="h-3 w-3 text-[#FF74D4]" />
             </div>
-            <span className="text-[10px] font-bold text-rose-400/70 uppercase tracking-wider">Money Out</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF74D4]">Money Out</span>
           </div>
-          <p className="text-base font-black text-rose-400 tabular-nums">
+          <p className="text-base font-black tabular-nums text-[#FF74D4]">
             {hidden ? "••••" : `${fmtHTG(totalOut)}`}
             <span className="text-[10px] ml-1 font-medium opacity-60">HTG</span>
           </p>
@@ -599,23 +615,31 @@ export default function WalletPage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="rounded-3xl overflow-hidden border border-[#0D9E8A]/[0.12]"
-        style={{ background: "linear-gradient(160deg, #0B1A16 0%, #081410 100%)" }}
+        className="rounded-3xl overflow-hidden"
+        style={{
+          background: "linear-gradient(160deg, var(--dash-shell-bg, #1C0A35) 0%, #160830 100%)",
+          border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.20))",
+        }}
       >
         {/* Section header */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-[#0D9E8A]/[0.10]">
+        <div className="flex items-center justify-between px-4 pt-4 pb-3"
+             style={{ borderBottom: "1px solid var(--dash-shell-border, rgba(165,150,201,0.12))" }}>
           <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-[#C9A84C]" />
-            <h2 className="text-sm font-bold text-[#E0E4EE]">Recent Activity</h2>
+            <Zap className="h-4 w-4" style={{ color: "var(--dash-accent, #D4AF37)" }} />
+            <h2 className="text-sm font-bold" style={{ color: "var(--dash-text-primary, #E6DBF7)" }}>
+              Recent Activity
+            </h2>
             {timeline.length > 0 && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#C9A84C]/10 text-[#C9A84C]">
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                    style={{ background: "var(--dash-accent-muted, rgba(212,175,55,0.14))", color: "var(--dash-accent, #D4AF37)" }}>
                 {timeline.length}
               </span>
             )}
           </div>
           <button
             onClick={() => {}}
-            className="flex items-center gap-1 text-[10px] text-[#5A6B82] hover:text-[#7A8394] transition-colors"
+            className="flex items-center gap-1 text-[10px] transition-colors"
+            style={{ color: "var(--dash-text-faint, #6E558B)" }}
           >
             <Filter className="h-3 w-3" />
             Filter
@@ -623,32 +647,37 @@ export default function WalletPage() {
         </div>
 
         {/* Search bar */}
-        <div className="px-4 py-3 border-b border-[#0D9E8A]/[0.10]">
-          <div className="flex items-center gap-2 bg-[#0B1A16] border border-[#0D9E8A]/[0.15]
-                          rounded-xl px-3 h-9 focus-within:border-[#C9A84C]/30 transition-all">
-            <Search className="h-3.5 w-3.5 text-[#5A6B82] shrink-0" />
+        <div className="px-4 py-3"
+             style={{ borderBottom: "1px solid var(--dash-shell-border, rgba(165,150,201,0.12))" }}>
+          <div className="flex items-center gap-2 rounded-xl px-3 h-9 transition-all"
+               style={{
+                 background: "var(--dash-page-bg, #240E3C)",
+                 border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.20))",
+               }}>
+            <Search className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--dash-text-faint, #6E558B)" }} />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search transactions…"
-              className="flex-1 bg-transparent text-sm text-[#E0E4EE] placeholder-[#3A4A60]
-                         outline-none border-none text-xs"
+              className="flex-1 bg-transparent text-xs outline-none border-none"
+              style={{ color: "var(--dash-text-primary, #E6DBF7)" }}
             />
           </div>
         </div>
 
         {/* Filter chips */}
-        <div className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto scrollbar-none border-b border-[#0D9E8A]/[0.10]">
+        <div className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto scrollbar-none"
+             style={{ borderBottom: "1px solid var(--dash-shell-border, rgba(165,150,201,0.12))" }}>
           {FILTERS.map((f) => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`shrink-0 text-[10px] font-bold px-3 py-1.5 rounded-full transition-all duration-150
-                ${filter === f.key
-                  ? "bg-[#C9A84C] text-[#060D1F]"
-                  : "bg-[#122B22] text-[#4A5A72] hover:bg-[#163528] hover:text-[#B0BBCC]"
-                }`}
+              className="shrink-0 text-[10px] font-bold px-3 py-1.5 rounded-full transition-all duration-150"
+              style={filter === f.key
+                ? { background: "var(--dash-accent, #D4AF37)", color: "#0D0520" }
+                : { background: "var(--dash-page-bg, #240E3C)", color: "var(--dash-text-muted, #A596C9)", border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.18))" }
+              }
             >
               {f.label}
             </button>
@@ -656,7 +685,7 @@ export default function WalletPage() {
         </div>
 
         {/* Transaction list */}
-        <div className="divide-y divide-[#0D9E8A]/[0.06]">
+        <div style={{ ["--divider" as string]: "var(--dash-shell-border, rgba(165,150,201,0.10))" }}>
           {loading ? (
             <div className="p-4 space-y-3">
               {[1,2,3,4].map((i) => (
@@ -676,12 +705,16 @@ export default function WalletPage() {
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center py-16 gap-3"
             >
-              <div className="w-14 h-14 rounded-2xl bg-[#122B22] border border-[#0D9E8A]/[0.12]
-                              flex items-center justify-center">
-                <Wallet className="h-6 w-6 text-[#4A5A72]" />
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                   style={{ background: "var(--dash-page-bg, #240E3C)", border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.20))" }}>
+                <Wallet className="h-6 w-6" style={{ color: "var(--dash-text-faint, #6E558B)" }} />
               </div>
-              <p className="text-sm text-[#5A6B82] font-medium">No transactions yet</p>
-              <p className="text-xs text-[#4A5A72]">Your activity will appear here</p>
+              <p className="text-sm font-medium" style={{ color: "var(--dash-text-muted, #A596C9)" }}>
+                No transactions yet
+              </p>
+              <p className="text-xs" style={{ color: "var(--dash-text-faint, #6E558B)" }}>
+                Your activity will appear here
+              </p>
             </motion.div>
           ) : (
             <AnimatePresence>
@@ -693,8 +726,10 @@ export default function WalletPage() {
         </div>
 
         {filtered.length > 30 && (
-          <div className="px-4 py-3 border-t border-[#0D9E8A]/[0.10] text-center">
-            <button className="text-xs text-[#C9A84C] hover:text-[#E2CA6E] font-semibold transition-colors">
+          <div className="px-4 py-3 text-center"
+               style={{ borderTop: "1px solid var(--dash-shell-border, rgba(165,150,201,0.12))" }}>
+            <button className="text-xs font-semibold transition-colors"
+                    style={{ color: "var(--dash-accent, #D4AF37)" }}>
               View all {filtered.length} transactions
             </button>
           </div>
@@ -706,17 +741,25 @@ export default function WalletPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="rounded-2xl border border-red-500/10 overflow-hidden"
-        style={{ background: "linear-gradient(135deg, rgba(239,68,68,0.06) 0%, rgba(239,68,68,0.02) 100%)" }}
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, rgba(239,68,68,0.07) 0%, rgba(239,68,68,0.02) 100%)",
+          border: "1px solid rgba(239,68,68,0.15)",
+        }}
       >
         <div className="p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                 style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.20)" }}>
               <Shield className="h-4 w-4 text-red-400" />
             </div>
             <div>
-              <p className="text-sm font-bold text-[#E0E4EE]">Emergency Lock</p>
-              <p className="text-[10px] text-[#5A6B82]">Freeze your account instantly if compromised</p>
+              <p className="text-sm font-bold" style={{ color: "var(--dash-text-primary, #E6DBF7)" }}>
+                Emergency Lock
+              </p>
+              <p className="text-[10px]" style={{ color: "var(--dash-text-faint, #6E558B)" }}>
+                Freeze your account instantly if compromised
+              </p>
             </div>
           </div>
           <motion.button
@@ -725,10 +768,12 @@ export default function WalletPage() {
             onClick={lockAccount}
             disabled={locking}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl
-                       bg-red-500/10 border border-red-500/20
-                       hover:bg-red-500/20 hover:border-red-500/30
                        text-red-400 text-sm font-bold
                        transition-all duration-200 disabled:opacity-50"
+            style={{
+              background: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(239,68,68,0.22)",
+            }}
           >
             <Lock className="h-4 w-4" />
             {locking ? "Locking…" : "Lock My Account"}
@@ -739,6 +784,3 @@ export default function WalletPage() {
     </div>
   );
 }
-
-
-

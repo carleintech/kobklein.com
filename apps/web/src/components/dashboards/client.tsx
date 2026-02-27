@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -216,6 +216,7 @@ export function ClientDashboard({ profile }: Props) {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+
   // ── Animated count-up ────────────────────────────────────────────────────
   useEffect(() => {
     if (!balance) return;
@@ -299,7 +300,7 @@ export function ClientDashboard({ profile }: Props) {
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-dashboard="client">
 
       {/* ══════════════════════════════════════════════
           1. GREETING HEADER
@@ -494,7 +495,7 @@ export function ClientDashboard({ profile }: Props) {
               { label: t("send.title"),  icon: Send,          href: "/send",           gradient: "from-[#C9A84C] to-[#9F7F2C]", glow: "#C9A84C" },
               { label: "Request",       icon: ArrowDownLeft, href: "/recurring/create",gradient: "from-[#3B82F6] to-[#1D4ED8]", glow: "#3B82F6" },
               { label: t("pay.scanQr"), icon: QrCode,        href: "/pay",            gradient: "from-[#8B5CF6] to-[#6D28D9]", glow: "#8B5CF6" },
-              { label: "K-Card",        icon: CreditCard,    href: "/card",           gradient: "from-[#10B981] to-[#059669]", glow: "#10B981" },
+              { label: "K-Card",        icon: CreditCard,    href: "/card",           gradient: "from-[#C9A84C] to-[#321858]", glow: "#C9A84C" },
             ].map((a, i) => (
               <motion.button
                 key={a.label}

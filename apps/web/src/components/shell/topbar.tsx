@@ -13,11 +13,11 @@ import { createBrowserSupabase } from "@/lib/supabase";
 
 // ─── Role display config ───────────────────────────────────────────────────────
 const ROLE_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  client:      { label: "Client",      color: "#C9A84C", bg: "rgba(201,168,76,0.12)" },
-  merchant:    { label: "Merchant",    color: "#3B82F6", bg: "rgba(59,130,246,0.12)" },
-  distributor: { label: "K-Agent",     color: "#10B981", bg: "rgba(16,185,129,0.12)" },
-  diaspora:    { label: "Diaspora",    color: "#8B5CF6", bg: "rgba(139,92,246,0.12)" },
-  admin:       { label: "Admin",       color: "#EF4444", bg: "rgba(239,68,68,0.12)"  },
+  client:      { label: "Client",      color: "#C9A84C", bg: "rgba(201,168,76,0.12)"  },
+  merchant:    { label: "Merchant",    color: "#3B82F6", bg: "rgba(59,130,246,0.12)"  },
+  distributor: { label: "K-Agent",     color: "#C9A84C", bg: "rgba(201,168,76,0.12)"  },
+  diaspora:    { label: "Diaspora",    color: "#D4AF37", bg: "rgba(212,175,55,0.14)"  },
+  admin:       { label: "Admin",       color: "#EF4444", bg: "rgba(239,68,68,0.12)"   },
 };
 
 // ─── Real-time clock ───────────────────────────────────────────────────────────
@@ -83,11 +83,11 @@ export function Topbar({
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 h-14
-                 border-b border-[#0D9E8A]/[0.35]"
+      className="fixed top-0 left-0 right-0 z-50 h-14"
       style={{
-        background: "linear-gradient(135deg, #062820 0%, #071E1A 50%, #061C18 100%)",
-        boxShadow: "0 2px 32px -4px rgba(13,158,138,0.25), 0 1px 0 rgba(13,158,138,0.20)",
+        background: "var(--dash-shell-bg, #071A15)",
+        borderBottom: "1px solid var(--dash-shell-border, rgba(13,158,138,0.35))",
+        boxShadow: "0 2px 32px -4px var(--dash-shell-glow, rgba(13,158,138,0.25)), 0 1px 0 var(--dash-shell-border, rgba(13,158,138,0.20))",
       }}
     >
       {/*
@@ -101,47 +101,32 @@ export function Topbar({
         <Link
           href="/dashboard"
           className="hidden md:flex items-center shrink-0 h-full px-4
-                     border-r border-[#0D9E8A]/[0.20]
-                     transition-[width] duration-300 ease-in-out
-                     hover:bg-[#0D9E8A]/[0.06] group"
-          style={{ width: sidebarWidth }}
+                     transition-[width] duration-300 ease-in-out group"
+          style={{ width: sidebarWidth, borderRight: "1px solid var(--dash-shell-border, rgba(13,158,138,0.20))" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/logos/logo.png"
+            src="/images/logos/kobklein-logo.png"
             alt="KobKlein"
-            width={32}
-            height={32}
+            width={128}
+            height={128}
             className="object-contain rounded-lg shrink-0 group-hover:scale-105 transition-transform duration-200"
           />
           {/* Only show wordmark when sidebar is expanded (sidebarWidth > 64) */}
-          {sidebarWidth > 64 && (
-            <span
-              className="ml-2.5 text-sm font-bold text-[#F0F1F5] tracking-wide whitespace-nowrap
-                         transition-opacity duration-200"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              KobKlein
-            </span>
-          )}
+          {/* Removed KobKlein text for cleaner logo-only look */}
         </Link>
 
         {/* ── Mobile logo (no sidebar on mobile) ──────────────────────────── */}
         <Link href="/dashboard" className="md:hidden flex items-center gap-2 px-4 shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/logos/logo.png"
+            src="/images/logos/kobklein-logo.png"
             alt="KobKlein"
-            width={28}
-            height={28}
+            width={112}
+            height={112}
             className="object-contain rounded-lg"
           />
-          <span
-            className="text-sm font-bold text-[#F0F1F5] tracking-wide"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            KobKlein
-          </span>
+          {/* Removed KobKlein text for cleaner logo-only look */}
         </Link>
 
         {/* ── ZONE 2: Search + Clock ───────────────────────────────────────── */}
@@ -199,12 +184,14 @@ export function Topbar({
             href="/notifications"
             className="relative p-2 rounded-xl hover:bg-white/[0.05] transition-colors group"
           >
-            <Bell className="h-[18px] w-[18px] text-[#4A5A72] group-hover:text-[#C9A84C] transition-colors" />
+            <Bell className="h-[18px] w-[18px] transition-colors"
+                  style={{ color: "var(--dash-text-faint, #4A5A72)" }} />
             {unreadCount > 0 && (
               <span className="absolute top-1 right-1 flex items-center justify-center
                                min-w-[16px] h-[16px] px-0.5 rounded-full
-                               bg-[#C9A84C] text-[#060D1F] text-[8px] font-black leading-none
-                               shadow-lg shadow-[#C9A84C]/30">
+                               text-[8px] font-black leading-none"
+                    style={{ background: "var(--dash-accent, #C9A84C)", color: "#060D1F",
+                             boxShadow: "0 2px 8px var(--dash-accent-muted, rgba(201,168,76,0.30))" }}>
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
@@ -228,9 +215,10 @@ export function Topbar({
                   className="w-7 h-7 rounded-full object-cover ring-2 ring-[#C9A84C]/30 shrink-0"
                 />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#C9A84C]/50 to-[#9F7F2C]/30
-                                flex items-center justify-center text-[11px] font-black text-[#C9A84C]
-                                ring-2 ring-[#C9A84C]/20 shrink-0">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black shrink-0"
+                     style={{ background: "var(--dash-accent-muted, rgba(201,168,76,0.25))",
+                              color:      "var(--dash-accent, #C9A84C)",
+                              outline:    "2px solid var(--dash-accent-muted, rgba(201,168,76,0.20))" }}>
                   {initials}
                 </div>
               )}
@@ -258,11 +246,10 @@ export function Topbar({
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setDropOpen(false)} />
                 <div className="absolute right-0 top-full mt-2 w-52 z-50
-                                rounded-2xl border border-[#0D9E8A]/[0.20]
-                                shadow-2xl shadow-black/60 overflow-hidden"
-                     style={{ background: "#081A14" }}>
+                                rounded-2xl shadow-2xl shadow-black/60 overflow-hidden"
+                     style={{ background: "var(--dash-shell-bg, #081A14)", border: "1px solid var(--dash-shell-border, rgba(13,158,138,0.20))" }}>
                   {/* Header */}
-                  <div className="px-4 py-3 border-b border-[#0D9E8A]/[0.12]">
+                  <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--dash-shell-border, rgba(13,158,138,0.12))" }}>
                     <p className="text-xs font-bold text-[#F0F1F5] truncate">{displayName}</p>
                     <p className="text-[10px] text-[#3A4558] truncate mt-0.5">{user.email}</p>
                     <span
@@ -294,7 +281,7 @@ export function Topbar({
                   </div>
 
                   {/* Sign out */}
-                  <div className="border-t border-[#0D9E8A]/[0.12] py-1">
+                  <div className="py-1" style={{ borderTop: "1px solid var(--dash-shell-border, rgba(13,158,138,0.12))" }}>
                     <button
                       type="button"
                       onClick={handleSignOut}

@@ -353,7 +353,7 @@ export default function SendScreen() {
           {step === "success" && (
             <View style={styles.successContainer}>
               <View style={styles.successIcon}>
-                <CheckCircle2 size={56} color={colors.emerald} />
+                <CheckCircle2 size={56} color={colors.gold} />
               </View>
               <Text style={styles.successTitle}>{i18n.t("send.success")}</Text>
               {recipient && (
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   recipientName: {
     fontFamily: fonts.sansSemiBold,
     fontSize: 14,
-    color: colors.emerald,
+    color: colors.gold,
   },
   recipientSub: {
     fontFamily: fonts.sans,

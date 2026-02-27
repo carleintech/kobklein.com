@@ -165,8 +165,8 @@ export default async function CasesPage() {
         {/* Column headers */}
         {sorted.length > 0 && (
           <div className="grid grid-cols-[80px_120px_140px_1fr_110px_70px_48px] gap-x-4 px-5 py-2 border-b border-white/4">
-            {["Priority", "Type", "Status", "Description", "Reporter", "Created", ""].map((h) => (
-              <span key={h} className="text-[10px] font-semibold text-kob-muted uppercase tracking-widest">{h}</span>
+            {["Priority", "Type", "Status", "Description", "Reporter", "Created", ""].map((h, i) => (
+              <span key={"col-" + i} className="text-[10px] font-semibold text-kob-muted uppercase tracking-widest">{h}</span>
             ))}
           </div>
         )}

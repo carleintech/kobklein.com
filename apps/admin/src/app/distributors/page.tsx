@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertTriangle,
   CheckCircle,
   Clock,
   Loader2,
@@ -8,6 +9,8 @@ import {
   ShieldCheck,
   ShieldX,
   Users,
+  X,
+  Zap,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, kkGet, kkPost } from "@/lib/kobklein-api";
@@ -113,6 +116,135 @@ function statusStyle(s: string) {
   );
 }
 
+// ── Activation Confirm Modal ──────────────────────────────────────────────────
+
+function ActivateModal({
+  dist,
+  onConfirm,
+  onClose,
+  submitting,
+}: {
+  dist: Distributor;
+  onConfirm: () => void;
+  onClose: () => void;
+  submitting: boolean;
+}) {
+  const name = displayName(dist);
+  const kycLabel = ["None", "Tier 1", "Tier 2", "Tier 3"][dist.user.kycTier] ?? "Unknown";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.70)", backdropFilter: "blur(6px)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-3xl overflow-hidden shadow-2xl"
+        style={{ background: "#080E20", border: "1px solid rgba(212,175,55,0.20)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Gold top bar */}
+        <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent 0%, #C9A84C 50%, transparent 100%)" }} />
+
+        <div className="p-6 space-y-5">
+          {/* Header */}
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-kob-gold/10 border border-kob-gold/25">
+                <Zap className="h-4.5 w-4.5 text-kob-gold" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-kob-text">Activate Account</h3>
+                <p className="text-[11px] text-kob-muted mt-0.5">Review before activation</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-7 h-7 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors"
+            >
+              <X className="h-3.5 w-3.5 text-kob-muted" />
+            </button>
+          </div>
+
+          {/* Agent details */}
+          <div className="rounded-2xl p-4 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-kob-muted uppercase tracking-widest">Agent Name</span>
+              <span className="text-xs font-bold text-kob-text">{name}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-kob-muted uppercase tracking-widest">Phone</span>
+              <span className="text-[11px] font-mono text-kob-text">{dist.user.phone}</span>
+            </div>
+            {dist.locationText && (
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-kob-muted uppercase tracking-widest">Location</span>
+                <span className="text-[11px] text-kob-text">{dist.locationText}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-kob-muted uppercase tracking-widest">KYC Level</span>
+              <span className={`text-[11px] font-semibold ${dist.user.kycTier >= 1 ? "text-emerald-400" : "text-orange-400"}`}>
+                {kycLabel}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-kob-muted uppercase tracking-widest">Commission</span>
+              <span className="text-[11px] font-mono text-kob-text">
+                In {fmtPct(dist.commissionIn)} · Out {fmtPct(dist.commissionOut)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-kob-muted uppercase tracking-widest">Applied</span>
+              <span className="text-[11px] text-kob-muted">{fmtDate(dist.createdAt)}</span>
+            </div>
+          </div>
+
+          {/* KYC warning if tier 0 */}
+          {dist.user.kycTier === 0 && (
+            <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl border border-orange-500/25 bg-orange-500/6">
+              <AlertTriangle className="h-3.5 w-3.5 text-orange-400 shrink-0 mt-0.5" />
+              <p className="text-[11px] text-orange-400 leading-relaxed">
+                This agent has not completed KYC. Consider verifying identity before activation.
+              </p>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-kob-muted border border-white/10 bg-white/4 hover:bg-white/7 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={onConfirm}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black transition-all disabled:opacity-50"
+              style={{
+                background: "linear-gradient(135deg, #D4AF37 0%, #9F7F2C 100%)",
+                color: "#060912",
+                boxShadow: "0 4px 20px -4px rgba(212,175,55,0.40)",
+              }}
+            >
+              {submitting ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Zap className="h-3.5 w-3.5" />
+              )}
+              {submitting ? "Activating…" : "Activate Account"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Distributor Card ──────────────────────────────────────────────────────────
 
 function DistributorCard({
@@ -125,6 +257,7 @@ function DistributorCard({
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [showActivateModal, setShowActivateModal] = useState(false);
 
   const ss = statusStyle(dist.status);
   const name = displayName(dist);
@@ -144,137 +277,159 @@ function DistributorCard({
     }
   }
 
+  async function handleActivate() {
+    await handleAction(`${dist.id}/approve`, `✓ ${name} activated successfully`);
+    setShowActivateModal(false);
+  }
+
   return (
-    <div className="rounded-2xl border border-white/8 bg-[#080E20] overflow-hidden">
-      <div className="flex items-center gap-4 px-5 py-4">
-        {/* Status dot */}
-        <span className={`h-2 w-2 rounded-full shrink-0 ${ss.dot}`} />
-
-        {/* Details */}
-        <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-[1fr_120px_130px_110px_80px] gap-x-4 gap-y-1 items-center">
-          {/* Name + location */}
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-kob-text truncate">{name}</p>
-            <p className="text-[10px] font-mono text-kob-muted truncate">
-              {dist.user.phone}
-              {dist.locationText ? (
-                <span className="ml-2 text-kob-muted/60">
-                  · {dist.locationText}
-                </span>
-              ) : null}
-            </p>
-          </div>
-
-          {/* Status */}
-          <span
-            className={`hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border w-fit text-[10px] font-semibold capitalize ${ss.bg} ${ss.text}`}
-          >
-            {dist.status}
-          </span>
-
-          {/* Float balance */}
-          <div className="hidden md:block">
-            <p className="text-[10px] text-kob-muted uppercase tracking-widest mb-0.5">
-              Float
-            </p>
-            <p className="text-xs font-bold font-mono tabular-nums text-kob-gold">
-              {fmtHTG(dist.floatBalance)}
-            </p>
-          </div>
-
-          {/* Commission in / out */}
-          <div className="hidden md:block">
-            <p className="text-[10px] text-kob-muted uppercase tracking-widest mb-0.5">
-              Comm In/Out
-            </p>
-            <p className="text-[10px] font-mono text-kob-text">
-              {fmtPct(dist.commissionIn)} /{" "}
-              <span className="text-kob-muted">
-                {fmtPct(dist.commissionOut)}
-              </span>
-            </p>
-          </div>
-
-          {/* Joined */}
-          <div className="hidden md:block">
-            <p className="text-[10px] text-kob-muted uppercase tracking-widest mb-0.5">
-              Joined
-            </p>
-            <p className="text-[10px] text-kob-muted">
-              {fmtDate(dist.createdAt)}
-            </p>
-          </div>
-        </div>
-
-        {/* Action button */}
-        <div className="shrink-0">
-          {dist.status === "pending" && (
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() =>
-                handleAction(`${dist.id}/approve`, `${name} approved`)
-              }
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-kob-gold/10 border border-kob-gold/30 text-[11px] font-semibold text-kob-gold hover:bg-kob-gold/20 transition-all disabled:opacity-40"
-            >
-              {submitting ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <CheckCircle className="h-3.5 w-3.5" />
-              )}
-              Approve
-            </button>
-          )}
-          {dist.status === "active" && (
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() =>
-                handleAction(`${dist.id}/suspend`, `${name} suspended`)
-              }
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-semibold text-kob-muted hover:text-red-400 hover:border-red-500/25 hover:bg-red-500/8 transition-all disabled:opacity-40"
-            >
-              {submitting ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <ShieldX className="h-3.5 w-3.5" />
-              )}
-              Suspend
-            </button>
-          )}
-          {dist.status === "suspended" && (
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() =>
-                handleAction(`${dist.id}/reactivate`, `${name} reactivated`)
-              }
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-40"
-            >
-              {submitting ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <ShieldCheck className="h-3.5 w-3.5" />
-              )}
-              Reactivate
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Inline feedback */}
-      {(success || error) && (
-        <div
-          className={`mx-5 mb-3 px-3 py-2 rounded-xl text-[11px] font-medium ${
-            error
-              ? "bg-red-500/8 border border-red-500/20 text-red-400"
-              : "bg-emerald-500/8 border border-emerald-500/20 text-emerald-400"
-          }`}
-        >
-          {error || success}
-        </div>
+    <>
+      {/* Activation confirm modal */}
+      {showActivateModal && (
+        <ActivateModal
+          dist={dist}
+          onConfirm={handleActivate}
+          onClose={() => setShowActivateModal(false)}
+          submitting={submitting}
+        />
       )}
-    </div>
+
+      <div className="rounded-2xl border border-white/8 bg-[#080E20] overflow-hidden">
+        {/* Pending highlight top bar */}
+        {dist.status === "pending" && (
+          <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.6) 50%, transparent 100%)" }} />
+        )}
+
+        <div className="flex items-center gap-4 px-5 py-4">
+          {/* Status dot */}
+          <span className={`h-2 w-2 rounded-full shrink-0 ${ss.dot}`} />
+
+          {/* Details */}
+          <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-[1fr_120px_130px_110px_80px] gap-x-4 gap-y-1 items-center">
+            {/* Name + location */}
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-kob-text truncate">{name}</p>
+              <p className="text-[10px] font-mono text-kob-muted truncate">
+                {dist.user.phone}
+                {dist.locationText ? (
+                  <span className="ml-2 text-kob-muted/60">
+                    · {dist.locationText}
+                  </span>
+                ) : null}
+              </p>
+            </div>
+
+            {/* Status */}
+            <span
+              className={`hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border w-fit text-[10px] font-semibold capitalize ${ss.bg} ${ss.text}`}
+            >
+              {dist.status}
+            </span>
+
+            {/* Float balance */}
+            <div className="hidden md:block">
+              <p className="text-[10px] text-kob-muted uppercase tracking-widest mb-0.5">
+                Float
+              </p>
+              <p className="text-xs font-bold font-mono tabular-nums text-kob-gold">
+                {fmtHTG(dist.floatBalance)}
+              </p>
+            </div>
+
+            {/* Commission in / out */}
+            <div className="hidden md:block">
+              <p className="text-[10px] text-kob-muted uppercase tracking-widest mb-0.5">
+                Comm In/Out
+              </p>
+              <p className="text-[10px] font-mono text-kob-text">
+                {fmtPct(dist.commissionIn)} /{" "}
+                <span className="text-kob-muted">
+                  {fmtPct(dist.commissionOut)}
+                </span>
+              </p>
+            </div>
+
+            {/* Joined */}
+            <div className="hidden md:block">
+              <p className="text-[10px] text-kob-muted uppercase tracking-widest mb-0.5">
+                Joined
+              </p>
+              <p className="text-[10px] text-kob-muted">
+                {fmtDate(dist.createdAt)}
+              </p>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="shrink-0 flex items-center gap-2">
+            {dist.status === "pending" && (
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => setShowActivateModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all disabled:opacity-40"
+                style={{
+                  background: "linear-gradient(135deg, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.08) 100%)",
+                  border: "1px solid rgba(212,175,55,0.35)",
+                  color: "#D4AF37",
+                  boxShadow: "0 2px 12px -2px rgba(212,175,55,0.20)",
+                }}
+              >
+                <Zap className="h-3.5 w-3.5" />
+                Activate Account
+              </button>
+            )}
+            {dist.status === "active" && (
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() =>
+                  handleAction(`${dist.id}/suspend`, `${name} suspended`)
+                }
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-semibold text-kob-muted hover:text-red-400 hover:border-red-500/25 hover:bg-red-500/8 transition-all disabled:opacity-40"
+              >
+                {submitting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <ShieldX className="h-3.5 w-3.5" />
+                )}
+                Suspend
+              </button>
+            )}
+            {dist.status === "suspended" && (
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() =>
+                  handleAction(`${dist.id}/reactivate`, `${name} reactivated`)
+                }
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-40"
+              >
+                {submitting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                )}
+                Reactivate
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Inline feedback */}
+        {(success || error) && (
+          <div
+            className={`mx-5 mb-3 px-3 py-2 rounded-xl text-[11px] font-medium ${
+              error
+                ? "bg-red-500/8 border border-red-500/20 text-red-400"
+                : "bg-emerald-500/8 border border-emerald-500/20 text-emerald-400"
+            }`}
+          >
+            {error || success}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -493,9 +648,9 @@ export default function DistributorsPage() {
               "Commission",
               "Joined",
               "",
-            ].map((h) => (
+            ].map((h, i) => (
               <span
-                key={h}
+                key={"col-" + i}
                 className="text-[9px] font-semibold text-kob-muted uppercase tracking-widest"
               >
                 {h}

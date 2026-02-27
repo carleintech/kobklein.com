@@ -42,7 +42,7 @@ function typeConfig(type: NotifType): {
     "withdrawal.requested": { icon: CreditCard,    color: "#C9A84C", bg: "rgba(201,168,76,0.10)",  border: "rgba(201,168,76,0.15)" },
     "fraud.alert":          { icon: ShieldAlert,   color: "#EF4444", bg: "rgba(239,68,68,0.10)",   border: "rgba(239,68,68,0.18)"  },
     "kyc.reminder":         { icon: Star,          color: "#8B5CF6", bg: "rgba(139,92,246,0.10)",  border: "rgba(139,92,246,0.15)" },
-    "float.low":            { icon: Info,          color: "#F59E0B", bg: "rgba(245,158,11,0.10)",  border: "rgba(245,158,11,0.15)" },
+    "float.low":            { icon: Info,          color: "#C9A84C", bg: "rgba(201,168,76,0.10)",  border: "rgba(201,168,76,0.15)" },
   };
   return map[type] ?? { icon: Bell, color: "#5A6B82", bg: "rgba(90,107,130,0.10)", border: "rgba(90,107,130,0.12)" };
 }
@@ -124,8 +124,8 @@ function NotifCard({
       transition={{ type: "spring", stiffness: 300, damping: 28 }}
       className="relative group rounded-2xl border overflow-hidden transition-colors"
       style={{
-        background:   n.read ? "#0A1422" : "#0E1829",
-        borderColor:  n.read ? "rgba(255,255,255,0.04)" : cfg.border,
+        background:   n.read ? "rgba(28,10,53,0.5)" : "var(--dash-shell-bg, #1C0A35)",
+        borderColor:  n.read ? "rgba(165,150,201,0.08)" : cfg.border,
         boxShadow:    n.read ? "none" : `0 0 24px -8px ${cfg.color}20`,
       }}
     >
@@ -167,8 +167,8 @@ function NotifCard({
             onClick={() => onMarkRead(n.id)}
             title="Mark as read"
             className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1
-                       w-6 h-6 rounded-full bg-[#162038] border border-white/[0.08]
-                       flex items-center justify-center hover:bg-[#1A2640] hover:border-white/[0.15]"
+                       w-6 h-6 rounded-full flex items-center justify-center hover:bg-[#2A1050]"
+          style={{ background: "var(--dash-shell-bg, #1C0A35)", border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))" }}
           >
             <Check className="h-3 w-3 text-[#5A6B82]" />
           </button>
@@ -189,13 +189,14 @@ function FilterChip({
                   transition-all shrink-0 border ${
                     active
                       ? "border-[#C9A84C]/40 bg-[#C9A84C]/10 text-[#C9A84C]"
-                      : "border-white/[0.06] bg-[#0E1829] text-[#5A6B82] hover:text-[#B8BCC8]"
+                      : "text-[#6E558B] hover:text-[#A596C9]"
                   }`}
+      style={!active ? { borderColor: "rgba(165,150,201,0.22)", background: "var(--dash-shell-bg, #1C0A35)" } : undefined}
     >
       {label}
       {count !== undefined && (
         <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${
-          active ? "bg-[#C9A84C]/20" : "bg-[#162038]"
+          active ? "bg-[#C9A84C]/20" : "bg-[#A596C9]/10"
         }`}>
           {count}
         </span>
@@ -297,8 +298,8 @@ export default function NotificationsPage() {
             disabled={refreshing}
             aria-label="Refresh notifications"
             title="Refresh notifications"
-            className="p-2 rounded-xl bg-[#162038] border border-white/[0.06] text-[#5A6B82]
-                       hover:text-[#B8BCC8] hover:bg-[#1A2640] transition-all"
+            className="p-2 rounded-xl text-[#6E558B] hover:text-[#A596C9] hover:bg-[#2A1050] transition-all"
+            style={{ background: "var(--dash-shell-bg, #1C0A35)", border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))" }}
           >
             <RefreshCcw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
           </button>
@@ -311,8 +312,8 @@ export default function NotificationsPage() {
                 exit={{ opacity: 0, scale: 0.85 }}
                 onClick={handleMarkAllRead}
                 className="flex items-center gap-1.5 px-3 h-9 rounded-xl text-xs font-bold
-                           bg-[#162038] border border-white/[0.06] text-[#7A8394]
-                           hover:text-[#B8BCC8] hover:bg-[#1A2640] transition-all"
+                           text-[#6E558B] hover:text-[#A596C9] hover:bg-[#2A1050] transition-all"
+                style={{ background: "var(--dash-shell-bg, #1C0A35)", border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))" }}
               >
                 <CheckCheck className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("notifications.markRead")}</span>
@@ -371,12 +372,13 @@ export default function NotificationsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: i * 0.06 }}
-              className="rounded-2xl bg-[#0E1829] border border-white/[0.05] p-4 flex items-center gap-3"
+              className="rounded-2xl p-4 flex items-center gap-3"
+              style={{ background: "var(--dash-shell-bg, #1C0A35)", border: "1px solid rgba(165,150,201,0.10)" }}
             >
-              <div className="w-9 h-9 rounded-xl bg-[#162038] animate-pulse shrink-0" />
+              <div className="w-9 h-9 rounded-xl animate-pulse shrink-0" style={{ background: "rgba(165,150,201,0.12)" }} />
               <div className="flex-1 space-y-2">
-                <div className="h-3 w-2/3 rounded-full bg-[#162038] animate-pulse" />
-                <div className="h-2.5 w-full rounded-full bg-[#111D33] animate-pulse" />
+                <div className="h-3 w-2/3 rounded-full animate-pulse" style={{ background: "rgba(165,150,201,0.12)" }} />
+                <div className="h-2.5 w-full rounded-full animate-pulse" style={{ background: "rgba(165,150,201,0.08)" }} />
               </div>
             </motion.div>
           ))}

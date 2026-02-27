@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { kkGet, kkPost } from "@/lib/kobklein-api";
 import { useToast } from "@kobklein/ui";
+import { trackEvent } from "@/lib/analytics";
 import {
   Shield, ShieldCheck, Camera, FileText, MapPin,
   Upload, CheckCircle2, Loader2, ChevronRight,
-  Lock, Sparkles, AlertCircle, ArrowLeft,
+  Lock, Sparkles, AlertCircle, ArrowLeft, UserCheck,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -25,8 +26,8 @@ type UploadStep = "document" | "selfie" | "address";
 // ─── Tier config ──────────────────────────────────────────────────────────────
 const TIERS = [
   { tier: 0, label: "Unverified",  limit: "$50/mo",     color: "#EF4444", bg: "rgba(239,68,68,0.10)"   },
-  { tier: 1, label: "Basic",       limit: "$500/mo",    color: "#F59E0B", bg: "rgba(245,158,11,0.10)"  },
-  { tier: 2, label: "Verified",    limit: "$5,000/mo",  color: "#10B981", bg: "rgba(16,185,129,0.10)"  },
+  { tier: 1, label: "Basic",       limit: "$500/mo",    color: "#C9A84C", bg: "rgba(201,168,76,0.10)"  },
+  { tier: 2, label: "Verified",    limit: "$5,000/mo",  color: "#16C784", bg: "rgba(22,199,132,0.10)"  },
   { tier: 3, label: "Enhanced",    limit: "Unlimited",  color: "#C9A84C", bg: "rgba(201,168,76,0.10)"  },
 ];
 
@@ -51,25 +52,25 @@ function TierProgress({ currentTier }: { currentTier: number }) {
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black border-2 transition-all"
                 style={{
-                  background: filled ? "#10B981" : active ? "rgba(201,168,76,0.15)" : "rgba(255,255,255,0.04)",
-                  borderColor: filled ? "#10B981" : active ? "#C9A84C" : "rgba(255,255,255,0.08)",
-                  color: filled ? "#fff" : active ? "#C9A84C" : "#3A4558",
+                  background: filled ? "#16C784" : active ? "rgba(201,168,76,0.15)" : "rgba(165,150,201,0.06)",
+                  borderColor: filled ? "#16C784" : active ? "#C9A84C" : "rgba(165,150,201,0.20)",
+                  color: filled ? "#fff" : active ? "#C9A84C" : "#6E558B",
                 }}
               >
                 {filled ? <CheckCircle2 className="h-3.5 w-3.5" /> : t + 1}
               </div>
-              <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold" style={{ color: filled ? "#10B981" : active ? "#C9A84C" : "#3A4558" }}>
+              <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold" style={{ color: filled ? "#16C784" : active ? "#C9A84C" : "#6E558B" }}>
                 {TIERS[t].label}
               </div>
             </div>
             {/* Connector */}
             {i < 2 && (
-              <div className="flex-1 h-0.5 mx-1 rounded-full overflow-hidden bg-[#162038]">
+              <div className="flex-1 h-0.5 mx-1 rounded-full overflow-hidden" style={{ background: "rgba(165,150,201,0.15)" }}>
                 <div
                   className="h-full rounded-full transition-all duration-700"
                   style={{
                     width: currentTier > t ? "100%" : "0%",
-                    background: "linear-gradient(90deg, #10B981, #C9A84C)",
+                    background: "linear-gradient(90deg, #16C784, #C9A84C)",
                   }}
                 />
               </div>
@@ -102,8 +103,8 @@ function UploadZone({
       layout
       className="rounded-2xl border overflow-hidden transition-all"
       style={{
-        background: done ? "rgba(16,185,129,0.04)" : "#0E1829",
-        borderColor: done ? "rgba(16,185,129,0.20)" : "rgba(255,255,255,0.06)",
+        background: done ? "rgba(22,199,132,0.04)" : "var(--dash-shell-bg, #1C0A35)",
+        borderColor: done ? "rgba(22,199,132,0.20)" : "var(--dash-shell-border, rgba(165,150,201,0.22))",
       }}
     >
       <div className="p-4 flex items-center gap-3">
@@ -111,27 +112,27 @@ function UploadZone({
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
           style={{
-            background: done ? "rgba(16,185,129,0.12)" : "rgba(201,168,76,0.10)",
-            border: `1px solid ${done ? "rgba(16,185,129,0.20)" : "rgba(201,168,76,0.15)"}`,
+            background: done ? "rgba(22,199,132,0.12)" : "rgba(201,168,76,0.10)",
+            border: `1px solid ${done ? "rgba(22,199,132,0.20)" : "rgba(201,168,76,0.15)"}`,
           }}
         >
           {done
-            ? <CheckCircle2 className="h-5 w-5 text-[#10B981]" />
+            ? <CheckCircle2 className="h-5 w-5" style={{ color: "#16C784" }} />
             : <Icon className="h-5 w-5 text-[#C9A84C]" />
           }
         </div>
 
         {/* Text */}
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-bold ${done ? "text-[#10B981]" : "text-[#F0F1F5]"}`}>{label}</p>
+          <p className={`text-sm font-bold ${done ? "" : "text-[#F0F1F5]"}`} style={done ? { color: "#16C784" } : undefined}>{label}</p>
           <p className="text-xs text-[#5A6B82] mt-0.5">{sublabel}</p>
         </div>
 
         {/* Status / button */}
         {done ? (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#10B981]/10 border border-[#10B981]/20">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
-            <span className="text-[10px] font-black text-[#10B981] uppercase tracking-wide">Done</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: "rgba(22,199,132,0.10)", border: "1px solid rgba(22,199,132,0.20)" }}>
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#16C784" }} />
+            <span className="text-[10px] font-black uppercase tracking-wide" style={{ color: "#16C784" }}>Done</span>
           </div>
         ) : (
           <motion.button
@@ -168,6 +169,13 @@ export default function VerifyPage() {
   const [docType, setDocType]   = useState("national_id");
   const [idNumber, setIdNumber] = useState("");
   const [showDocForm, setShowDocForm] = useState(false);
+
+  // Level 1 form state
+  const [l1FullName, setL1FullName] = useState("");
+  const [l1Dob, setL1Dob]         = useState("");
+  const [l1Country, setL1Country] = useState("HT");
+  const [l1Address, setL1Address] = useState("");
+  const [submittingL1, setSubmittingL1] = useState(false);
 
   const docInputRef     = useRef<HTMLInputElement>(null);
   const selfieInputRef  = useRef<HTMLInputElement>(null);
@@ -233,6 +241,29 @@ export default function VerifyPage() {
     e.target.value = "";
   }
 
+  async function submitLevel1() {
+    if (!l1FullName.trim() || !l1Dob || !l1Country) {
+      toast.show("Please fill in all required fields", "error");
+      return;
+    }
+    setSubmittingL1(true);
+    try {
+      trackEvent("KYC Started");
+      await kkPost("v1/kyc/level1", {
+        fullName: l1FullName.trim(),
+        dob: l1Dob,
+        country: l1Country,
+        address: l1Address.trim() || undefined,
+      });
+      toast.show("Identity info saved!", "success");
+      await loadStatus();
+    } catch (e: unknown) {
+      toast.show((e as Error).message || "Failed to save identity info", "error");
+    } finally {
+      setSubmittingL1(false);
+    }
+  }
+
   // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) {
     return (
@@ -264,7 +295,8 @@ export default function VerifyPage() {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-xl bg-[#162038] hover:bg-[#1A2640] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
+          className="p-2 rounded-xl text-[#6E558B] hover:text-[#E0E4EE] hover:bg-[#2A1050] transition-all"
+          style={{ background: "var(--dash-shell-bg, #1C0A35)", border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))" }}
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -281,7 +313,7 @@ export default function VerifyPage() {
         transition={{ delay: 0.05 }}
         className="rounded-3xl overflow-hidden"
         style={{
-          background: `linear-gradient(135deg, ${tierCfg.bg}, rgba(14,24,41,0.8))`,
+          background: `linear-gradient(135deg, ${tierCfg.bg}, var(--dash-shell-bg, #1C0A35))`,
           border: `1px solid ${tierCfg.color}25`,
           boxShadow: `0 0 40px -12px ${tierCfg.color}30`,
         }}
@@ -330,8 +362,8 @@ export default function VerifyPage() {
             key={t.tier}
             className="rounded-2xl border p-3 text-center transition-all"
             style={{
-              background: currentTier >= t.tier ? `${t.color}08` : "#0A1422",
-              borderColor: currentTier >= t.tier ? `${t.color}20` : "rgba(255,255,255,0.04)",
+              background: currentTier >= t.tier ? `${t.color}08` : "var(--dash-shell-bg, #1C0A35)",
+              borderColor: currentTier >= t.tier ? `${t.color}20` : "rgba(165,150,201,0.15)",
             }}
           >
             {currentTier >= t.tier
@@ -351,10 +383,11 @@ export default function VerifyPage() {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-[#10B981]/20 bg-[#10B981]/05 p-6 flex flex-col items-center gap-3 text-center"
+          className="rounded-2xl p-6 flex flex-col items-center gap-3 text-center"
+          style={{ border: "1px solid rgba(22,199,132,0.20)", background: "rgba(22,199,132,0.04)" }}
         >
-          <div className="w-14 h-14 rounded-2xl bg-[#10B981]/10 flex items-center justify-center">
-            <ShieldCheck className="h-7 w-7 text-[#10B981]" />
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "rgba(22,199,132,0.10)" }}>
+            <ShieldCheck className="h-7 w-7" style={{ color: "#16C784" }} />
           </div>
           <div>
             <p className="text-lg font-black text-[#F0F1F5]">You're Fully Verified</p>
@@ -378,6 +411,124 @@ export default function VerifyPage() {
           transition={{ delay: 0.15 }}
           className="flex flex-col gap-4"
         >
+          {/* ── Level 1 Identity Form (only shown when tier === 0) ──────── */}
+          {currentTier === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="rounded-2xl overflow-hidden"
+              style={{ background: "var(--dash-shell-bg, #1C0A35)", border: "1px solid rgba(212,175,55,0.20)" }}
+            >
+              <div className="px-5 pt-5 pb-4 flex items-center gap-3" style={{ borderBottom: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))" }}>
+                <div className="w-9 h-9 rounded-xl bg-[#C9A84C]/10 border border-[#C9A84C]/20 flex items-center justify-center shrink-0">
+                  <UserCheck className="h-4.5 w-4.5 text-[#C9A84C]" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-[#F0F1F5]">Step 1 — Basic Identity</p>
+                  <p className="text-[11px] text-[#5A6B82] mt-0.5">Enter your personal information to get started</p>
+                </div>
+              </div>
+
+              <div className="p-5 flex flex-col gap-3">
+                {/* Full name */}
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="l1-fullname" className="text-[10px] font-bold text-[#5A6B82] uppercase tracking-wider">
+                    Full Legal Name <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    id="l1-fullname"
+                    type="text"
+                    value={l1FullName}
+                    onChange={(e) => setL1FullName(e.target.value)}
+                    placeholder="As it appears on your ID"
+                    className="w-full px-3 py-2.5 rounded-xl bg-[#240E3C]/60 border border-[#A596C9]/[0.20]
+                               text-sm text-[#F0F1F5] placeholder-[#2A3448] outline-none
+                               focus:border-[#C9A84C]/40 transition-colors"
+                  />
+                </div>
+
+                {/* DOB + Country row */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="l1-dob" className="text-[10px] font-bold text-[#5A6B82] uppercase tracking-wider">
+                      Date of Birth <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      id="l1-dob"
+                      type="date"
+                      value={l1Dob}
+                      onChange={(e) => setL1Dob(e.target.value)}
+                      max={new Date(Date.now() - 18 * 365.25 * 86400000).toISOString().split("T")[0]}
+                      className="w-full px-3 py-2.5 rounded-xl bg-[#240E3C]/60 border border-[#A596C9]/[0.20]
+                                 text-sm text-[#F0F1F5] outline-none focus:border-[#C9A84C]/40
+                                 transition-colors [color-scheme:dark]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="l1-country" className="text-[10px] font-bold text-[#5A6B82] uppercase tracking-wider">
+                      Country <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      id="l1-country"
+                      value={l1Country}
+                      onChange={(e) => setL1Country(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-[#240E3C]/60 border border-[#A596C9]/[0.20]
+                                 text-sm text-[#F0F1F5] outline-none focus:border-[#C9A84C]/40 transition-colors"
+                    >
+                      <option value="HT">Haiti</option>
+                      <option value="US">United States</option>
+                      <option value="CA">Canada</option>
+                      <option value="FR">France</option>
+                      <option value="DO">Dominican Republic</option>
+                      <option value="BR">Brazil</option>
+                      <option value="MX">Mexico</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Address (optional) */}
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="l1-address" className="text-[10px] font-bold text-[#5A6B82] uppercase tracking-wider">
+                    Address <span className="font-normal normal-case text-[#3A4558]">(optional)</span>
+                  </label>
+                  <input
+                    id="l1-address"
+                    type="text"
+                    value={l1Address}
+                    onChange={(e) => setL1Address(e.target.value)}
+                    placeholder="Street, city"
+                    className="w-full px-3 py-2.5 rounded-xl bg-[#240E3C]/60 border border-[#A596C9]/[0.20]
+                               text-sm text-[#F0F1F5] placeholder-[#2A3448] outline-none
+                               focus:border-[#C9A84C]/40 transition-colors"
+                  />
+                </div>
+
+                {/* Submit */}
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={submitLevel1}
+                  disabled={submittingL1 || !l1FullName.trim() || !l1Dob}
+                  className="w-full h-11 rounded-xl flex items-center justify-center gap-2
+                             text-sm font-bold text-[#060D1F] disabled:opacity-50 mt-1 transition-all"
+                  style={{
+                    background: "linear-gradient(135deg, #E2CA6E, #C9A84C)",
+                    boxShadow: submittingL1 ? "none" : "0 6px 18px -4px rgba(201,168,76,0.4)",
+                  }}
+                >
+                  {submittingL1
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                    : <><ChevronRight className="h-4 w-4" /> Continue to Document Upload</>
+                  }
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── Document upload zones (only after Level 1 done) ─────────── */}
+          {currentTier >= 1 && (<>
           <div className="flex items-center justify-between">
             <p className="text-xs font-black text-[#5A6B82] uppercase tracking-widest">
               Required Documents
@@ -412,14 +563,14 @@ export default function VerifyPage() {
                   exit={{ opacity: 0, height: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="rounded-2xl bg-[#0E1829] border border-white/[0.06] p-4 flex flex-col gap-3">
+                  <div className="rounded-2xl p-4 flex flex-col gap-3" style={{ background: "var(--dash-page-bg, #240E3C)", border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))" }}>
                     {/* Doc type selector */}
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[10px] font-bold text-[#5A6B82] uppercase tracking-wider">Document Type</label>
                       <select
                         value={docType}
                         onChange={(e) => setDocType(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-[#162038] border border-white/[0.07]
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#240E3C]/60 border border-[#A596C9]/[0.20]
                                    text-sm text-[#F0F1F5] outline-none focus:border-[#C9A84C]/40 transition-colors"
                       >
                         {DOC_TYPES.map((d) => (
@@ -438,7 +589,7 @@ export default function VerifyPage() {
                         value={idNumber}
                         onChange={(e) => setIdNumber(e.target.value)}
                         placeholder="Enter your ID number"
-                        className="w-full px-3 py-2.5 rounded-xl bg-[#162038] border border-white/[0.07]
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#240E3C]/60 border border-[#A596C9]/[0.20]
                                    text-sm text-[#F0F1F5] placeholder-[#2A3448] outline-none
                                    focus:border-[#C9A84C]/40 transition-colors"
                       />
@@ -499,7 +650,7 @@ export default function VerifyPage() {
 
           {/* Submitted notice */}
           <AnimatePresence>
-            {status?.documentUrl && status?.selfieUrl && currentTier === 0 && (
+            {status?.documentUrl && status?.selfieUrl && status?.kycStatus === "pending" && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -510,7 +661,7 @@ export default function VerifyPage() {
                 <div>
                   <p className="text-sm font-bold text-[#C9A84C]">Documents Submitted</p>
                   <p className="text-xs text-[#7A8394] mt-0.5 leading-relaxed">
-                    Our team is reviewing your documents. You'll receive a notification within 24 hours once verified.
+                    Our team is reviewing your documents. You&apos;ll receive a notification within 24 hours once verified.
                   </p>
                 </div>
               </motion.div>
@@ -518,21 +669,22 @@ export default function VerifyPage() {
           </AnimatePresence>
 
           {/* What to expect */}
-          <div className="rounded-2xl bg-[#0A1422] border border-white/[0.04] p-4 flex flex-col gap-2.5">
-            <p className="text-[10px] font-black text-[#3A4558] uppercase tracking-widest">What happens next</p>
+          <div className="rounded-2xl p-4 flex flex-col gap-2.5" style={{ background: "var(--dash-shell-bg, #1C0A35)", border: "1px solid rgba(165,150,201,0.12)" }}>
+            <p className="text-[10px] font-black text-[#6E558B] uppercase tracking-widest">What happens next</p>
             {[
-              { step: "1", text: "Upload your government ID and take a selfie" },
-              { step: "2", text: "Our team reviews your documents (up to 24h)" },
-              { step: "3", text: "Get verified and unlock higher limits" },
+              { step: "1", text: "Fill in your identity info to complete Level 1" },
+              { step: "2", text: "Upload your government ID and take a selfie" },
+              { step: "3", text: "Our team reviews your documents (up to 24h)" },
             ].map((item) => (
               <div key={item.step} className="flex items-center gap-3 text-xs text-[#5A6B82]">
-                <div className="w-5 h-5 rounded-full bg-[#162038] border border-white/[0.06] flex items-center justify-center text-[9px] font-black text-[#3A4558] shrink-0">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black text-[#6E558B] shrink-0" style={{ background: "var(--dash-page-bg, #240E3C)", border: "1px solid rgba(165,150,201,0.20)" }}>
                   {item.step}
                 </div>
                 {item.text}
               </div>
             ))}
           </div>
+          </>)}
         </motion.div>
       )}
 

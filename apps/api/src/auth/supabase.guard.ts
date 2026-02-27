@@ -1,16 +1,10 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-  Logger,
-} from "@nestjs/common";
+import { type CanActivate, type ExecutionContext, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import { syncUserFromSupabase, syncUserFromAuth0 } from "./auth-sync.service";
 import { registerDeviceSession } from "../security/device.service";
+import { syncUserFromAuth0, syncUserFromSupabase } from "./auth-sync.service";
 
-function getBearerToken(req: any): string | null {
+function getBearerToken(req: { headers?: Record<string, string> }): string | null {
   const h = req.headers?.authorization;
   if (!h) return null;
   const [type, token] = h.split(" ");
@@ -69,8 +63,6 @@ export class SupabaseGuard implements CanActivate {
       throw new UnauthorizedException("Missing Bearer token");
     }
 
-    this.logger.debug(`Incoming JWT: ${token}`);
-
     // ── Try 1: Supabase JWT (ES256 via JWKS) ──
     if (this.supabaseJwks) {
       try {
@@ -78,8 +70,6 @@ export class SupabaseGuard implements CanActivate {
           issuer: this.supabaseIssuer,
           // Note: Supabase JWTs don't include 'aud' claim by default, so no audience check
         });
-        this.logger.debug(`Supabase JWT payload: ${JSON.stringify(payload)}`);
-
         req.user = payload;
 
         const localUser = await syncUserFromSupabase(payload);
@@ -88,7 +78,7 @@ export class SupabaseGuard implements CanActivate {
         const deviceResult = await registerDeviceSession(localUser.id, req);
         req.security = { isNewDevice: deviceResult.isNew };
 
-        this.logger.debug(`Supabase user attached: ${JSON.stringify(localUser)}`);
+        this.logger.debug(`Supabase auth ok: sub=${payload.sub as string}`);
         return true;
       } catch (err) {
         this.logger.warn(`Supabase JWT validation failed: ${err?.message || err}`);
@@ -103,8 +93,6 @@ export class SupabaseGuard implements CanActivate {
           issuer: this.auth0Issuer,
           audience: this.auth0Audience,
         });
-        this.logger.debug(`Auth0 JWT payload: ${JSON.stringify(payload)}`);
-
         req.user = payload;
 
         const localUser = await syncUserFromAuth0(payload);
@@ -113,7 +101,7 @@ export class SupabaseGuard implements CanActivate {
         const deviceResult = await registerDeviceSession(localUser.id, req);
         req.security = { isNewDevice: deviceResult.isNew };
 
-        this.logger.debug(`Auth0 user attached: ${JSON.stringify(localUser)}`);
+        this.logger.debug(`Auth0 auth ok: sub=${payload.sub as string}`);
         return true;
       } catch (err) {
         this.logger.warn(`Auth0 JWT validation failed: ${err?.message || err}`);

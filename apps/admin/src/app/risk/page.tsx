@@ -394,8 +394,8 @@ export default function RiskPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/4">
-                  {["Severity", "Type", "User", "Details", "When"].map((h) => (
-                    <th key={h} className="px-5 py-2.5 text-left text-[10px] font-semibold text-kob-muted uppercase tracking-widest">
+                  {["Severity", "Type", "User", "Details", "When"].map((h, i) => (
+                    <th key={"col-" + i} className="px-5 py-2.5 text-left text-[10px] font-semibold text-kob-muted uppercase tracking-widest">
                       {h}
                     </th>
                   ))}

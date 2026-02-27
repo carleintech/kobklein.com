@@ -70,7 +70,7 @@ export default function StepUpModal({ open, onClose, onVerify, otpCode }: Props)
       <div
         className="w-full max-w-sm rounded-3xl overflow-hidden"
         style={{
-          background: "linear-gradient(160deg, #0F1626 0%, #080B14 100%)",
+          background: "linear-gradient(160deg, #091C14 0%, #080B14 100%)",
           border: "1px solid rgba(198,167,86,0.15)",
           boxShadow: "0 32px 80px -16px rgba(0,0,0,0.8), 0 0 0 1px rgba(198,167,86,0.08)",
         }}

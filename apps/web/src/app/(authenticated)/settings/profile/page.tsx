@@ -39,7 +39,7 @@ function Field({
       <div
         className="relative rounded-xl border transition-all overflow-hidden"
         style={{
-          background: readOnly ? "#080F1C" : "#0E1829",
+          background: readOnly ? "#080F1C" : "#091C14",
           borderColor: readOnly ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.08)",
         }}
       >
@@ -206,7 +206,7 @@ export default function ProfilePage() {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-xl bg-[#162038] hover:bg-[#1A2640] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
+          className="p-2 rounded-xl bg-[#0D2018] hover:bg-[#122A1E] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -246,7 +246,7 @@ export default function ProfilePage() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.05 }}
-        className="flex items-center gap-4 rounded-2xl bg-[#0E1829] border border-white/[0.06] p-5"
+        className="flex items-center gap-4 rounded-2xl bg-[#091C14] border border-white/[0.06] p-5"
       >
         {/* Avatar */}
         <div className="relative shrink-0">
@@ -310,7 +310,7 @@ export default function ProfilePage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="rounded-2xl bg-[#0E1829] border border-white/[0.06] p-5 flex flex-col gap-4"
+        className="rounded-2xl bg-[#091C14] border border-white/[0.06] p-5 flex flex-col gap-4"
       >
         <p className="text-[10px] font-black text-[#5A6B82] uppercase tracking-widest">Editable</p>
         <Field label="First Name" value={firstName} onChange={setFirstName} icon={User} placeholder="Your first name" />
@@ -322,7 +322,7 @@ export default function ProfilePage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.12 }}
-        className="rounded-2xl bg-[#0A1422] border border-white/[0.04] p-5 flex flex-col gap-4"
+        className="rounded-2xl bg-[#081510] border border-white/[0.04] p-5 flex flex-col gap-4"
       >
         <p className="text-[10px] font-black text-[#3A4558] uppercase tracking-widest">Read-only</p>
         <Field label="Email"    value={profile?.email ?? ""}                                  icon={Mail}   readOnly type="email" />

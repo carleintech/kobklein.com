@@ -292,9 +292,9 @@ export default function MerchantFeesPage() {
           <>
             {/* Column headers */}
             <div className="grid grid-cols-[1fr_90px_200px_50px] gap-4 px-5 py-2.5 border-b border-white/4">
-              {["Merchant", "Mode", "Rate / Fee", ""].map((h) => (
+              {["Merchant", "Mode", "Rate / Fee", ""].map((h, i) => (
                 <span
-                  key={h}
+                  key={"col-" + i}
                   className="text-[10px] font-semibold text-kob-muted uppercase tracking-widest"
                 >
                   {h}

@@ -224,8 +224,8 @@ export default async function TreasuryPage() {
             <>
               {/* Column labels */}
               <div className="grid grid-cols-[180px_1fr_90px_80px] gap-4 pb-2 border-b border-white/6 mb-1">
-                {["Source", "Proportion", "Amount (HTG)", "Share"].map((h) => (
-                  <span key={h} className="text-[10px] font-semibold text-kob-muted uppercase tracking-widest">{h}</span>
+                {["Source", "Proportion", "Amount (HTG)", "Share"].map((h, i) => (
+                  <span key={"col-" + i} className="text-[10px] font-semibold text-kob-muted uppercase tracking-widest">{h}</span>
                 ))}
               </div>
               {revenueRows.map((r) => (

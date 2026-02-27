@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Role Types and Constants for KobKlein Platform
  *
  * Defines the four user roles and their associated routes/metadata.
@@ -8,15 +8,14 @@ export const USER_ROLES = ["client", "diaspora", "merchant", "distributor"] as c
 export type UserRole = typeof USER_ROLES[number];
 
 /**
- * Dashboard routes mapped to each role
+ * Dashboard routes mapped to each role.
+ * Each role owns its own dashboard URL — clean RBAC separation.
  */
-// All roles use the unified /dashboard page which switches on profile.role
-// This avoids 404s from missing /diaspora, /merchant, /distributor pages
 export const ROLE_DASHBOARD: Record<UserRole, string> = {
-  client: "/dashboard",
-  diaspora: "/dashboard",
-  merchant: "/dashboard",
-  distributor: "/dashboard",
+  client:      "/client/dashboard",
+  diaspora:    "/diaspora/dashboard",
+  merchant:    "/merchant/dashboard",
+  distributor: "/distributor/dashboard",
 };
 
 /**
@@ -57,7 +56,7 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, { en: string; fr: string; ht: s
     en: "Send and receive money in Haiti with KobKlein wallet",
     fr: "Envoyer et recevoir de l'argent en Haïti avec le portefeuille KobKlein",
     ht: "Voye epi resevwa lajan an Ayiti ak bous KobKlein",
-    es: "Enviar y recibir dinero en Haití con la billetera KobKlein",
+    es: "Enviar y recibir dinero en Haïti con la billetera KobKlein",
   },
   diaspora: {
     en: "Send money to family in Haiti from anywhere in the world",

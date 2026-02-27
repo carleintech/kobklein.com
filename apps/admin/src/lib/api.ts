@@ -1,9 +1,9 @@
-import { auth0 } from "./auth0";
+import { createAdminServerClient } from "./supabase-server";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
 /**
- * Server-side fetch that automatically attaches the Auth0 access token.
+ * Server-side fetch that automatically attaches the Supabase access token.
  * Use in Server Components, Route Handlers, and Server Actions.
  */
 export async function apiFetch<T = unknown>(
@@ -12,8 +12,9 @@ export async function apiFetch<T = unknown>(
 ): Promise<T> {
   let token = "";
   try {
-    const { token: accessToken } = await auth0.getAccessToken();
-    token = accessToken ?? "";
+    const supabase = await createAdminServerClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    token = session?.access_token ?? "";
   } catch {
     // No session / token — caller handles empty data gracefully
   }

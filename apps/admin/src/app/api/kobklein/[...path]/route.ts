@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth0 } from "@/lib/auth0";
+import { createAdminServerClient } from "@/lib/supabase-server";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
@@ -8,11 +8,12 @@ async function handler(
   ctx: { params: Promise<{ path: string[] }> },
 ) {
   try {
-    // Get Auth0 access token for the current admin session
+    // Get Supabase access token for the current admin session
     let accessToken: string;
     try {
-      const result = await auth0.getAccessToken();
-      accessToken = result.token ?? "";
+      const supabase = await createAdminServerClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      accessToken = session?.access_token ?? "";
     } catch {
       accessToken = "";
     }

@@ -164,3 +164,233 @@ select option {
 .surface-2 { background: #0E2018; } /* inner panels */
 .surface-3 { background: #122B22; } /* inputs, rows */
 .surface-4 { background: #163528; } /* hover states */
+
+/* ═══════════════════════════════════════════════════════════════════
+   PER-ROLE SHELL THEME — html[data-role="<role>"]
+   RoleTheme sets data-role on <html> (documentElement) AND sets the
+   CSS vars directly via element.style.setProperty() for instant effect.
+   These CSS rules act as a fallback / SSR-friendly alternative.
+   Setting on <html> ensures vars cascade to ALL elements including
+   position:fixed sidebar, topbar, and mobile nav.
+   ═══════════════════════════════════════════════════════════════════ */
+
+html[data-role="client"],
+:root:has([data-role="client"]) {
+  --dash-page-bg:      #050F0C;
+  --dash-main-bg:      #050F0C;
+  --dash-shell-bg:     #071A15;
+  --dash-shell-border: rgba(13,158,138,0.35);
+  --dash-shell-glow:   rgba(13,158,138,0.25);
+}
+
+html[data-role="merchant"],
+:root:has([data-role="merchant"]) {
+  --dash-page-bg:      #0A1628;
+  --dash-main-bg:      #0A1628;
+  --dash-shell-bg:     #0F1E3A;
+  --dash-shell-border: rgba(100,140,220,0.28);
+  --dash-shell-glow:   rgba(100,140,220,0.18);
+}
+
+html[data-role="distributor"],
+:root:has([data-role="distributor"]) {
+  --dash-page-bg:      #07080C;
+  --dash-main-bg:      #07080C;
+  --dash-shell-bg:     #0D0F14;
+  --dash-shell-border: rgba(255,255,255,0.10);
+  --dash-shell-glow:   rgba(255,255,255,0.06);
+}
+
+html[data-role="diaspora"],
+:root:has([data-role="diaspora"]) {
+  --dash-page-bg:      #240E3C;
+  /* --dash-main-bg is the full star-field gradient — injected by RoleTheme <style> tag */
+  --dash-main-bg:      linear-gradient(168deg, #0D0220 0%, #190730 18%, #240E3C 46%, #1E0838 70%, #0F021C 100%);
+  --dash-shell-bg:     #1C0A35;
+  --dash-shell-border: rgba(165,150,201,0.28);
+  --dash-shell-glow:   rgba(138,80,200,0.22);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PER-DASHBOARD CONTENT THEME — data-dashboard="<role>"
+   Applied on the dashboard component wrapper div.
+   Controls card, panel, chart colors inside the dashboard only.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── MERCHANT: Deep Navy ─────────────────────────────────────────── */
+[data-dashboard="merchant"] {
+  --dash-bg:       #0A1628;
+  --dash-bg2:      #12034A;
+  --dash-bg3:      #1A2555;
+  --dash-card:     #0F1E3A;
+  --dash-panel:    #102240;
+  --dash-panel2:   #132850;
+  --dash-border:   rgba(100,140,220,0.13);
+  --dash-border2:  rgba(100,140,220,0.08);
+  --dash-teal:     #6E8DAE;
+  --dash-teal-dim: #3A5A7A;
+  --dash-gold:     #D4AF37;
+  --dash-gold-l:   #F5B77A;
+  --dash-gold-d:   #A08030;
+  --dash-text:     #E6EDF7;
+  --dash-muted:    #6EB2A6;
+  --dash-success:  #16C734;
+  --dash-expense:  #FF74D4;
+  --dash-glow-gold: rgba(212,175,55,0.25);
+  --dash-glow-accent: rgba(100,140,220,0.15);
+}
+
+[data-dashboard="merchant"] .surface-1 { background: #0F1E3A; }
+[data-dashboard="merchant"] .surface-2 { background: #102240; }
+[data-dashboard="merchant"] .surface-3 { background: #132850; }
+[data-dashboard="merchant"] .surface-4 { background: #163060; }
+
+[data-dashboard="merchant"] .glass-card {
+  background: #0F1E3A;
+  border: 1px solid rgba(100,140,220,0.13);
+}
+[data-dashboard="merchant"] .panel-card {
+  background: #102240;
+  border: 1px solid rgba(100,140,220,0.08);
+}
+[data-dashboard="merchant"] .gold-glow {
+  box-shadow: 0 0 40px -8px rgba(212,175,55,0.35),
+              0 4px 24px -4px rgba(0,0,0,0.6);
+}
+[data-dashboard="merchant"] .shimmer {
+  background: linear-gradient(90deg, #0F1E3A 0%, #1A2D55 50%, #0F1E3A 100%);
+  background-size: 1200px 100%;
+}
+[data-dashboard="merchant"] .card-hover:hover {
+  box-shadow: 0 12px 40px -8px rgba(0,0,0,0.5),
+              0 0 24px -4px rgba(212,175,55,0.15);
+}
+
+/* ─── DIASPORA: Royal Purple ──────────────────────────────────────── */
+[data-dashboard="diaspora"] {
+  --dash-bg:       #240E3C;
+  --dash-bg2:      #2A1248;
+  --dash-bg3:      #382057;
+  --dash-card:     #2D1450;
+  --dash-panel:    #321858;
+  --dash-panel2:   #3A2060;
+  --dash-border:   rgba(138,80,200,0.20);
+  --dash-border2:  rgba(138,80,200,0.10);
+  --dash-teal:     #A596C9;
+  --dash-teal-dim: #6E558B;
+  --dash-gold:     #D4AF37;
+  --dash-gold-l:   #F5B77A;
+  --dash-gold-d:   #A08030;
+  --dash-text:     #E6DBF7;
+  --dash-muted:    #A596C9;
+  --dash-dimmed:   #6E558B;
+  --dash-success:  #C9A84C;
+  --dash-expense:  #FF74D4;
+  --dash-glow-gold:   rgba(212,175,55,0.25);
+  --dash-glow-accent: rgba(138,80,200,0.20);
+}
+
+[data-dashboard="diaspora"] .surface-1 { background: #2D1450; }
+[data-dashboard="diaspora"] .surface-2 { background: #321858; }
+[data-dashboard="diaspora"] .surface-3 { background: #3A2060; }
+[data-dashboard="diaspora"] .surface-4 { background: #422870; }
+
+[data-dashboard="diaspora"] .glass-card {
+  background: #1E0D38;
+  border: 1px solid rgba(150,80,220,0.15);
+}
+[data-dashboard="diaspora"] .panel-card {
+  background: #24103F;
+  border: 1px solid rgba(150,80,220,0.08);
+}
+[data-dashboard="diaspora"] .gold-glow {
+  box-shadow: 0 0 40px -8px rgba(212,175,55,0.35),
+              0 4px 24px -4px rgba(0,0,0,0.6);
+}
+[data-dashboard="diaspora"] .shimmer {
+  background: linear-gradient(90deg, #1E0D38 0%, #2A1448 50%, #1E0D38 100%);
+  background-size: 1200px 100%;
+}
+[data-dashboard="diaspora"] .card-hover:hover {
+  box-shadow: 0 12px 40px -8px rgba(0,0,0,0.5),
+              0 0 24px -4px rgba(212,175,55,0.15);
+}
+
+/* ─── DISTRIBUTOR: Noir Glass ─────────────────────────────────────── */
+[data-dashboard="distributor"] {
+  --dash-bg:       #07080C;
+  --dash-bg2:      #0D0F14;
+  --dash-bg3:      #111318;
+  --dash-card:     rgba(255,255,255,0.045);
+  --dash-panel:    rgba(255,255,255,0.028);
+  --dash-panel2:   rgba(255,255,255,0.06);
+  --dash-border:   rgba(255,255,255,0.08);
+  --dash-border2:  rgba(255,255,255,0.05);
+  --dash-border3:  rgba(255,255,255,0.12);
+  --dash-teal:     #818CF8;
+  --dash-teal-dim: rgba(129,140,248,0.40);
+  --dash-gold:     #D4AF37;
+  --dash-gold-l:   #F5B77A;
+  --dash-gold-d:   #A08030;
+  --dash-text:     #FFFFFF;
+  --dash-muted:    rgba(255,255,255,0.58);
+  --dash-dimmed:   rgba(255,255,255,0.30);
+  --dash-faint:    rgba(255,255,255,0.14);
+  --dash-success:  #16C784;
+  --dash-expense:  #F87171;
+  --dash-glow-gold:   rgba(212,175,55,0.25);
+  --dash-glow-accent: rgba(129,140,248,0.15);
+}
+
+[data-dashboard="distributor"] .surface-1 { background: rgba(255,255,255,0.045); }
+[data-dashboard="distributor"] .surface-2 { background: rgba(255,255,255,0.065); }
+[data-dashboard="distributor"] .surface-3 { background: rgba(255,255,255,0.085); }
+[data-dashboard="distributor"] .surface-4 { background: rgba(255,255,255,0.10);  }
+
+[data-dashboard="distributor"] .glass-card {
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+[data-dashboard="distributor"] .panel-card {
+  background: rgba(255,255,255,0.028);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+[data-dashboard="distributor"] .gold-glow {
+  box-shadow: 0 0 40px -8px rgba(212,175,55,0.35),
+              0 4px 24px -4px rgba(0,0,0,0.7);
+}
+[data-dashboard="distributor"] .shimmer {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.09) 50%,
+    rgba(255,255,255,0.04) 100%
+  );
+  background-size: 1200px 100%;
+}
+[data-dashboard="distributor"] .card-hover:hover {
+  box-shadow: 0 12px 40px -8px rgba(0,0,0,0.6),
+              0 0 24px -4px rgba(212,175,55,0.15);
+}
+
+/* ─── CLIENT: Forest Green (existing palette, lightly enhanced) ───── */
+[data-dashboard="client"] {
+  --dash-bg:       #050F0C;
+  --dash-card:     #0B1A16;
+  --dash-panel:    #0E2018;
+  --dash-panel2:   #122B22;
+  --dash-border:   rgba(13,158,138,0.12);
+  --dash-border2:  rgba(13,158,138,0.08);
+  --dash-teal:     #0D9E8A;
+  --dash-teal-dim: #5A7A6A;
+  --dash-gold:     #C9A84C;
+  --dash-gold-l:   #E2CA6E;
+  --dash-gold-d:   #9F7F2C;
+  --dash-text:     #F0F1F5;
+  --dash-muted:    #5A7A6A;
+  --dash-success:  #16C734;
+  --dash-expense:  #EF4444;
+  --dash-glow-gold: rgba(201,168,76,0.25);
+  --dash-glow-accent: rgba(13,158,138,0.15);
+}

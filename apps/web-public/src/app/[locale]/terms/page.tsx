@@ -85,7 +85,7 @@ export default async function TermsPage({
             Terms of Service
           </h1>
           <p className="text-kob-muted">
-            Effective Date: January 1, 2025 &middot; Last Updated: February 1, 2025
+            Effective Date: January 1, 2025 &middot; Last Updated: February 22, 2026
           </p>
         </div>
       </section>

@@ -165,4 +165,35 @@ export class UsersController {
       handle: user?.handle ?? null,
     };
   }
+
+  /**
+   * PATCH /v1/location
+   * Saves the user's GPS coordinates to their Merchant or Distributor record.
+   * Called once per session from the PWA after geolocation permission is granted.
+   */
+  @UseGuards(SupabaseGuard)
+  @Patch("location")
+  async updateLocation(
+    @Req() req: any,
+    @Body() body: { lat: number; lng: number },
+  ) {
+    const userId = req.localUser?.id;
+    if (!userId) return { ok: false };
+
+    const lat = Number(body.lat);
+    const lng = Number(body.lng);
+    if (Number.isNaN(lat) || Number.isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return { ok: false, error: "Invalid coordinates" };
+    }
+
+    const role: string = req.localUser?.role ?? "";
+
+    if (role === "MERCHANT") {
+      await prisma.merchant.updateMany({ where: { userId }, data: { lat, lng } });
+    } else if (role === "DISTRIBUTOR") {
+      await prisma.distributor.updateMany({ where: { userId }, data: { lat, lng } });
+    }
+
+    return { ok: true };
+  }
 }

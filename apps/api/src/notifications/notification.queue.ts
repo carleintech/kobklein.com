@@ -3,7 +3,7 @@ import IORedis from "ioredis";
 import * as net from "net";
 import { sendSMS, isTwilioConfigured } from "./sms.service";
 import { sendEmail, isEmailConfigured } from "./email.service";
-import { notifyUser as pushNotifyUser } from "../push/push.service";
+import { notifyUser as pushNotifyUser, notifyUserWebPush } from "../push/push.service";
 import {
   logNotificationQueued,
   markNotificationSent,
@@ -16,6 +16,7 @@ export interface NotificationJob {
   channel: "sms" | "email" | "push";
   to: string;
   body: string;
+  subject?: string; // email subject (falls back to type if omitted)
   type: string;
   data: Record<string, any>;
   attempt: number;
@@ -129,17 +130,21 @@ async function processNotification(job: Job<NotificationJob>): Promise<void> {
         console.log(`[SMS-DRY] → ${to}: ${body}`);
       }
     } else if (channel === "email") {
+      const emailSubject = job.data.subject || type;
       if (isEmailConfigured()) {
-        await sendEmail(to, type, body);
+        await sendEmail(to, emailSubject, body);
       } else {
-        console.log(`[EMAIL-DEV] → ${to}: ${body}`);
+        console.log(`[EMAIL-DEV] → ${to}: ${emailSubject}\n${body}`);
       }
     } else if (channel === "push") {
       // `to` holds the userId for push notifications
       const userId = job.data.userId ?? to;
       if (userId) {
-        const result = await pushNotifyUser(userId, { title: type, body });
-        console.log(`[PUSH] → userId=${userId}: sent=${result.sent}, failed=${result.failed}`);
+        const [expoResult, webResult] = await Promise.all([
+          pushNotifyUser(userId, { title: type, body }),
+          notifyUserWebPush(userId, { title: type, body }),
+        ]);
+        console.log(`[PUSH] → userId=${userId}: expo=${expoResult.sent}, web=${webResult.sent}`);
       } else {
         console.warn(`[PUSH] No userId for push notification, skipping: ${body}`);
       }

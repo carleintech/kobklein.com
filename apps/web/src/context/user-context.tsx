@@ -13,6 +13,8 @@ export type AuthUser = {
 
 type UserContextType = {
   user: AuthUser;
+  /** DB cuid from the KobKlein User table (not the Supabase UUID). Use for Realtime filters. */
+  localUserId?: string;
 };
 
 const UserContext = createContext<UserContextType>({
@@ -21,13 +23,15 @@ const UserContext = createContext<UserContextType>({
 
 export function UserProvider({
   user,
+  localUserId,
   children,
 }: {
   user: AuthUser;
+  localUserId?: string;
   children: ReactNode;
 }) {
   return (
-    <UserContext.Provider value={{ user }}>
+    <UserContext.Provider value={{ user, localUserId }}>
       {children}
     </UserContext.Provider>
   );

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -55,6 +55,30 @@ type DashboardData = {
   pendingRequests: { id: string; amount: number; requester: { firstName?: string } }[];
 };
 
+// ─── Design tokens — Diaspora: Royal Purple (per mockup #240E3C palette) ──────
+
+const D = {
+  bg:        "#240E3C",   // mockup primary dark
+  bg2:       "#2A1248",
+  bg3:       "#382057",   // mockup primary mid
+  card:      "#2D1450",
+  panel:     "#321858",
+  panel2:    "#3A2060",
+  border:    "rgba(138,80,200,0.20)",
+  border2:   "rgba(138,80,200,0.10)",
+  border3:   "rgba(138,80,200,0.35)",
+  accent:    "#A596C9",   // neutral UI text — mockup
+  accentDim: "#6E558B",  // neutral UI text dim — mockup
+  gold:      "#C9A84C",  // Imperial Gold (CSS primary)
+  goldL:     "#C9A84C",  // Imperial Gold (light)
+  goldD:     "#C9A84C",  // Imperial Gold (dark)
+  text:      "#E6DBF7",  // neutral UI text — mockup
+  muted:     "#A596C9",
+  dimmed:    "#6E558B",
+  success:   "#16C784",  // indicator success — mockup
+  expense:   "#FF74D4",  // indicator expense — mockup
+} as const;
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const RELATIONSHIP_LABELS: Record<string, string> = {
@@ -67,8 +91,8 @@ const FAMILY_EMOJIS: Record<string, string> = {
 };
 
 const MEMBER_COLORS = [
-  { from: "#C9A84C", to: "#9F7F2C" },
-  { from: "#0D9E8A", to: "#0B7A6A" },
+  { from: "#C9A84C", to: "#C9A84C" },
+  { from: "#9B6DC8", to: "#6E3FA0" },
   { from: "#6366F1", to: "#4F46E5" },
   { from: "#F97316", to: "#EA580C" },
   { from: "#EC4899", to: "#DB2777" },
@@ -111,9 +135,9 @@ const MONTHS = ["Sep", "Oct", "Nov", "Dec", "Jan", "Feb"];
 function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl px-3 py-2 text-xs border border-[#0D9E8A]/[0.15]"
-      style={{ background: "#0B1A16" }}>
-      <p className="text-[#7A9A8A] mb-1">{label}</p>
+    <div className="rounded-xl px-3 py-2 text-xs"
+      style={{ background: D.card, border: `1px solid ${D.border}` }}>
+      <p className="mb-1" style={{ color: D.muted }}>{label}</p>
       {payload.map((p: any) => (
         <p key={p.name} className="font-bold" style={{ color: p.color }}>
           ${p.value.toLocaleString()}
@@ -158,6 +182,7 @@ export function DiasporaDashboard({ profile }: Props) {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -237,7 +262,7 @@ export function DiasporaDashboard({ profile }: Props) {
   }));
 
   return (
-    <div className="space-y-5 pb-8">
+    <div className="space-y-5 pb-8" data-dashboard="diaspora">
 
       {/* ── TOP HEADER ─────────────────────────────────────────────── */}
       <motion.div
@@ -246,14 +271,15 @@ export function DiasporaDashboard({ profile }: Props) {
         className="flex items-start justify-between"
       >
         <div>
-          <div className="flex items-center gap-1.5 text-[10px] text-[#5A7A6A] font-bold uppercase tracking-widest mb-1">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest mb-1"
+            style={{ color: D.muted }}>
             <Globe className="h-3 w-3" />
             KobKlein Diaspora
           </div>
-          <h1 className="text-2xl font-black text-[#F0F1F5]">
+          <h1 className="text-2xl font-black" style={{ color: D.text }}>
             {greeting}{name}! 👋
           </h1>
-          <p className="text-xs text-[#5A6B82] mt-0.5">
+          <p className="text-xs mt-0.5" style={{ color: D.dimmed }}>
             Your family in Haiti is connected
           </p>
         </div>
@@ -263,11 +289,12 @@ export function DiasporaDashboard({ profile }: Props) {
           <div className="flex items-center gap-1.5">
             {profile.planName ? (
               <span className="inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full"
-                style={{ background: "rgba(201,168,76,0.15)", color: "#C9A84C", border: "1px solid rgba(201,168,76,0.25)" }}>
+                style={{ background: `${D.gold}25`, color: D.gold, border: `1px solid ${D.gold}40` }}>
                 <Crown className="h-2.5 w-2.5" />{profile.planName}
               </span>
             ) : (
-              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#122B22] text-[#5A7A6A] border border-[#0D9E8A]/[0.12]">Free</span>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                style={{ background: D.panel, color: D.muted, border: `1px solid ${D.border}` }}>Free</span>
             )}
             {profile.kycTier >= 2 && (
               <span className="inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full"
@@ -279,7 +306,8 @@ export function DiasporaDashboard({ profile }: Props) {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleRefresh}
-            className="p-1.5 rounded-lg bg-[#0E2018] border border-[#0D9E8A]/[0.12] text-[#5A7A6A] hover:text-[#0D9E8A] transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ background: D.panel, border: `1px solid ${D.border}`, color: D.muted }}
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
           </motion.button>
@@ -312,8 +340,8 @@ export function DiasporaDashboard({ profile }: Props) {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => router.push("/send")}
-                className="text-xs font-bold px-3 py-1.5 rounded-xl text-[#050F0C]"
-                style={{ background: "linear-gradient(135deg, #E2CA6E, #C9A84C)" }}
+                className="text-xs font-bold px-3 py-1.5 rounded-xl"
+                style={{ background: `linear-gradient(135deg, ${D.goldL}, ${D.gold})`, color: D.bg }}
               >
                 Review
               </motion.button>
@@ -338,25 +366,25 @@ export function DiasporaDashboard({ profile }: Props) {
             transition={{ delay: 0.05 }}
             className="relative rounded-3xl overflow-hidden"
             style={{
-              background: "linear-gradient(135deg, #071A14 0%, #0B2A20 40%, #0E3028 70%, #071A14 100%)",
-              boxShadow: "0 24px 60px -12px rgba(0,0,0,0.6), 0 0 0 1px rgba(13,158,138,0.15)",
+              background: `linear-gradient(135deg, ${D.bg} 0%, ${D.bg2} 40%, ${D.bg3} 70%, ${D.bg} 100%)`,
+              boxShadow: `0 24px 60px -12px rgba(0,0,0,0.7), 0 0 0 1px ${D.border}`,
             }}
           >
             {/* Ambient glows */}
             <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-20 pointer-events-none"
-              style={{ background: "radial-gradient(circle, #0D9E8A 0%, transparent 70%)", transform: "translate(30%, -30%)" }} />
+              style={{ background: `radial-gradient(circle, ${D.gold} 0%, transparent 70%)`, transform: "translate(30%, -30%)" }} />
             <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full opacity-10 pointer-events-none"
-              style={{ background: "radial-gradient(circle, #C9A84C 0%, transparent 70%)", transform: "translate(-20%, 20%)" }} />
+              style={{ background: `radial-gradient(circle, ${D.accent} 0%, transparent 70%)`, transform: "translate(-20%, 20%)" }} />
 
             <div className="relative p-5">
               {/* Row 1: Label + actions */}
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.15em] text-[#5A7A6A] font-bold">Total Balance</p>
+                  <p className="text-[10px] uppercase tracking-[0.15em] font-bold" style={{ color: D.muted }}>Global Reserve Balance</p>
                   {dashboard && (
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] text-[#4A6A5A]">≈ HTG</span>
-                      <span className="text-[10px] font-bold text-[#5A7A6A]">
+                      <span className="text-[10px]" style={{ color: D.dimmed }}>≈ HTG</span>
+                      <span className="text-[10px] font-bold" style={{ color: D.muted }}>
                         {(balance * 130).toLocaleString("fr-HT")}
                       </span>
                     </div>
@@ -368,8 +396,8 @@ export function DiasporaDashboard({ profile }: Props) {
                     className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] transition-colors"
                   >
                     {hideBalance
-                      ? <EyeOff className="h-3.5 w-3.5 text-[#5A7A6A]" />
-                      : <Eye className="h-3.5 w-3.5 text-[#5A7A6A]" />}
+                      ? <EyeOff className="h-3.5 w-3.5" style={{ color: D.muted }} />
+                      : <Eye className="h-3.5 w-3.5" style={{ color: D.muted }} />}
                   </button>
                 </div>
               </div>
@@ -383,7 +411,8 @@ export function DiasporaDashboard({ profile }: Props) {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="text-4xl font-black text-[#5A7A6A] tracking-widest"
+                      className="text-4xl font-black tracking-widest"
+                      style={{ color: D.muted }}
                     >
                       ●●●●●●
                     </motion.p>
@@ -397,13 +426,13 @@ export function DiasporaDashboard({ profile }: Props) {
                       <span
                         className="text-4xl font-black tabular-nums"
                         style={{
-                          background: "linear-gradient(135deg, #E2CA6E, #C9A84C, #A08030)",
+                          background: `linear-gradient(135deg, ${D.goldL}, ${D.gold}, ${D.goldD})`,
                           WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
                         }}
                       >
                         ${loading ? "—" : animBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                       </span>
-                      <span className="text-lg font-bold text-[#C9A84C]/50 ml-2">USD</span>
+                      <span className="text-lg font-bold ml-2" style={{ color: `${D.gold}80` }}>USD</span>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -412,16 +441,16 @@ export function DiasporaDashboard({ profile }: Props) {
               {/* Stat pills */}
               <div className="grid grid-cols-3 gap-2 mb-4">
                 {[
-                  { label: "K-Link Family", value: loading ? "—" : familyCount.toString(), icon: Users, color: "#0D9E8A" },
-                  { label: "Total Sent", value: loading ? "—" : `$${animSent.toLocaleString()}`, icon: Send, color: "#C9A84C" },
-                  { label: "Pending", value: pendingRequests.length.toString(), icon: Clock, color: pendingRequests.length > 0 ? "#F59E0B" : "#5A7A6A" },
+                  { label: "K-Link Family", value: loading ? "—" : familyCount.toString(), icon: Users, color: D.accent },
+                  { label: "Today's Transfers", value: loading ? "—" : `$${animSent.toLocaleString()}`, icon: Send, color: D.gold },
+                  { label: "Family Connect", value: pendingRequests.length.toString(), icon: Clock, color: pendingRequests.length > 0 ? "#F59E0B" : D.dimmed },
                 ].map((s) => (
                   <div key={s.label}
                     className="rounded-xl px-3 py-2 flex flex-col gap-1"
-                    style={{ background: "rgba(13,158,138,0.06)", border: "1px solid rgba(13,158,138,0.10)" }}>
+                    style={{ background: `${D.panel}CC`, border: `1px solid ${D.border2}` }}>
                     <s.icon className="h-3.5 w-3.5" style={{ color: s.color }} />
-                    <p className="text-sm font-black text-[#E0E4EE] tabular-nums">{s.value}</p>
-                    <p className="text-[9px] text-[#4A6A5A] uppercase tracking-wide font-bold">{s.label}</p>
+                    <p className="text-sm font-black tabular-nums" style={{ color: D.text }}>{s.value}</p>
+                    <p className="text-[9px] uppercase tracking-wide font-bold" style={{ color: D.dimmed }}>{s.label}</p>
                   </div>
                 ))}
               </div>
@@ -429,9 +458,9 @@ export function DiasporaDashboard({ profile }: Props) {
               {/* Quick Actions */}
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { label: "Send", icon: Send, href: "/send", gold: true },
+                  { label: "Transfer", icon: Send, href: "/send", gold: true },
+                  { label: "Schedule", icon: Calendar, href: "/recurring", gold: false },
                   { label: "Wallet", icon: Wallet, href: "/wallet", gold: false },
-                  { label: "Recurring", icon: Calendar, href: "/recurring", gold: false },
                   { label: "Family", icon: Users, href: "/manage-family", gold: false },
                 ].map((a) => (
                   <motion.button
@@ -441,12 +470,12 @@ export function DiasporaDashboard({ profile }: Props) {
                     onClick={() => router.push(a.href)}
                     className="flex flex-col items-center gap-1.5 py-3 rounded-2xl transition-all"
                     style={a.gold
-                      ? { background: "linear-gradient(135deg, rgba(226,202,110,0.2), rgba(201,168,76,0.1))", border: "1px solid rgba(201,168,76,0.3)" }
-                      : { background: "rgba(13,158,138,0.06)", border: "1px solid rgba(13,158,138,0.10)" }}
+                      ? { background: `linear-gradient(135deg, ${D.goldL}30, ${D.gold}18)`, border: `1px solid ${D.gold}50` }
+                      : { background: `${D.panel}AA`, border: `1px solid ${D.border2}` }}
                   >
-                    <a.icon className="h-4 w-4" style={{ color: a.gold ? "#C9A84C" : "#0D9E8A" }} />
+                    <a.icon className="h-4 w-4" style={{ color: a.gold ? D.gold : D.accent }} />
                     <span className="text-[9px] font-bold uppercase tracking-wide"
-                      style={{ color: a.gold ? "#C9A84C" : "#5A8A7A" }}>
+                      style={{ color: a.gold ? D.gold : D.muted }}>
                       {a.label}
                     </span>
                   </motion.button>
@@ -460,11 +489,11 @@ export function DiasporaDashboard({ profile }: Props) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="rounded-3xl overflow-hidden border border-[#0D9E8A]/[0.12]"
-            style={{ background: "linear-gradient(160deg, #0B1A16 0%, #081410 100%)" }}
+            className="rounded-3xl overflow-hidden"
+            style={{ background: `linear-gradient(160deg, ${D.card} 0%, ${D.bg} 100%)`, border: `1px solid ${D.border}` }}
           >
             {/* Tab bar */}
-            <div className="flex border-b border-[#0D9E8A]/[0.08]">
+            <div className="flex" style={{ borderBottom: `1px solid ${D.border2}` }}>
               {[
                 { key: "family", label: "Family Wallet", icon: Heart },
                 { key: "activity", label: "Recent Activity", icon: Receipt },
@@ -472,11 +501,10 @@ export function DiasporaDashboard({ profile }: Props) {
                 <button
                   key={t.key}
                   onClick={() => setActiveTab(t.key as any)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-3.5 text-xs font-bold transition-all border-b-2 ${
-                    activeTab === t.key
-                      ? "border-[#C9A84C] text-[#C9A84C]"
-                      : "border-transparent text-[#4A6A5A] hover:text-[#7A9A8A]"
-                  }`}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-3.5 text-xs font-bold transition-all border-b-2"
+                  style={activeTab === t.key
+                    ? { borderBottomColor: D.gold, color: D.gold }
+                    : { borderBottomColor: "transparent", color: D.dimmed }}
                 >
                   <t.icon className="h-3.5 w-3.5" />
                   {t.label}
@@ -497,7 +525,7 @@ export function DiasporaDashboard({ profile }: Props) {
                   >
                     {/* Header row */}
                     <div className="flex items-center justify-between">
-                      <p className="text-[10px] uppercase tracking-[0.15em] text-[#4A6A5A] font-bold">
+                      <p className="text-[10px] uppercase tracking-[0.15em] font-bold" style={{ color: D.dimmed }}>
                         {familyCount} member{familyCount !== 1 ? "s" : ""} linked
                       </p>
                       <motion.button
@@ -505,7 +533,7 @@ export function DiasporaDashboard({ profile }: Props) {
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setShowAddForm(v => !v)}
                         className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all"
-                        style={{ background: "rgba(201,168,76,0.1)", color: "#C9A84C", border: "1px solid rgba(201,168,76,0.2)" }}
+                        style={{ background: `${D.gold}18`, color: D.gold, border: `1px solid ${D.gold}30` }}
                       >
                         {showAddForm ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
                         {showAddForm ? "Cancel" : "Add"}
@@ -521,9 +549,9 @@ export function DiasporaDashboard({ profile }: Props) {
                           exit={{ opacity: 0, height: 0 }}
                           className="overflow-hidden"
                         >
-                          <div className="rounded-2xl p-4 space-y-3 border border-[#0D9E8A]/[0.12]"
-                            style={{ background: "#0E2018" }}>
-                            <p className="text-xs font-bold text-[#5A7A6A] uppercase tracking-wider">Link Family Member</p>
+                          <div className="rounded-2xl p-4 space-y-3"
+                            style={{ background: D.panel, border: `1px solid ${D.border}` }}>
+                            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: D.muted }}>Link Family Member</p>
                             {[
                               { ph: "Phone or K-Tag (@handle)", val: addPhone, set: setAddPhone, type: "text" },
                               { ph: "Nickname (e.g. Manman)", val: addNickname, set: setAddNickname, type: "text" },
@@ -534,16 +562,16 @@ export function DiasporaDashboard({ profile }: Props) {
                                 placeholder={f.ph}
                                 value={f.val}
                                 onChange={e => f.set(e.target.value)}
-                                className="w-full px-3 py-2.5 rounded-xl text-sm text-[#E0E4EE] placeholder-[#3A5A4A] outline-none"
-                                style={{ background: "#122B22", border: "1px solid rgba(13,158,138,0.12)" }}
+                                className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                                style={{ background: D.panel2, border: `1px solid ${D.border}`, color: D.text }}
                               />
                             ))}
                             <select
                               value={addRelationship}
                               onChange={e => setAddRelationship(e.target.value)}
                               title="Select relationship"
-                              className="w-full px-3 py-2.5 rounded-xl text-sm text-[#E0E4EE] outline-none cursor-pointer"
-                              style={{ background: "#122B22", border: "1px solid rgba(13,158,138,0.12)" }}
+                              className="w-full px-3 py-2.5 rounded-xl text-sm outline-none cursor-pointer"
+                              style={{ background: D.panel2, border: `1px solid ${D.border}`, color: D.text }}
                             >
                               <option value="">Relationship</option>
                               {Object.entries(RELATIONSHIP_LABELS).map(([k, v]) => (
@@ -555,8 +583,8 @@ export function DiasporaDashboard({ profile }: Props) {
                               whileTap={{ scale: 0.99 }}
                               onClick={handleAddFamily}
                               disabled={!addPhone || addLoading}
-                              className="w-full py-2.5 rounded-xl font-bold text-sm text-[#050F0C] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                              style={{ background: "linear-gradient(135deg, #E2CA6E, #C9A84C)" }}
+                              className="w-full py-2.5 rounded-xl font-bold text-sm disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                              style={{ background: `linear-gradient(135deg, ${D.goldL}, ${D.gold})`, color: D.bg }}
                             >
                               {addLoading ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
                               Add to K-Link
@@ -570,17 +598,17 @@ export function DiasporaDashboard({ profile }: Props) {
                     {loading ? (
                       <div className="space-y-2">
                         {[1, 2, 3].map(i => (
-                          <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: "#0E2018" }} />
+                          <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: D.panel }} />
                         ))}
                       </div>
                     ) : sortedFamily.length === 0 ? (
                       <div className="py-8 flex flex-col items-center gap-3 text-center">
                         <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                          style={{ background: "rgba(13,158,138,0.08)", border: "1px solid rgba(13,158,138,0.12)" }}>
-                          <Globe className="h-6 w-6 text-[#0D9E8A]/50" />
+                          style={{ background: `${D.accent}14`, border: `1px solid ${D.border}` }}>
+                          <Globe className="h-6 w-6" style={{ color: `${D.accent}80` }} />
                         </div>
-                        <p className="text-sm text-[#4A6A5A]">No family linked yet</p>
-                        <p className="text-xs text-[#3A5A4A]">Add your family in Haiti for easy transfers</p>
+                        <p className="text-sm" style={{ color: D.dimmed }}>No family linked yet</p>
+                        <p className="text-xs" style={{ color: D.accentDim }}>Add your family in Haiti for easy transfers</p>
                       </div>
                     ) : (
                       <div className="space-y-2">
@@ -594,8 +622,8 @@ export function DiasporaDashboard({ profile }: Props) {
                               initial={{ opacity: 0, x: -8 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: idx * 0.04 }}
-                              className="flex items-center gap-3 p-3 rounded-2xl border border-[#0D9E8A]/[0.08] transition-colors hover:border-[#0D9E8A]/[0.15]"
-                              style={{ background: "#0E2018" }}
+                              className="flex items-center gap-3 p-3 rounded-2xl transition-colors"
+                              style={{ background: D.panel, border: `1px solid ${D.border2}` }}
                             >
                               {/* Avatar */}
                               <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-white shrink-0"
@@ -606,7 +634,7 @@ export function DiasporaDashboard({ profile }: Props) {
                               {/* Info */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="text-sm font-bold text-[#E0E4EE] truncate">
+                                  <span className="text-sm font-bold truncate" style={{ color: D.text }}>
                                     {member.nickname || member.familyUser.firstName || "Family"}
                                   </span>
                                   {member.relationship && (
@@ -616,15 +644,15 @@ export function DiasporaDashboard({ profile }: Props) {
                                     </span>
                                   )}
                                   {member.isFavorite && (
-                                    <Star className="h-3 w-3 text-[#C9A84C] fill-[#C9A84C] shrink-0" />
+                                    <Star className="h-3 w-3 shrink-0" style={{ color: D.gold, fill: D.gold }} />
                                   )}
                                 </div>
                                 <div className="flex items-center gap-2 mt-0.5">
-                                  <p className="text-xs text-[#4A6A5A] truncate">
+                                  <p className="text-xs truncate" style={{ color: D.dimmed }}>
                                     {member.familyUser.handle ? `@${member.familyUser.handle}` : member.familyUser.phone || ""}
                                   </p>
                                   {lastSent && (
-                                    <p className="text-[10px] text-[#3A5A4A] shrink-0">
+                                    <p className="text-[10px] shrink-0" style={{ color: D.accentDim }}>
                                       Last: ${lastSent.amount}
                                     </p>
                                   )}
@@ -636,9 +664,10 @@ export function DiasporaDashboard({ profile }: Props) {
                                 <button
                                   onClick={() => handleToggleFavorite(member)}
                                   className="p-1.5 rounded-lg transition-colors"
-                                  style={{ background: "rgba(13,158,138,0.06)" }}
+                                  style={{ background: `${D.accent}12` }}
                                 >
-                                  <Star className={`h-3.5 w-3.5 ${member.isFavorite ? "text-[#C9A84C] fill-[#C9A84C]" : "text-[#3A5A4A]"}`} />
+                                  <Star className="h-3.5 w-3.5"
+                                    style={{ color: member.isFavorite ? D.gold : D.dimmed, fill: member.isFavorite ? D.gold : "none" }} />
                                 </button>
                                 <motion.button
                                   whileHover={{ scale: 1.05 }}
@@ -648,8 +677,8 @@ export function DiasporaDashboard({ profile }: Props) {
                                       member.nickname || member.familyUser.firstName || "Family"
                                     )}`
                                   )}
-                                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl font-bold text-[10px] text-[#050F0C] transition-all"
-                                  style={{ background: "linear-gradient(135deg, #E2CA6E, #C9A84C)" }}
+                                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl font-bold text-[10px] transition-all"
+                                  style={{ background: `linear-gradient(135deg, ${D.goldL}, ${D.gold})`, color: D.bg }}
                                 >
                                   <Send className="h-3 w-3" />
                                   Send
@@ -673,7 +702,7 @@ export function DiasporaDashboard({ profile }: Props) {
                     className="space-y-2"
                   >
                     {mockActivity.length === 0 ? (
-                      <div className="py-8 text-center text-[#4A6A5A] text-sm">No recent activity</div>
+                      <div className="py-8 text-center text-sm" style={{ color: D.dimmed }}>No recent activity</div>
                     ) : (
                       mockActivity.map((a, i) => (
                         <motion.div
@@ -681,20 +710,20 @@ export function DiasporaDashboard({ profile }: Props) {
                           initial={{ opacity: 0, y: 6 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.06 }}
-                          className="flex items-center gap-3 p-3 rounded-2xl border border-[#0D9E8A]/[0.08]"
-                          style={{ background: "#0E2018" }}
+                          className="flex items-center gap-3 p-3 rounded-2xl"
+                          style={{ background: D.panel, border: `1px solid ${D.border2}` }}
                         >
                           <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs text-white shrink-0"
                             style={{ background: `linear-gradient(135deg, ${a.color.from}, ${a.color.to})` }}>
                             {a.name.slice(0, 2).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-[#E0E4EE]">{a.type}</p>
-                            <p className="text-xs text-[#4A6A5A]">→ {a.name}</p>
+                            <p className="text-sm font-bold" style={{ color: D.text }}>{a.type}</p>
+                            <p className="text-xs" style={{ color: D.dimmed }}>→ {a.name}</p>
                           </div>
                           <div className="text-right shrink-0">
-                            <p className="text-sm font-black text-[#C9A84C]">+${a.amount}</p>
-                            <p className="text-[10px] text-[#3A5A4A]">{a.date}</p>
+                            <p className="text-sm font-black" style={{ color: D.gold }}>+${a.amount}</p>
+                            <p className="text-[10px]" style={{ color: D.accentDim }}>{a.date}</p>
                           </div>
                         </motion.div>
                       ))
@@ -703,7 +732,8 @@ export function DiasporaDashboard({ profile }: Props) {
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
                       onClick={() => router.push("/wallet")}
-                      className="w-full py-3 rounded-2xl text-xs font-bold text-[#5A7A6A] border border-[#0D9E8A]/[0.10] hover:border-[#0D9E8A]/[0.20] hover:text-[#0D9E8A] transition-all flex items-center justify-center gap-1.5"
+                      className="w-full py-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                      style={{ color: D.muted, border: `1px solid ${D.border2}` }}
                     >
                       View Full History <ChevronRight className="h-3.5 w-3.5" />
                     </motion.button>
@@ -721,25 +751,25 @@ export function DiasporaDashboard({ profile }: Props) {
             className="grid grid-cols-3 gap-3"
           >
             {[
-              { label: "K-Pay Send", sub: "Instant transfer", href: "/send", icon: Send, color: "#C9A84C" },
-              { label: "Scheduled", sub: "Recurring remit", href: "/recurring", icon: Calendar, color: "#0D9E8A" },
-              { label: "Wallet", sub: "Balance & history", href: "/wallet", icon: Wallet, color: "#6366F1" },
+              { label: "Transfer Money", sub: "Instant transfer", href: "/send", icon: Send, color: D.gold },
+              { label: "Schedule", sub: "Recurring remit", href: "/recurring", icon: Calendar, color: D.accent },
+              { label: "Wallet", sub: "Balance & history", href: "/wallet", icon: Wallet, color: "#9F8AE0" },
             ].map((item) => (
               <motion.button
                 key={item.href}
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => router.push(item.href)}
-                className="flex flex-col gap-2.5 p-4 rounded-2xl border border-[#0D9E8A]/[0.10] hover:border-[#0D9E8A]/[0.20] text-left transition-all"
-                style={{ background: "#0B1A16" }}
+                className="flex flex-col gap-2.5 p-4 rounded-2xl text-left transition-all"
+                style={{ background: D.card, border: `1px solid ${D.border2}` }}
               >
                 <div className="w-8 h-8 rounded-xl flex items-center justify-center"
                   style={{ background: `${item.color}18`, border: `1px solid ${item.color}25` }}>
                   <item.icon className="h-4 w-4" style={{ color: item.color }} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-[#E0E4EE]">{item.label}</p>
-                  <p className="text-[10px] text-[#4A6A5A]">{item.sub}</p>
+                  <p className="text-xs font-bold" style={{ color: D.text }}>{item.label}</p>
+                  <p className="text-[10px]" style={{ color: D.dimmed }}>{item.sub}</p>
                 </div>
               </motion.button>
             ))}
@@ -754,13 +784,13 @@ export function DiasporaDashboard({ profile }: Props) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="rounded-3xl overflow-hidden border border-[#0D9E8A]/[0.12]"
-            style={{ background: "linear-gradient(160deg, #0B1A16 0%, #081410 100%)" }}
+            className="rounded-3xl overflow-hidden"
+            style={{ background: `linear-gradient(160deg, ${D.card} 0%, ${D.bg} 100%)`, border: `1px solid ${D.border}` }}
           >
             <div className="p-5">
               <div className="flex items-center justify-between mb-1">
                 <p className="text-sm font-bold text-[#E0E4EE]">Remittance Insights</p>
-                <span className="text-[10px] text-[#4A6A5A]">Last 6 months</span>
+                <span className="text-[10px]" style={{ color: D.dimmed }}>Last 6 months</span>
               </div>
               <div className="flex items-end justify-between mb-4">
                 <div>
@@ -771,13 +801,13 @@ export function DiasporaDashboard({ profile }: Props) {
                     }}>
                     ${loading ? "—" : animSent.toLocaleString()}
                   </p>
-                  <p className="text-[10px] text-[#4A6A5A] mt-0.5">Total Remitted</p>
+                  <p className="text-[10px] mt-0.5" style={{ color: D.dimmed }}>Total Remitted</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-black text-emerald-400">
+                  <p className="text-sm font-black" style={{ color: D.success }}>
                     ${loading ? "—" : Math.round(totalSent * 0.14).toLocaleString()}
                   </p>
-                  <p className="text-[10px] text-[#4A6A5A]">Fees Saved vs WU</p>
+                  <p className="text-[10px]" style={{ color: D.dimmed }}>Fees Saved vs WU</p>
                 </div>
               </div>
 
@@ -785,15 +815,15 @@ export function DiasporaDashboard({ profile }: Props) {
               <div className="h-36">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={remittanceData} barGap={2} barCategoryGap="25%">
-                    <XAxis dataKey="month" tick={{ fontSize: 9, fill: "#4A6A5A" }} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="month" tick={{ fontSize: 9, fill: D.dimmed }} axisLine={false} tickLine={false} />
                     <YAxis hide />
-                    <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(13,158,138,0.05)" }} />
+                    <Tooltip content={<ChartTooltip />} cursor={{ fill: `${D.accent}0D` }} />
                     <Bar dataKey="sent" radius={[4, 4, 0, 0]} maxBarSize={20}>
                       {remittanceData.map((_, i) => (
-                        <Cell key={i} fill={i === remittanceData.length - 1 ? "#C9A84C" : "#0D9E8A"} fillOpacity={i === remittanceData.length - 1 ? 1 : 0.5} />
+                        <Cell key={i} fill={i === remittanceData.length - 1 ? D.gold : D.accent} fillOpacity={i === remittanceData.length - 1 ? 1 : 0.5} />
                       ))}
                     </Bar>
-                    <Bar dataKey="saved" radius={[4, 4, 0, 0]} fill="#C9A84C" fillOpacity={0.25} maxBarSize={20} />
+                    <Bar dataKey="saved" radius={[4, 4, 0, 0]} fill={D.gold} fillOpacity={0.25} maxBarSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -801,22 +831,22 @@ export function DiasporaDashboard({ profile }: Props) {
               {/* Legend */}
               <div className="flex items-center gap-4 mt-2">
                 {[
-                  { color: "#0D9E8A", label: "Remitted" },
-                  { color: "#C9A84C", label: "This month" },
+                  { color: D.accent, label: "Remitted" },
+                  { color: D.gold,   label: "This month" },
                 ].map(l => (
                   <div key={l.label} className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-sm" style={{ background: l.color }} />
-                    <span className="text-[10px] text-[#4A6A5A]">{l.label}</span>
+                    <span className="text-[10px]" style={{ color: D.dimmed }}>{l.label}</span>
                   </div>
                 ))}
               </div>
 
               {/* Savings callout */}
               <div className="mt-3 rounded-xl px-3 py-2.5 flex items-center gap-2"
-                style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.12)" }}>
-                <Sparkles className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                <p className="text-[11px] text-emerald-400/80">
-                  You saved <span className="font-bold text-emerald-400">${Math.round(totalSent * 0.14).toLocaleString()}</span> this month vs Western Union
+                style={{ background: `${D.success}0F`, border: `1px solid ${D.success}20` }}>
+                <Sparkles className="h-3.5 w-3.5 shrink-0" style={{ color: D.success }} />
+                <p className="text-[11px]" style={{ color: `${D.success}CC` }}>
+                  You saved <span className="font-bold" style={{ color: D.success }}>${Math.round(totalSent * 0.14).toLocaleString()}</span> this month vs Western Union
                 </p>
               </div>
             </div>
@@ -827,22 +857,23 @@ export function DiasporaDashboard({ profile }: Props) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="rounded-3xl overflow-hidden border border-[#0D9E8A]/[0.12]"
-            style={{ background: "linear-gradient(160deg, #0B1A16 0%, #081410 100%)" }}
+            className="rounded-3xl overflow-hidden"
+            style={{ background: `linear-gradient(160deg, ${D.card} 0%, ${D.bg} 100%)`, border: `1px solid ${D.border}` }}
           >
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-bold text-[#E0E4EE]">Reciit Activity</p>
+                <p className="text-sm font-bold" style={{ color: D.text }}>Family Transfer Requests</p>
                 <button
                   onClick={() => router.push("/wallet")}
-                  className="p-1 rounded-lg text-[#4A6A5A] hover:text-[#0D9E8A] transition-colors"
+                  className="p-1 rounded-lg transition-colors"
+                  style={{ color: D.dimmed }}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
 
               {mockActivity.length === 0 ? (
-                <p className="text-xs text-[#4A6A5A] text-center py-4">No recent transfers</p>
+                <p className="text-xs text-center py-4" style={{ color: D.dimmed }}>No recent transfers</p>
               ) : (
                 <div className="space-y-3">
                   {mockActivity.map((a, i) => (
@@ -858,15 +889,15 @@ export function DiasporaDashboard({ profile }: Props) {
                         {a.name.slice(0, 1).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-[#E0E4EE]">{a.type}</p>
+                        <p className="text-xs font-bold" style={{ color: D.text }}>{a.type}</p>
                         <div className="flex items-center gap-1 mt-0.5">
-                          <MapPin className="h-2.5 w-2.5 text-[#3A5A4A]" />
-                          <p className="text-[10px] text-[#4A6A5A]">{a.name} · Haiti</p>
+                          <MapPin className="h-2.5 w-2.5" style={{ color: D.accentDim }} />
+                          <p className="text-[10px]" style={{ color: D.dimmed }}>{a.name} · Haiti</p>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-xs font-black text-[#C9A84C]">+${a.amount} {a.currency}</p>
-                        <p className="text-[10px] text-[#3A5A4A]">{a.date}</p>
+                        <p className="text-xs font-black" style={{ color: D.gold }}>+${a.amount} {a.currency}</p>
+                        <p className="text-[10px]" style={{ color: D.accentDim }}>{a.date}</p>
                       </div>
                     </motion.div>
                   ))}
@@ -880,22 +911,23 @@ export function DiasporaDashboard({ profile }: Props) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="rounded-3xl overflow-hidden border border-[#0D9E8A]/[0.12]"
-            style={{ background: "linear-gradient(160deg, #0B1A16 0%, #081410 100%)" }}
+            className="rounded-3xl overflow-hidden"
+            style={{ background: `linear-gradient(160deg, ${D.card} 0%, ${D.bg} 100%)`, border: `1px solid ${D.border}` }}
           >
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-bold text-[#E0E4EE]">Destination Tracker</p>
+                <p className="text-sm font-bold" style={{ color: D.text }}>Destination Tracker</p>
                 <button
                   onClick={() => router.push("/manage-family")}
-                  className="text-[10px] text-[#4A6A5A] hover:text-[#0D9E8A] transition-colors flex items-center gap-1"
+                  className="text-[10px] flex items-center gap-1 transition-colors"
+                  style={{ color: D.dimmed }}
                 >
                   View All <ChevronRight className="h-3 w-3" />
                 </button>
               </div>
 
               {sortedFamily.length === 0 ? (
-                <p className="text-xs text-[#4A6A5A] text-center py-4">Link family to track destinations</p>
+                <p className="text-xs text-center py-4" style={{ color: D.dimmed }}>Link family to track destinations</p>
               ) : (
                 <div className="space-y-4">
                   {sortedFamily.slice(0, 3).map((m, i) => {
@@ -911,16 +943,16 @@ export function DiasporaDashboard({ profile }: Props) {
                               style={{ background: `linear-gradient(135deg, ${col.from}, ${col.to})` }}>
                               {getInitials(m)}
                             </div>
-                            <span className="text-xs font-bold text-[#C0C8D0]">
+                            <span className="text-xs font-bold" style={{ color: D.text }}>
                               {m.nickname || m.familyUser.firstName || "Family"}
                             </span>
                           </div>
                           <div className="text-right">
-                            <span className="text-xs font-black text-[#E0E4EE]">${sent}</span>
-                            <span className="text-[10px] text-[#4A6A5A]"> / ${goal}</span>
+                            <span className="text-xs font-black" style={{ color: D.text }}>${sent}</span>
+                            <span className="text-[10px]" style={{ color: D.dimmed }}> / ${goal}</span>
                           </div>
                         </div>
-                        <div className="w-full h-1.5 rounded-full bg-[#122B22] overflow-hidden">
+                        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: D.panel2 }}>
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${pct}%` }}
@@ -949,20 +981,21 @@ export function DiasporaDashboard({ profile }: Props) {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={() => router.push("/verify")}
-              className="w-full rounded-2xl overflow-hidden border border-[#0D9E8A]/[0.20] text-left"
-              style={{ background: "linear-gradient(135deg, rgba(13,158,138,0.08), rgba(13,158,138,0.03))" }}
+              className="w-full rounded-2xl overflow-hidden text-left"
+              style={{ background: `linear-gradient(135deg, ${D.accent}14, ${D.accent}06)`, border: `1px solid ${D.accent}30` }}
             >
               <div className="p-4 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#0D9E8A]/10 flex items-center justify-center shrink-0">
-                  <Shield className="h-4 w-4 text-[#0D9E8A]" />
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: `${D.accent}18` }}>
+                  <Shield className="h-4 w-4" style={{ color: D.accent }} />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-[#E0E4EE]">
+                  <p className="text-sm font-bold" style={{ color: D.text }}>
                     {profile.kycTier === 0 ? "Verify Your Identity" : "Complete Full Verification"}
                   </p>
-                  <p className="text-xs text-[#4A6A5A]">Unlock higher remittance limits</p>
+                  <p className="text-xs" style={{ color: D.dimmed }}>Unlock higher remittance limits</p>
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-[#0D9E8A]" />
+                <ArrowUpRight className="h-4 w-4" style={{ color: D.accent }} />
               </div>
             </motion.button>
           )}
@@ -975,18 +1008,19 @@ export function DiasporaDashboard({ profile }: Props) {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={() => router.push("/settings/plan")}
-              className="w-full rounded-2xl overflow-hidden border border-[#C9A84C]/[0.20] text-left"
-              style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.03))" }}
+              className="w-full rounded-2xl overflow-hidden text-left"
+              style={{ background: `linear-gradient(135deg, ${D.gold}14, ${D.gold}06)`, border: `1px solid ${D.gold}30` }}
             >
               <div className="p-4 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#C9A84C]/10 flex items-center justify-center shrink-0">
-                  <Crown className="h-4 w-4 text-[#C9A84C]" />
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: `${D.gold}18` }}>
+                  <Crown className="h-4 w-4" style={{ color: D.gold }} />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-[#E0E4EE]">Diaspora Plus</p>
-                  <p className="text-xs text-[#4A6A5A]">Lower FX fees · Priority support · More</p>
+                  <p className="text-sm font-bold" style={{ color: D.text }}>Diaspora Plus</p>
+                  <p className="text-xs" style={{ color: D.dimmed }}>Lower FX fees · Priority support · More</p>
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-[#C9A84C]" />
+                <ArrowUpRight className="h-4 w-4" style={{ color: D.gold }} />
               </div>
             </motion.button>
           )}

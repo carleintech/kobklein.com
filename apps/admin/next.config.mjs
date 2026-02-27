@@ -1,5 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
+  serverExternalPackages: [
+    "@sentry/nextjs",
+    "@sentry/node",
+    "@opentelemetry/instrumentation",
+    "require-in-the-middle",
+  ],
   // API calls proxy to backend
   async rewrites() {
     return [

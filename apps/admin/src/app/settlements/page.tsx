@@ -235,9 +235,9 @@ export default function SettlementsPage() {
         {/* Header */}
         <div className="grid grid-cols-[2rem_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,0.8fr)] gap-4 px-4 py-2.5 border-b border-white/8 bg-white/[0.02]">
           {["#", "Distributor", "Currency", "Cash-out", "Fees", "Txs"].map(
-            (h) => (
+            (h, i) => (
               <div
-                key={h}
+                key={"col-" + i}
                 className="text-[10px] font-semibold uppercase tracking-widest text-kob-muted last:text-right"
               >
                 {h}

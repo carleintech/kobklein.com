@@ -17,7 +17,7 @@ export const colors = {
   goldDark: "#9F7F2C",
 
   // Status
-  emerald: "#1F6F4A",
+  // emerald: "#1F6F4A", // Removed for diaspora theme
   danger: "#DC2626",
   warning: "#F59E0B",
 

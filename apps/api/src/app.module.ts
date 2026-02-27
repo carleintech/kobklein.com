@@ -20,7 +20,6 @@ import { LiquidityController } from "./admin/liquidity.controller";
 import { NotificationsAdminController } from "./admin/notifications.controller";
 import { TimelineController } from "./wallets/timeline.controller";
 import { WalletBalanceController } from "./wallets/balance.controller";
-import { WalletBalanceController as WalletBalanceControllerNew } from "./wallets/wallet-balance.controller";
 import { SendMoneyController } from "./transfers/send.controller";
 import { RecipientCheckController } from "./transfers/recipient-check.controller";
 import { OtpController } from "./auth/otp.controller";
@@ -86,6 +85,10 @@ import { MerchantReportsController } from "./merchant/merchant-reports.controlle
 import { AdminOverviewController } from "./admin/admin-overview.controller";
 import { TransferByKIdController } from "./transfers/transfer-kid.controller";
 import { AdminUsersController } from "./admin/admin-users.controller";
+import { AdminWalletControlsController } from "./admin/admin-wallet-controls.controller";
+import { AdminBroadcastController } from "./admin/admin-broadcast.controller";
+import { AdminMerchantController } from "./admin/admin-merchant.controller";
+import { SupportController } from "./support/support.controller";
 import { ScheduledRemittanceController } from "./remittance/scheduled.controller";
 import { AdminRiskController } from "./admin/admin-risk.controller";
 import { TransferReviewController } from "./admin/transfer-review.controller";
@@ -111,6 +114,16 @@ import { DistributorRechargeController, AdminRechargeController } from "./distri
 import { AmlController } from "./aml/aml.controller";
 import { OnboardingModule } from "./onboarding/onboarding.module";
 import { AdminWithdrawalsController } from "./admin/admin-withdrawals.controller";
+import { NearbyModule } from "./nearby/nearby.module";
+import { CommissionController } from "./distributor/commission.controller";
+import { PhysicalCardController } from "./cards/physical-card.controller";
+import { LocalPaymentModule } from "./local-payment/local-payment.module";
+import { PartnerLeadsController } from "./public/partner-leads.controller";
+import { AdminHrController } from "./admin/admin-hr.controller";
+import { EmergencyController } from "./admin/emergency.controller";
+import { DualControlController } from "./policies/dual-control.controller";
+import { DualControlService } from "./policies/dual-control.service";
+import { AdminChannelsController } from "./admin/admin-channels.controller";
 
 @Module({
   imports: [
@@ -120,6 +133,8 @@ import { AdminWithdrawalsController } from "./admin/admin-withdrawals.controller
     }),
     CasesModule,
     OnboardingModule,
+    NearbyModule,
+    LocalPaymentModule,
   ],
   controllers: [
     HealthController,
@@ -140,7 +155,6 @@ import { AdminWithdrawalsController } from "./admin/admin-withdrawals.controller
     NotificationsAdminController,
     TimelineController,
     WalletBalanceController,
-    WalletBalanceControllerNew,
     SendMoneyController,
     RecipientCheckController,
     OtpController,
@@ -194,6 +208,10 @@ import { AdminWithdrawalsController } from "./admin/admin-withdrawals.controller
     AdminOverviewController,
     TransferByKIdController,
     AdminUsersController,
+    AdminWalletControlsController,
+    AdminBroadcastController,
+    AdminMerchantController,
+    SupportController,
     ScheduledRemittanceController,
     AdminRiskController,
     TransferReviewController,
@@ -219,8 +237,15 @@ import { AdminWithdrawalsController } from "./admin/admin-withdrawals.controller
     AdminRechargeController,
     AmlController,
     AdminWithdrawalsController,
+    CommissionController,
+    PhysicalCardController,
+    PartnerLeadsController,
+    AdminHrController,
+    EmergencyController,
+    DualControlController,
+    AdminChannelsController,
   ],
-  providers: [StripeService, AuditService],
+  providers: [StripeService, AuditService, DualControlService],
 })
 export class AppModule implements OnModuleInit, NestModule {
   configure(consumer: MiddlewareConsumer) {

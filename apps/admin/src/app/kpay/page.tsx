@@ -329,9 +329,9 @@ export default function KPayPage() {
                         "Interval",
                         "Status",
                         "",
-                      ].map((h) => (
+                      ].map((h, i) => (
                         <span
-                          key={h}
+                          key={"col-" + i}
                           className="text-[9px] font-semibold text-kob-muted uppercase tracking-widest"
                         >
                           {h}

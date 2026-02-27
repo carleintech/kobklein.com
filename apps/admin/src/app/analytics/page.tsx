@@ -1,12 +1,16 @@
 "use client";
 
 import {
+  AlertTriangle,
   ArrowRight,
   BarChart2,
   DollarSign,
   RefreshCw,
+  Shield,
   TrendingDown,
   TrendingUp,
+  UserCheck,
+  Users,
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
@@ -23,6 +27,14 @@ type Overview = {
   withdrawalCount: number;
   depositVolume: number;
   revenue: number;
+};
+
+type UserGrowth = {
+  total: number;
+  newThisPeriod: number;
+  byRole: Record<string, number>;
+  kycFunnel: Record<string, number>;
+  amlFlags: { open: number; critical: number };
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -111,6 +123,9 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState<Days>(30);
 
+  const [userData, setUserData] = useState<UserGrowth | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
+
   const load = useCallback(async (d: Days) => {
     setLoading(true);
     setError(null);
@@ -124,9 +139,22 @@ export default function AnalyticsPage() {
     }
   }, []);
 
+  const loadUsers = useCallback(async (d: Days) => {
+    setUserLoading(true);
+    try {
+      const res = await kkGet<UserGrowth>(`admin/analytics/users?days=${d}`);
+      setUserData(res);
+    } catch {
+      // silently fail — user section is non-critical
+    } finally {
+      setUserLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     load(days);
-  }, [load, days]);
+    loadUsers(days);
+  }, [load, loadUsers, days]);
 
   return (
     <div className="space-y-6">
@@ -223,6 +251,70 @@ export default function AnalyticsPage() {
           sub="per transaction"
           icon={BarChart2}
         />
+      </div>
+
+      {/* User Insights */}
+      <div>
+        <h2 className="text-sm font-medium text-kob-muted uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Users size={14} className="text-kob-gold" />
+          User Insights
+        </h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <KpiCard
+            label="Total Users"
+            value={userLoading ? "…" : String(userData?.total ?? 0)}
+            sub={`+${userData?.newThisPeriod ?? 0} in ${days}d`}
+            icon={Users}
+          />
+          <KpiCard
+            label="KYC Verified"
+            value={userLoading ? "…" : String(userData?.kycFunnel?.tier2 ?? 0)}
+            sub={`tier0: ${userData?.kycFunnel?.tier0 ?? 0} · tier1: ${userData?.kycFunnel?.tier1 ?? 0}`}
+            icon={UserCheck}
+            gold
+          />
+          <KpiCard
+            label="Open AML Flags"
+            value={userLoading ? "…" : String(userData?.amlFlags?.open ?? 0)}
+            sub={
+              (userData?.amlFlags?.critical ?? 0) > 0
+                ? `${userData?.amlFlags?.critical} critical`
+                : "none critical"
+            }
+            icon={AlertTriangle}
+          />
+          <KpiCard
+            label="Compliance"
+            value={
+              userLoading || !userData
+                ? "…"
+                : userData.total > 0
+                  ? `${Math.round(((userData.kycFunnel?.tier2 ?? 0) / userData.total) * 100)}%`
+                  : "0%"
+            }
+            sub="KYC tier-2 rate"
+            icon={Shield}
+          />
+        </div>
+
+        {/* Role breakdown */}
+        {!userLoading && userData && (
+          <div className="grid grid-cols-4 gap-3">
+            {(["client", "merchant", "distributor", "diaspora"] as const).map(
+              (role) => (
+                <div
+                  key={role}
+                  className="rounded-lg border border-white/8 bg-[#080E20] px-3 py-2 text-center"
+                >
+                  <div className="text-lg font-semibold font-mono text-kob-text">
+                    {userData.byRole[role] ?? 0}
+                  </div>
+                  <div className="text-xs text-kob-muted capitalize">{role}</div>
+                </div>
+              ),
+            )}
+          </div>
+        )}
       </div>
 
       {/* Nav tiles */}

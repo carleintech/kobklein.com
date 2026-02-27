@@ -30,7 +30,7 @@ export default function LanguagePage() {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-xl bg-[#162038] hover:bg-[#1A2640] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
+          className="p-2 rounded-xl bg-[#0D2018] hover:bg-[#122A1E] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -54,7 +54,7 @@ export default function LanguagePage() {
             onClick={() => setLocale(loc)}
             className="flex items-center gap-4 rounded-2xl p-4 border transition-all text-left"
             style={{
-              background: locale === loc ? "rgba(201,168,76,0.08)" : "#0E1829",
+              background: locale === loc ? "rgba(201,168,76,0.08)" : "#091C14",
               borderColor: locale === loc ? "rgba(201,168,76,0.30)" : "rgba(255,255,255,0.06)",
             }}
           >

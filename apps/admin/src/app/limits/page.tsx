@@ -228,9 +228,9 @@ export default function LimitsPage() {
           <>
             {/* Column headers */}
             <div className="grid grid-cols-[1fr_80px_140px_140px] gap-4 px-5 py-2.5 border-b border-white/4">
-              {["Role", "Currency", "Daily Limit", "Monthly Limit"].map((h) => (
+              {["Role", "Currency", "Daily Limit", "Monthly Limit"].map((h, i) => (
                 <span
-                  key={h}
+                  key={"col-" + i}
                   className="text-[10px] font-semibold text-kob-muted uppercase tracking-widest"
                 >
                   {h}

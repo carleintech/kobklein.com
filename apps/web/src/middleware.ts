@@ -1,4 +1,4 @@
-import type { NextRequest } from "next/server";
+﻿import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createMiddlewareSupabase } from "@/lib/supabase-middleware";
 import type { UserRole } from "@/lib/types/roles";
@@ -18,14 +18,14 @@ function isOnboardingPath(pathname: string): boolean {
 }
 
 /**
- * Role-based dashboard route protection.
- * All roles share /dashboard — only role-specific sub-routes are locked.
+ * Role-owned route prefixes.
+ * Users can only access routes that belong to their role or shared routes.
  */
-const ROLE_PROTECTED_ROUTES: Partial<Record<UserRole, string>> = {
-  // distributor-only routes
+const ROLE_PREFIXES: Partial<Record<UserRole, string>> = {
   distributor: "/distributor",
-  // merchant-only routes
-  merchant: "/merchant",
+  merchant:    "/merchant",
+  diaspora:    "/diaspora",
+  client:      "/client",
 };
 
 export async function middleware(request: NextRequest) {
@@ -34,7 +34,6 @@ export async function middleware(request: NextRequest) {
 
   // Public routes — no auth required
   if (isPublicPath(pathname)) {
-    // Still call getUser() to refresh the session cookies if present
     await supabase.auth.getUser();
     return response;
   }
@@ -61,7 +60,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/choose-role", request.nextUrl.origin));
   }
 
-  // Users with incomplete profile → force onboarding (unless already on onboarding path)
+  // Users with incomplete profile → force onboarding
   if (role && !hasBasicProfile && !isOnboardingPath(pathname)) {
     return NextResponse.redirect(
       new URL(`/onboarding/${role}`, request.nextUrl.origin),
@@ -71,14 +70,18 @@ export async function middleware(request: NextRequest) {
   // ─── Role-Based Route Protection ──────────────────────────────────
 
   if (role && hasBasicProfile) {
-    // Check if user is accessing a role-specific sub-route they don't own
-    for (const [allowedRole, protectedPath] of Object.entries(
-      ROLE_PROTECTED_ROUTES,
-    )) {
-      if (pathname.startsWith(protectedPath) && role !== allowedRole) {
-        // Send them to the unified dashboard instead
+    // /dashboard → redirect to role-specific dashboard
+    if (pathname === "/dashboard") {
+      return NextResponse.redirect(
+        new URL(ROLE_DASHBOARD[role], request.nextUrl.origin),
+      );
+    }
+
+    // Block cross-role access: e.g. client can not visit /merchant/dashboard
+    for (const [ownerRole, prefix] of Object.entries(ROLE_PREFIXES)) {
+      if (pathname.startsWith(prefix) && role !== ownerRole) {
         return NextResponse.redirect(
-          new URL("/dashboard", request.nextUrl.origin),
+          new URL(ROLE_DASHBOARD[role], request.nextUrl.origin),
         );
       }
     }

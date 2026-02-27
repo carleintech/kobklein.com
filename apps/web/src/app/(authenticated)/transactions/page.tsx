@@ -101,7 +101,7 @@ function statusBadge(status: string) {
   }
   if (s === "pending" || s === "processing") {
     return (
-      <div className="flex items-center gap-1 text-amber-400">
+      <div className="flex items-center gap-1 text-[#C9A84C]">
         <Clock className="h-3 w-3" />
         <span className="text-[10px] font-bold uppercase tracking-wide">Pending</span>
       </div>
@@ -144,7 +144,7 @@ function TxDrawer({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-      style={{ background: "rgba(6,13,31,0.92)", backdropFilter: "blur(8px)" }}
+      style={{ background: "rgba(12,4,24,0.92)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
       <motion.div
@@ -153,8 +153,11 @@ function TxDrawer({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
         exit={{ y: 80, opacity: 0 }}
         transition={{ type: "spring", damping: 28, stiffness: 300 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-3xl border border-white/[0.08] overflow-hidden"
-        style={{ background: "#0E1829" }}
+        className="w-full max-w-sm rounded-3xl border overflow-hidden"
+        style={{
+          background: "var(--dash-shell-bg, #1C0A35)",
+          borderColor: "var(--dash-shell-border, rgba(165,150,201,0.20))",
+        }}
       >
         {/* Top stripe */}
         <div
@@ -169,10 +172,25 @@ function TxDrawer({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
         <div className="p-6 flex flex-col gap-5">
           {/* Header row */}
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#5A6B82] uppercase tracking-widest">Transaction Detail</span>
+            <span
+              className="text-xs font-bold uppercase tracking-widest"
+              style={{ color: "var(--dash-text-faint, #6E558B)" }}
+            >
+              Transaction Detail
+            </span>
             <button
               onClick={onClose}
-              className="w-7 h-7 rounded-full bg-[#162038] flex items-center justify-center text-[#5A6B82] hover:text-[#F0F1F5] transition-colors"
+              className="w-7 h-7 rounded-full flex items-center justify-center transition-colors"
+              style={{
+                background: "var(--dash-shell-bg, #1C0A35)",
+                color: "var(--dash-text-muted, #A596C9)",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.color = "var(--dash-text-primary, #E6DBF7)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.color = "var(--dash-text-muted, #A596C9)";
+              }}
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -192,15 +210,26 @@ function TxDrawer({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
             </div>
             <p
               className="text-3xl font-black"
-              style={{ color: credit ? "#10B981" : "#F0F1F5" }}
+              style={{ color: credit ? "#10B981" : "var(--dash-text-primary, #E6DBF7)" }}
             >
               {credit ? "+" : "-"}{formatCurrency(tx.amount, tx.currency)}
             </p>
-            <p className="text-sm text-[#5A6B82] mt-1">{txLabel(tx.type)}</p>
+            <p
+              className="text-sm mt-1"
+              style={{ color: "var(--dash-text-faint, #6E558B)" }}
+            >
+              {txLabel(tx.type)}
+            </p>
           </div>
 
           {/* Details grid */}
-          <div className="rounded-2xl bg-[#080F1C] border border-white/[0.04] p-4 flex flex-col gap-3">
+          <div
+            className="rounded-2xl border p-4 flex flex-col gap-3"
+            style={{
+              background: "var(--dash-page-bg, #240E3C)",
+              borderColor: "var(--dash-shell-border, rgba(165,150,201,0.20))",
+            }}
+          >
             {[
               { label: "Status",      value: statusBadge(tx.status), raw: true },
               { label: "Date",        value: formatDate(tx.createdAt) },
@@ -214,11 +243,19 @@ function TxDrawer({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
               .filter(Boolean)
               .map((row) => (
                 <div key={row!.label} className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-[#3A4558] shrink-0">{row!.label}</span>
+                  <span
+                    className="text-xs shrink-0"
+                    style={{ color: "var(--dash-text-faint, #6E558B)" }}
+                  >
+                    {row!.label}
+                  </span>
                   {row!.raw ? (
                     row!.value
                   ) : (
-                    <span className="text-xs font-medium text-[#B8BCC8] text-right truncate max-w-[180px]">
+                    <span
+                      className="text-xs font-medium text-right truncate max-w-[180px]"
+                      style={{ color: "var(--dash-text-muted, #A596C9)" }}
+                    >
                       {row!.value as string}
                     </span>
                   )}
@@ -228,7 +265,18 @@ function TxDrawer({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
 
           <button
             onClick={onClose}
-            className="w-full h-11 rounded-2xl bg-[#162038] border border-white/[0.06] text-sm font-bold text-[#7A8394] hover:text-[#F0F1F5] transition-all"
+            className="w-full h-11 rounded-2xl border text-sm font-bold transition-all"
+            style={{
+              background: "var(--dash-shell-bg, #1C0A35)",
+              borderColor: "var(--dash-shell-border, rgba(165,150,201,0.20))",
+              color: "var(--dash-text-muted, #A596C9)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.color = "var(--dash-text-primary, #E6DBF7)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.color = "var(--dash-text-muted, #A596C9)";
+            }}
           >
             Close
           </button>
@@ -338,20 +386,37 @@ export default function TransactionsPage() {
     return (
       <div className="max-w-lg mx-auto flex flex-col gap-4 p-4 md:p-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#162038] animate-pulse" />
+          <div
+            className="w-9 h-9 rounded-xl animate-pulse"
+            style={{ background: "var(--dash-shell-bg, #1C0A35)" }}
+          />
           <div className="flex flex-col gap-1.5">
-            <div className="w-36 h-5 rounded-lg bg-[#162038] animate-pulse" />
-            <div className="w-24 h-3 rounded-lg bg-[#0E1829] animate-pulse" />
+            <div
+              className="w-36 h-5 rounded-lg animate-pulse"
+              style={{ background: "var(--dash-shell-bg, #1C0A35)" }}
+            />
+            <div
+              className="w-24 h-3 rounded-lg animate-pulse"
+              style={{ background: "var(--dash-page-bg, #240E3C)" }}
+            />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           {[0, 1].map((i) => (
-            <div key={i} className="h-20 rounded-2xl bg-[#0E1829] animate-pulse" />
+            <div
+              key={i}
+              className="h-20 rounded-2xl animate-pulse"
+              style={{ background: "var(--dash-page-bg, #240E3C)" }}
+            />
           ))}
         </div>
         <div className="flex flex-col gap-3">
           {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="h-16 rounded-2xl bg-[#0E1829] animate-pulse" style={{ opacity: 1 - i * 0.1 }} />
+            <div
+              key={i}
+              className="h-16 rounded-2xl animate-pulse"
+              style={{ background: "var(--dash-page-bg, #240E3C)", opacity: 1 - i * 0.1 }}
+            />
           ))}
         </div>
       </div>
@@ -367,13 +432,33 @@ export default function TransactionsPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="p-2 rounded-xl bg-[#162038] hover:bg-[#1A2640] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
+              className="p-2 rounded-xl transition-all"
+              style={{
+                background: "var(--dash-shell-bg, #1C0A35)",
+                color: "var(--dash-text-muted, #A596C9)",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#2A1050";
+                (e.currentTarget as HTMLElement).style.color = "var(--dash-text-primary, #E6DBF7)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "var(--dash-shell-bg, #1C0A35)";
+                (e.currentTarget as HTMLElement).style.color = "var(--dash-text-muted, #A596C9)";
+              }}
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-[#F0F1F5]">Transactions</h1>
-              <p className="text-xs text-[#5A6B82] mt-0.5">
+              <h1
+                className="text-2xl font-black"
+                style={{ color: "var(--dash-text-primary, #E6DBF7)" }}
+              >
+                Transactions
+              </h1>
+              <p
+                className="text-xs mt-0.5"
+                style={{ color: "var(--dash-text-faint, #6E558B)" }}
+              >
                 {transactions.length} total · {filtered.length} shown
               </p>
             </div>
@@ -382,7 +467,19 @@ export default function TransactionsPage() {
           <button
             onClick={() => load(true)}
             disabled={refreshing}
-            className="p-2.5 rounded-xl bg-[#162038] text-[#5A6B82] hover:text-[#F0F1F5] hover:bg-[#1A2640] transition-all"
+            className="p-2.5 rounded-xl transition-all"
+            style={{
+              background: "var(--dash-shell-bg, #1C0A35)",
+              color: "var(--dash-text-faint, #6E558B)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "#2A1050";
+              (e.currentTarget as HTMLElement).style.color = "var(--dash-text-primary, #E6DBF7)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "var(--dash-shell-bg, #1C0A35)";
+              (e.currentTarget as HTMLElement).style.color = "var(--dash-text-faint, #6E558B)";
+            }}
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
           </button>
@@ -395,7 +492,7 @@ export default function TransactionsPage() {
           transition={{ delay: 0.05 }}
           className="grid grid-cols-2 gap-3"
         >
-          {/* Money In */}
+          {/* Money In — green kept per design spec */}
           <div
             className="rounded-2xl p-4 flex flex-col gap-1"
             style={{
@@ -412,7 +509,7 @@ export default function TransactionsPage() {
             </p>
           </div>
 
-          {/* Money Out */}
+          {/* Money Out — gold kept per design spec */}
           <div
             className="rounded-2xl p-4 flex flex-col gap-1"
             style={{
@@ -441,20 +538,32 @@ export default function TransactionsPage() {
           <div className="flex items-center gap-2">
             <div
               className="flex-1 flex items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all"
-              style={{ background: "#0E1829", borderColor: "rgba(255,255,255,0.07)" }}
+              style={{
+                background: "var(--dash-page-bg, #240E3C)",
+                borderColor: "var(--dash-shell-border, rgba(165,150,201,0.20))",
+              }}
             >
-              <Search className="h-4 w-4 text-[#3A4558] shrink-0" />
+              <Search
+                className="h-4 w-4 shrink-0"
+                style={{ color: "var(--dash-text-faint, #6E558B)" }}
+              />
               <input
                 ref={searchRef}
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search transactions…"
-                className="flex-1 bg-transparent text-sm text-[#F0F1F5] placeholder-[#3A4558] outline-none"
+                className="flex-1 bg-transparent text-sm outline-none"
+                style={{
+                  color: "var(--dash-text-primary, #E6DBF7)",
+                }}
               />
               {search && (
                 <button onClick={() => setSearch("")}>
-                  <X className="h-3.5 w-3.5 text-[#5A6B82]" />
+                  <X
+                    className="h-3.5 w-3.5"
+                    style={{ color: "var(--dash-text-muted, #A596C9)" }}
+                  />
                 </button>
               )}
             </div>
@@ -463,9 +572,9 @@ export default function TransactionsPage() {
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border transition-all text-sm font-bold"
               style={{
-                background: hasFilters ? "rgba(201,168,76,0.10)" : "#0E1829",
-                borderColor: hasFilters ? "rgba(201,168,76,0.30)" : "rgba(255,255,255,0.07)",
-                color: hasFilters ? "#C9A84C" : "#5A6B82",
+                background: hasFilters ? "rgba(201,168,76,0.10)" : "var(--dash-page-bg, #240E3C)",
+                borderColor: hasFilters ? "rgba(201,168,76,0.30)" : "var(--dash-shell-border, rgba(165,150,201,0.20))",
+                color: hasFilters ? "#C9A84C" : "var(--dash-text-faint, #6E558B)",
               }}
             >
               <Filter className="h-4 w-4" />
@@ -482,10 +591,21 @@ export default function TransactionsPage() {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="rounded-xl bg-[#0E1829] border border-white/[0.06] p-3 flex flex-col gap-3">
+                <div
+                  className="rounded-xl border p-3 flex flex-col gap-3"
+                  style={{
+                    background: "var(--dash-shell-bg, #1C0A35)",
+                    borderColor: "var(--dash-shell-border, rgba(165,150,201,0.20))",
+                  }}
+                >
                   {/* Type filter */}
                   <div className="flex flex-col gap-1.5">
-                    <p className="text-[10px] font-black text-[#3A4558] uppercase tracking-widest">Type</p>
+                    <p
+                      className="text-[10px] font-black uppercase tracking-widest"
+                      style={{ color: "var(--dash-text-faint, #6E558B)" }}
+                    >
+                      Type
+                    </p>
                     <div className="flex gap-2">
                       {(["all", "credit", "debit"] as FilterType[]).map((f) => (
                         <button
@@ -493,9 +613,9 @@ export default function TransactionsPage() {
                           onClick={() => setTypeFilter(f)}
                           className="flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all"
                           style={{
-                            background: typeFilter === f ? "rgba(201,168,76,0.15)" : "rgba(255,255,255,0.04)",
-                            border: `1px solid ${typeFilter === f ? "rgba(201,168,76,0.30)" : "rgba(255,255,255,0.06)"}`,
-                            color: typeFilter === f ? "#C9A84C" : "#5A6B82",
+                            background: typeFilter === f ? "rgba(201,168,76,0.15)" : "var(--dash-page-bg, #240E3C)",
+                            border: `1px solid ${typeFilter === f ? "rgba(201,168,76,0.30)" : "var(--dash-shell-border, rgba(165,150,201,0.12))"}`,
+                            color: typeFilter === f ? "#C9A84C" : "var(--dash-text-muted, #A596C9)",
                           }}
                         >
                           {f === "credit" ? "Money In" : f === "debit" ? "Money Out" : "All"}
@@ -506,7 +626,12 @@ export default function TransactionsPage() {
 
                   {/* Status filter */}
                   <div className="flex flex-col gap-1.5">
-                    <p className="text-[10px] font-black text-[#3A4558] uppercase tracking-widest">Status</p>
+                    <p
+                      className="text-[10px] font-black uppercase tracking-widest"
+                      style={{ color: "var(--dash-text-faint, #6E558B)" }}
+                    >
+                      Status
+                    </p>
                     <div className="flex gap-2">
                       {(["all", "completed", "pending", "failed"] as StatusFilter[]).map((f) => (
                         <button
@@ -514,9 +639,9 @@ export default function TransactionsPage() {
                           onClick={() => setStatusFilter(f)}
                           className="flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all"
                           style={{
-                            background: statusFilter === f ? "rgba(201,168,76,0.15)" : "rgba(255,255,255,0.04)",
-                            border: `1px solid ${statusFilter === f ? "rgba(201,168,76,0.30)" : "rgba(255,255,255,0.06)"}`,
-                            color: statusFilter === f ? "#C9A84C" : "#5A6B82",
+                            background: statusFilter === f ? "rgba(201,168,76,0.15)" : "var(--dash-page-bg, #240E3C)",
+                            border: `1px solid ${statusFilter === f ? "rgba(201,168,76,0.30)" : "var(--dash-shell-border, rgba(165,150,201,0.12))"}`,
+                            color: statusFilter === f ? "#C9A84C" : "var(--dash-text-muted, #A596C9)",
                           }}
                         >
                           {f}
@@ -562,14 +687,29 @@ export default function TransactionsPage() {
             animate={{ opacity: 1 }}
             className="flex flex-col items-center justify-center py-16 gap-4"
           >
-            <div className="w-16 h-16 rounded-2xl bg-[#0E1829] border border-white/[0.06] flex items-center justify-center">
-              <Wallet className="h-7 w-7 text-[#2A3448]" />
+            <div
+              className="w-16 h-16 rounded-2xl border flex items-center justify-center"
+              style={{
+                background: "var(--dash-shell-bg, #1C0A35)",
+                borderColor: "var(--dash-shell-border, rgba(165,150,201,0.20))",
+              }}
+            >
+              <Wallet
+                className="h-7 w-7"
+                style={{ color: "var(--dash-text-faint, #6E558B)" }}
+              />
             </div>
             <div className="text-center">
-              <p className="text-sm font-bold text-[#5A6B82]">
+              <p
+                className="text-sm font-bold"
+                style={{ color: "var(--dash-text-muted, #A596C9)" }}
+              >
                 {hasFilters ? "No matching transactions" : "No transactions yet"}
               </p>
-              <p className="text-xs text-[#3A4558] mt-1">
+              <p
+                className="text-xs mt-1"
+                style={{ color: "var(--dash-text-faint, #6E558B)" }}
+              >
                 {hasFilters ? "Try adjusting your filters" : "Make your first transaction to see history here"}
               </p>
             </div>
@@ -595,10 +735,16 @@ export default function TransactionsPage() {
           >
             {/* Date label */}
             <div className="flex items-center gap-3 px-1">
-              <p className="text-[10px] font-black text-[#3A4558] uppercase tracking-widest shrink-0">
+              <p
+                className="text-[10px] font-black uppercase tracking-widest shrink-0"
+                style={{ color: "var(--dash-text-faint, #6E558B)" }}
+              >
                 {group.label}
               </p>
-              <div className="flex-1 h-px bg-white/[0.04]" />
+              <div
+                className="flex-1 h-px"
+                style={{ background: "var(--dash-shell-border, rgba(165,150,201,0.12))" }}
+              />
             </div>
 
             {/* Transaction rows */}
@@ -616,19 +762,19 @@ export default function TransactionsPage() {
                     whileTap={{ scale: 0.99 }}
                     className="w-full flex items-center gap-3 rounded-2xl px-4 py-3.5 border transition-all text-left"
                     style={{
-                      background: "#0E1829",
-                      borderColor: "rgba(255,255,255,0.05)",
+                      background: "var(--dash-shell-bg, #1C0A35)",
+                      borderColor: "var(--dash-shell-border, rgba(165,150,201,0.20))",
                     }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.10)";
-                      (e.currentTarget as HTMLElement).style.background = "#0F1B2E";
+                      (e.currentTarget as HTMLElement).style.borderColor = "rgba(165,150,201,0.35)";
+                      (e.currentTarget as HTMLElement).style.background = "#2A1050";
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.05)";
-                      (e.currentTarget as HTMLElement).style.background = "#0E1829";
+                      (e.currentTarget as HTMLElement).style.borderColor = "var(--dash-shell-border, rgba(165,150,201,0.20))";
+                      (e.currentTarget as HTMLElement).style.background = "var(--dash-shell-bg, #1C0A35)";
                     }}
                   >
-                    {/* Icon */}
+                    {/* Icon — green for credit, gold for debit per design spec */}
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                       style={{
@@ -641,12 +787,20 @@ export default function TransactionsPage() {
 
                     {/* Label + counterparty */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-[#F0F1F5] truncate">
+                      <p
+                        className="text-sm font-bold truncate"
+                        style={{ color: "var(--dash-text-primary, #E6DBF7)" }}
+                      >
                         {tx.counterpartyName || txLabel(tx.type)}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <p className="text-xs text-[#3A4558]">{formatTime(tx.createdAt)}</p>
-                        <span className="text-[#1E2A3A]">·</span>
+                        <p
+                          className="text-xs"
+                          style={{ color: "var(--dash-text-faint, #6E558B)" }}
+                        >
+                          {formatTime(tx.createdAt)}
+                        </p>
+                        <span style={{ color: "var(--dash-text-faint, #6E558B)" }}>·</span>
                         {statusBadge(tx.status)}
                       </div>
                     </div>
@@ -655,14 +809,24 @@ export default function TransactionsPage() {
                     <div className="text-right shrink-0">
                       <p
                         className="text-sm font-black"
-                        style={{ color: credit ? "#10B981" : "#F0F1F5" }}
+                        style={{ color: credit ? "#10B981" : "var(--dash-text-primary, #E6DBF7)" }}
                       >
                         {credit ? "+" : "-"}{formatCurrency(tx.amount, tx.currency)}
                       </p>
                       {tx.fee ? (
-                        <p className="text-[10px] text-[#3A4558] mt-0.5">Fee: {formatCurrency(tx.fee, tx.currency)}</p>
+                        <p
+                          className="text-[10px] mt-0.5"
+                          style={{ color: "var(--dash-text-faint, #6E558B)" }}
+                        >
+                          Fee: {formatCurrency(tx.fee, tx.currency)}
+                        </p>
                       ) : (
-                        <p className="text-[10px] text-[#2A3448] mt-0.5">{tx.currency}</p>
+                        <p
+                          className="text-[10px] mt-0.5"
+                          style={{ color: "var(--dash-text-faint, #6E558B)" }}
+                        >
+                          {tx.currency}
+                        </p>
                       )}
                     </div>
                   </motion.button>
@@ -674,7 +838,10 @@ export default function TransactionsPage() {
 
         {/* Bottom hint */}
         {filtered.length > 0 && (
-          <p className="text-[11px] text-[#2A3448] text-center pb-4">
+          <p
+            className="text-[11px] text-center pb-4"
+            style={{ color: "var(--dash-text-faint, #6E558B)" }}
+          >
             Showing {filtered.length} of {transactions.length} transactions · Tap any row for details
           </p>
         )}

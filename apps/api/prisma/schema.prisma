@@ -76,6 +76,26 @@ model CardWaitlist {
   createdAt DateTime @default(now())
 }
 
+model PhysicalCardRequest {
+  id              String   @id @default(cuid())
+  userId          String
+  cardholderName  String
+  addressLine1    String
+  addressLine2    String?
+  city            String
+  postalCode      String?
+  country         String   @default("HT")
+  status          String   @default("pending")
+  trackingNum     String?
+  rejectionNote   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
 model Case {
   id             String        @id @default(cuid())
   caseType       String
@@ -181,6 +201,8 @@ model Distributor {
   locationText        String?
   phonePublic         String?
   tier                String                @default("agent")
+  lat                 Float?
+  lng                 Float?
   user                User                  @relation(fields: [userId], references: [id])
   recharges           DistributorRecharge[]
 
@@ -462,6 +484,8 @@ model Merchant {
   logoUrl            String?
   phone              String?
   category           String?
+  lat                Float?
+  lng                Float?
   kycStatus          String               @default("pending")
   status             String               @default("pending")
   createdAt          DateTime             @default(now())
@@ -913,6 +937,9 @@ model User {
   contacts                   TransferContact[]   @relation("TransferContact_userIdToUser")
   unlockRequests             UnlockRequest[]
   wallets                    Wallet[]
+  physicalCardRequests       PhysicalCardRequest[]
+  localPaymentTxns           LocalPaymentTxn[]
+  supportTickets             SupportTicket[]
 }
 
 model UserPlan {
@@ -1018,6 +1045,59 @@ model Withdrawal {
   netAmount     Decimal? @db.Decimal(18, 2)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model LocalPaymentTxn {
+  id        String   @id @default(cuid())
+  userId    String
+  provider  String
+  orderId   String
+  amount    Decimal  @db.Decimal(15, 2)
+  currency  String   @default("HTG")
+  direction String
+  status    String   @default("pending")
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([provider, orderId])
+  @@index([userId])
+  @@index([status])
+}
+
+model SupportTicket {
+  id         String   @id @default(cuid())
+  userId     String
+  subject    String
+  body       String
+  category   String   @default("general")
+  status     String   @default("open")
+  priority   String   @default("normal")
+  agentNotes String?
+  resolvedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PartnerLead {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  company   String?
+  type      String   @default("partner")
+  message   String?
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([type])
+  @@index([createdAt])
 }
 
 enum WalletType {

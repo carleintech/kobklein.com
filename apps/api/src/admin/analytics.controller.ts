@@ -56,4 +56,34 @@ export class AnalyticsController {
       revenue: Number(revenue._sum.amount ?? 0),
     };
   }
+
+  @UseGuards(SupabaseGuard, RolesGuard)
+  @Roles("admin")
+  @Get("users")
+  async userGrowth(@Query("days") days = "30") {
+    const since = new Date();
+    since.setDate(since.getDate() - Number(days));
+
+    const [total, newThisPeriod, byRole, kycFunnel, amlOpen, amlCritical] =
+      await Promise.all([
+        prisma.user.count(),
+        prisma.user.count({ where: { createdAt: { gte: since } } }),
+        prisma.user.groupBy({ by: ["role"], _count: { _all: true } }),
+        prisma.user.groupBy({ by: ["kycTier"], _count: { _all: true } }),
+        prisma.amlFlag.count({ where: { status: "open" } }),
+        prisma.amlFlag.count({ where: { status: "open", severity: "critical" } }),
+      ]);
+
+    return {
+      total,
+      newThisPeriod,
+      byRole: Object.fromEntries(
+        byRole.map((r) => [r.role.toLowerCase(), r._count._all]),
+      ),
+      kycFunnel: Object.fromEntries(
+        kycFunnel.map((k) => [`tier${k.kycTier}`, k._count._all]),
+      ),
+      amlFlags: { open: amlOpen, critical: amlCritical },
+    };
+  }
 }

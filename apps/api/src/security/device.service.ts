@@ -1,6 +1,17 @@
 import { prisma } from "../db/prisma";
-import { createNotification } from "../notifications/notification.service";
 import { renderTemplate, toLang } from "../i18n/render";
+import { createNotification } from "../notifications/notification.service";
+
+// ─── In-memory device cache ──────────────────────────────────────────────────
+// Avoids 2 DB round-trips (findFirst + update) for known devices on every request.
+// TTL: 5 minutes — a revoked device gets blocked within one TTL window.
+type CachedDevice = { id: string; trusted: boolean; expiresAt: number };
+const DEVICE_CACHE = new Map<string, CachedDevice>();
+const DEVICE_CACHE_TTL_MS = 300_000; // 5 minutes
+
+function deviceKey(userId: string, fingerprint: string, ip: string): string {
+  return `${userId}:${fingerprint}:${ip}`;
+}
 
 // ─── Helpers ────────────────────────────────────────────────────
 
@@ -14,17 +25,30 @@ async function getUserLang(userId: string) {
 
 // ─── Core: Register Device on Auth ──────────────────────────────
 
-export async function registerDeviceSession(userId: string, req: any) {
-  const fingerprint = req.headers["x-device-id"] || req.headers["user-agent"];
-  const ip = req.ip;
-  const userAgent = req.headers["user-agent"];
+export async function registerDeviceSession(userId: string, req: Record<string, unknown>) {
+  const headers = req.headers as Record<string, string>;
+  const fingerprint = headers["x-device-id"] || headers["user-agent"] || "unknown";
+  const ip = (req.ip as string) || "";
+  const userAgent = headers["user-agent"] || "";
+  const key = deviceKey(userId, fingerprint, ip);
 
+  // Cache hit — device is already known; update lastSeenAt in the background
+  const cached = DEVICE_CACHE.get(key);
+  if (cached && cached.expiresAt > Date.now()) {
+    // Fire-and-forget: lastSeenAt update is non-critical, don't block the request
+    prisma.deviceSession
+      .update({ where: { id: cached.id }, data: { lastSeenAt: new Date() } })
+      .catch(() => { /* ignore — non-critical */ });
+    return { isNew: false, trusted: cached.trusted };
+  }
+
+  // Cache miss — query DB to check if device exists
   const existing = await prisma.deviceSession.findFirst({
     where: { userId, fingerprint, ip, revokedAt: null },
   });
 
   if (!existing) {
-    await prisma.deviceSession.create({
+    const created = await prisma.deviceSession.create({
       data: { userId, fingerprint, ip, userAgent },
     });
 
@@ -36,14 +60,18 @@ export async function registerDeviceSession(userId: string, req: any) {
       await createNotification(userId, msg.title, msg.body, "security");
     }
 
+    // Cache the new device
+    DEVICE_CACHE.set(key, { id: created.id, trusted: false, expiresAt: Date.now() + DEVICE_CACHE_TTL_MS });
     return { isNew: true };
   }
 
-  await prisma.deviceSession.update({
-    where: { id: existing.id },
-    data: { lastSeenAt: new Date() },
-  });
+  // Fire-and-forget lastSeenAt update — doesn't block the response
+  prisma.deviceSession
+    .update({ where: { id: existing.id }, data: { lastSeenAt: new Date() } })
+    .catch(() => { /* ignore — non-critical */ });
 
+  // Cache the known device for future requests
+  DEVICE_CACHE.set(key, { id: existing.id, trusted: existing.trusted, expiresAt: Date.now() + DEVICE_CACHE_TTL_MS });
   return { isNew: false, trusted: existing.trusted };
 }
 

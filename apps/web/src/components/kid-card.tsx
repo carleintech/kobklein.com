@@ -44,12 +44,13 @@ type Props = {
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
-const TEAL = "#0D9E8A";
-const TEAL_BRIGHT = "#14C9B0";
-const GOLD = "#E2CA6E";
-const CARD = "#0B1A16";
-const PANEL = "#0E2018";
-const BORDER = "rgba(13,158,138,0.18)";
+// Diaspora dashboard colors
+const TEAL = "#240E3C"; // Royal Purple
+const TEAL_BRIGHT = "#A596C9"; // Diaspora accent
+const GOLD = "#D4AF37";
+const CARD = "#2D1450";
+const PANEL = "#321858";
+const BORDER = "rgba(138,80,200,0.20)";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -131,7 +132,7 @@ export function KIdCard({ compact = false, profile }: Props) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
         className="flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer"
-        style={{ background: PANEL, border: `1px solid ${BORDER}` }}
+        style={{ background: '#C9A84C', border: `1px solid ${BORDER}` }}
         onClick={() => setShowQr(true)}
       >
         <div
@@ -146,12 +147,12 @@ export function KIdCard({ compact = false, profile }: Props) {
             <div className="h-4 w-32 rounded animate-pulse" style={{ background: CARD }} />
           ) : (
             <>
-              <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <div className="text-[11px]" style={{ color: "#240E3C" }}>
                 Your K-ID
               </div>
               <div
                 className="text-sm font-bold tracking-widest"
-                style={{ color: TEAL_BRIGHT, fontFamily: "monospace" }}
+                style={{ color: "#240E3C", fontFamily: "monospace" }}
               >
                 {kidData?.kId ?? "–"}
               </div>

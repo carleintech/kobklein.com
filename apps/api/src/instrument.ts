@@ -22,11 +22,19 @@ Sentry.init({
   // FINTECH: never send PII automatically
   sendDefaultPii: false,
 
-  // Strip auth headers before any event leaves the server
+  // Strip auth headers and KYC PII before any event leaves the server
   beforeSend(event) {
     if (event.request?.headers) {
-      delete event.request.headers["authorization"];
-      delete event.request.headers["cookie"];
+      delete event.request.headers.authorization;
+      delete event.request.headers.cookie;
+    }
+    // PCI-DSS: strip base64 file payloads and personal identity fields
+    if (event.request?.data && typeof event.request.data === "object") {
+      const d = event.request.data as Record<string, unknown>;
+      delete d.file;       // base64 data URIs from KYC uploads
+      delete d.idNumber;   // government ID numbers
+      delete d.fullName;   // personal name
+      delete d.dob;        // date of birth
     }
     return event;
   },

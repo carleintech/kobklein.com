@@ -155,7 +155,7 @@ export default function OperationsPage() {
                 {["Code", "Amount", "Currency", "Age", "Expires", "Actions"].map(
                   (h, i) => (
                     <th
-                      key={h}
+                      key={"col-" + i}
                       className={`py-2 pr-4 font-medium text-[10px] uppercase tracking-wider text-kob-muted ${i === 5 ? "text-right" : ""}`}
                     >
                       {h}
@@ -266,9 +266,9 @@ export default function OperationsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left border-b border-white/8">
-                  {["Code", "Amount", "Currency", "Status", "Age"].map((h) => (
+                  {["Code", "Amount", "Currency", "Status", "Age"].map((h, i) => (
                     <th
-                      key={h}
+                      key={"col-" + i}
                       className="py-2 pr-4 font-medium text-[10px] uppercase tracking-wider text-kob-muted"
                     >
                       {h}

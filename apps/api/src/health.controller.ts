@@ -4,6 +4,12 @@ import { redis } from "./services/redis.client";
 
 @Controller("health")
 export class HealthController {
+  /** Zero-cost keep-alive endpoint — configure Railway uptime monitor to hit this every 4 min */
+  @Get("ping")
+  ping() {
+    return { ok: true };
+  }
+
   @Get()
   async check() {
     const checks: Record<string, string> = {};

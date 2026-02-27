@@ -178,7 +178,7 @@ export default async function PrivacyPage({
             Privacy Policy
           </h1>
           <p className="text-kob-muted text-lg">
-            Last updated: January 15, 2025
+            Last updated: February 22, 2026
           </p>
           <p className="text-kob-body mt-6 max-w-2xl mx-auto leading-relaxed">
             At KobKlein, we are committed to protecting your privacy and
@@ -259,7 +259,7 @@ export default async function PrivacyPage({
           {/* Effective Notice */}
           <div className="rounded-2xl bg-kob-panel border border-kob-gold/15 p-8 text-center">
             <p className="text-sm text-kob-muted">
-              This Privacy Policy is effective as of January 15, 2025. By using
+              This Privacy Policy is effective as of February 22, 2026. By using
               KobKlein&apos;s services, you acknowledge that you have read and
               understood this Privacy Policy and agree to its terms.
             </p>

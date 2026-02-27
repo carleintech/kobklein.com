@@ -318,9 +318,9 @@ export default function AgentsPage() {
               "Today Volume",
               "Last Cash-out",
               "Risk Signals",
-            ].map((h) => (
+            ].map((h, i) => (
               <span
-                key={h}
+                key={"col-" + i}
                 className="text-[9px] font-semibold text-kob-muted uppercase tracking-widest"
               >
                 {h}

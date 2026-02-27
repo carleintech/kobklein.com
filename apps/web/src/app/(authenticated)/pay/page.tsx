@@ -1,12 +1,13 @@
 "use client";
 
 import { Suspense, useState, useEffect, useRef } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   QrCode, Hash, ChevronLeft, ShieldCheck, Zap,
   CheckCircle2, XCircle, Loader2,
-  ArrowRight, Receipt, Copy, Home,
+  ArrowRight, Receipt, Copy, Home, Wifi,
 } from "lucide-react";
 import { kkGet, kkPost } from "@/lib/kobklein-api";
 import { useWallet } from "@/context/wallet-context";
@@ -14,11 +15,12 @@ import { QrScanner } from "@/components/qr-scanner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type PayFlow =
-  | "choose"    // landing: pick QR vs code
-  | "qr"        // QR scanner view
-  | "code"      // enter merchant code manually
-  | "merchant"  // merchant confirmed, enter amount
-  | "confirm"   // review & confirm
+  | "choose"
+  | "qr"
+  | "code"
+  | "nfc"
+  | "merchant"
+  | "confirm"
   | "processing"
   | "success"
   | "error";
@@ -53,8 +55,8 @@ function MerchantAvatar({ name, logo }: { name: string; logo?: string }) {
   const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   const colors = [
     ["#C9A84C", "#9F7F2C"],
-    ["#3B82F6", "#1D4ED8"],
-    ["#10B981", "#059669"],
+    ["#A596C9", "#6E558B"],
+    ["#8A50C8", "#5A2090"],
     ["#8B5CF6", "#7C3AED"],
     ["#F97316", "#EA580C"],
   ];
@@ -65,7 +67,7 @@ function MerchantAvatar({ name, logo }: { name: string; logo?: string }) {
       <img
         src={logo}
         alt={name}
-        className="w-20 h-20 rounded-2xl object-cover ring-2 ring-[#0D9E8A]/[0.20]"
+        className="w-20 h-20 rounded-2xl object-cover ring-2 ring-[#A596C9]/[0.20]"
       />
     );
   }
@@ -79,10 +81,54 @@ function MerchantAvatar({ name, logo }: { name: string; logo?: string }) {
   );
 }
 
-// QrScannerView is replaced by the real QrScanner component — see PayContent below
-
 // ─── Choose flow view ─────────────────────────────────────────────────────────
-function ChooseFlowView({ onChoose }: { onChoose: (f: "qr" | "code") => void }) {
+function ChooseFlowView({ onChoose, nfcSupported }: {
+  onChoose: (f: "qr" | "code" | "nfc") => void;
+  nfcSupported: boolean;
+}) {
+  const options = [
+    {
+      key: "qr" as const,
+      icon: QrCode,
+      title: "Scan QR Code",
+      desc: "Point your camera at the merchant's QR code",
+      gradient: "from-[#C9A84C]/20 to-[#9F7F2C]/10",
+      border: "border-[#C9A84C]/20",
+      iconColor: "#C9A84C",
+      badge: "Fastest",
+      badgeColor: "bg-[#C9A84C]/15 text-[#C9A84C]",
+      disabled: false,
+    },
+    {
+      key: "nfc" as const,
+      icon: Wifi,
+      title: "Tap to Pay (NFC)",
+      desc: nfcSupported
+        ? "Tap your phone on the merchant's NFC terminal"
+        : "Requires Android Chrome with NFC enabled",
+      gradient: "from-[#A596C9]/15 to-[#6E558B]/10",
+      border: "border-[#A596C9]/20",
+      iconColor: "#A596C9",
+      badge: nfcSupported ? "Contactless" : "Not supported",
+      badgeColor: nfcSupported
+        ? "bg-[#A596C9]/15 text-[#A596C9]"
+        : "bg-[#3A4558]/30 text-[#5A6B82]",
+      disabled: !nfcSupported,
+    },
+    {
+      key: "code" as const,
+      icon: Hash,
+      title: "Enter Merchant Code",
+      desc: "Type the merchant's unique payment code",
+      gradient: "from-[#8A50C8]/15 to-[#5A2090]/10",
+      border: "border-[#8A50C8]/20",
+      iconColor: "#8A50C8",
+      badge: null as string | null,
+      badgeColor: "",
+      disabled: false,
+    },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -97,41 +143,19 @@ function ChooseFlowView({ onChoose }: { onChoose: (f: "qr" | "code") => void }) 
           <Zap className="h-7 w-7 text-[#C9A84C]" />
         </div>
         <h1 className="text-2xl font-black text-[#F0F1F5] mb-1">Pay Merchant</h1>
-        <p className="text-sm text-[#5A6B82]">Choose how to find the merchant</p>
+        <p className="text-sm text-[#6E558B]">Choose how to find the merchant</p>
       </div>
 
       {/* Options */}
       <div className="grid grid-cols-1 gap-4">
-        {[
-          {
-            key: "qr" as const,
-            icon: QrCode,
-            title: "Scan QR Code",
-            desc: "Point your camera at the merchant's QR code",
-            gradient: "from-[#C9A84C]/20 to-[#9F7F2C]/10",
-            border: "border-[#C9A84C]/20",
-            iconColor: "#C9A84C",
-            badge: "Fastest",
-            badgeColor: "bg-[#C9A84C]/15 text-[#C9A84C]",
-          },
-          {
-            key: "code" as const,
-            icon: Hash,
-            title: "Enter Merchant Code",
-            desc: "Type the merchant's unique payment code",
-            gradient: "from-[#3B82F6]/15 to-[#1D4ED8]/10",
-            border: "border-[#3B82F6]/20",
-            iconColor: "#3B82F6",
-            badge: null,
-            badgeColor: "",
-          },
-        ].map((opt) => (
+        {options.map((opt) => (
           <motion.button
             key={opt.key}
-            onClick={() => onChoose(opt.key)}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className={`relative w-full rounded-2xl border bg-gradient-to-br ${opt.gradient} ${opt.border} p-5 flex items-center gap-4 text-left transition-all group`}
+            onClick={() => !opt.disabled && onChoose(opt.key)}
+            whileHover={opt.disabled ? {} : { scale: 1.02, y: -2 }}
+            whileTap={opt.disabled ? {} : { scale: 0.98 }}
+            disabled={opt.disabled}
+            className={`relative w-full rounded-2xl border bg-gradient-to-br ${opt.gradient} ${opt.border} p-5 flex items-center gap-4 text-left transition-all group disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
@@ -148,18 +172,210 @@ function ChooseFlowView({ onChoose }: { onChoose: (f: "qr" | "code") => void }) 
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#5A6B82] mt-0.5">{opt.desc}</p>
+              <p className="text-xs text-[#6E558B] mt-0.5">{opt.desc}</p>
             </div>
-            <ArrowRight className="h-4 w-4 text-[#3A4558] group-hover:text-[#7A8394] transition-colors shrink-0" />
+            {!opt.disabled && (
+              <ArrowRight className="h-4 w-4 text-[#3A4558] group-hover:text-[#7A8394] transition-colors shrink-0" />
+            )}
           </motion.button>
         ))}
       </div>
 
       {/* Security note */}
-      <div className="flex items-center gap-2.5 rounded-xl bg-[#0E2018] border border-[#0D9E8A]/[0.10] px-4 py-3">
-        <ShieldCheck className="h-4 w-4 text-[#10B981] shrink-0" />
-        <p className="text-xs text-[#5A6B82]">
+      <div
+        className="flex items-center gap-2.5 rounded-xl px-4 py-3"
+        style={{
+          background: "var(--dash-shell-bg, #1C0A35)",
+          border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+        }}
+      >
+        <ShieldCheck className="h-4 w-4 text-[#A596C9] shrink-0" />
+        <p className="text-xs text-[#6E558B]">
           All payments are encrypted end-to-end and protected by KobKlein Shield
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── NFC Pay view ─────────────────────────────────────────────────────────────
+function NfcPayView({
+  onBack,
+  onResult,
+}: {
+  onBack: () => void;
+  onResult: (merchantCode: string) => void;
+}) {
+  const [nfcState, setNfcState] = useState<"waiting" | "reading" | "error">("waiting");
+  const [errorMsg, setErrorMsg] = useState("");
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    async function startNfc() {
+      try {
+        // @ts-expect-error — Web NFC API is not in TypeScript lib yet
+        const reader = new NDEFReader();
+        setNfcState("reading");
+
+        await reader.scan({ signal: ctrl.signal });
+
+        reader.onreadingerror = () => {
+          setNfcState("error");
+          setErrorMsg("Could not read NFC tag. Try again.");
+        };
+
+        reader.onreading = (event: { message: { records: { recordType: string; data: ArrayBuffer }[] } }) => {
+          for (const record of event.message.records) {
+            if (record.recordType === "url" || record.recordType === "text") {
+              const decoder = new TextDecoder();
+              const text = record.recordType === "text"
+                ? decoder.decode(record.data)
+                : new URL(decoder.decode(record.data)).searchParams.get("merchantId") ?? decoder.decode(record.data);
+              if (text) {
+                ctrl.abort();
+                onResult(text);
+                return;
+              }
+            }
+          }
+          setNfcState("error");
+          setErrorMsg("NFC tag not recognized. Please use QR code instead.");
+        };
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          setNfcState("error");
+          setErrorMsg(err?.message ?? "NFC scan failed. Check permissions.");
+        }
+      }
+    }
+
+    startNfc();
+    return () => ctrl.abort();
+  }, [onResult]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 40 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -40 }}
+      className="flex flex-col gap-6"
+    >
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => { abortRef.current?.abort(); onBack(); }}
+          className="p-2 rounded-xl hover:bg-[#2A1050] transition-all"
+          style={{
+            background: "var(--dash-shell-bg, #1C0A35)",
+            border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+            color: "var(--dash-text-muted, #A596C9)",
+          }}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <div>
+          <h2 className="text-lg font-bold text-[#F0F1F5]">Tap to Pay</h2>
+          <p className="text-xs text-[#6E558B]">Hold your phone near the merchant's NFC tag</p>
+        </div>
+      </div>
+
+      {/* NFC animation */}
+      <div className="flex flex-col items-center gap-6 py-8">
+        <div className="relative">
+          {/* Ripple rings */}
+          {nfcState === "reading" && [1, 2, 3].map((r) => (
+            <motion.div
+              key={r}
+              className="absolute inset-0 rounded-full border-2 border-[#A596C9]/30"
+              animate={{ scale: 1 + r * 0.4, opacity: 0 }}
+              transition={{ repeat: Infinity, duration: 2, delay: r * 0.4, ease: "easeOut" }}
+            />
+          ))}
+          <div
+            className="w-28 h-28 rounded-full flex items-center justify-center relative z-10"
+            style={{
+              background: nfcState === "error"
+                ? "linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05))"
+                : "linear-gradient(135deg, rgba(165,150,201,0.15), rgba(165,150,201,0.05))",
+              border: `2px solid ${nfcState === "error" ? "rgba(239,68,68,0.3)" : "rgba(165,150,201,0.3)"}`,
+            }}
+          >
+            {nfcState === "error" ? (
+              <XCircle className="h-12 w-12 text-red-400" />
+            ) : (
+              <Wifi className={`h-12 w-12 text-[#A596C9] ${nfcState === "reading" ? "animate-pulse" : ""}`} />
+            )}
+          </div>
+        </div>
+
+        <div className="text-center space-y-2">
+          {nfcState === "waiting" && (
+            <>
+              <p className="text-lg font-bold text-[#F0F1F5]">Ready to Tap</p>
+              <p className="text-sm text-[#6E558B]">Hold your phone near the merchant's NFC terminal</p>
+            </>
+          )}
+          {nfcState === "reading" && (
+            <>
+              <p className="text-lg font-bold text-[#F0F1F5]">Scanning…</p>
+              <p className="text-sm text-[#6E558B]">Keep your phone steady</p>
+            </>
+          )}
+          {nfcState === "error" && (
+            <>
+              <p className="text-lg font-bold text-red-400">Scan Failed</p>
+              <p className="text-sm text-[#6E558B]">{errorMsg}</p>
+              <button
+                type="button"
+                onClick={() => { setNfcState("reading"); setErrorMsg(""); }}
+                className="mt-2 px-5 py-2 rounded-xl text-sm hover:bg-[#2A1050] transition-colors"
+                style={{
+                  background: "var(--dash-shell-bg, #1C0A35)",
+                  border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+                  color: "#C9A84C",
+                }}
+              >
+                Try Again
+              </button>
+            </>
+          )}
+        </div>
+
+        {nfcState === "reading" && (
+          <div className="flex gap-2">
+            {["Waiting", "NFC Active", "Secure"].map((step, i) => (
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.2 }}
+                className="px-3 py-1.5 rounded-full text-xs text-[#6E558B] flex items-center gap-1.5"
+                style={{
+                  background: "var(--dash-shell-bg, #1C0A35)",
+                  border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+                }}
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-[#A596C9] animate-pulse" />
+                {step}
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div
+        className="flex items-center gap-2.5 rounded-xl px-4 py-3"
+        style={{
+          background: "var(--dash-shell-bg, #1C0A35)",
+          border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+        }}
+      >
+        <ShieldCheck className="h-4 w-4 text-[#A596C9] shrink-0" />
+        <p className="text-xs text-[#6E558B]">
+          NFC payment is encrypted. No card data is stored on the merchant terminal.
         </p>
       </div>
     </motion.div>
@@ -200,19 +416,33 @@ function CodeEntryView({
       <div className="flex items-center gap-3">
         <button
           onClick={onBack}
-          className="p-2 rounded-xl bg-[#0E2018] hover:bg-[#122B22] text-[#6A8A7A] hover:text-[#E0E4EE] transition-all"
+          className="p-2 rounded-xl hover:bg-[#2A1050] transition-all"
+          style={{
+            background: "var(--dash-shell-bg, #1C0A35)",
+            border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+            color: "var(--dash-text-muted, #A596C9)",
+          }}
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
         <div>
           <h2 className="text-lg font-bold text-[#F0F1F5]">Merchant Code</h2>
-          <p className="text-xs text-[#5A6B82]">Enter the unique merchant code</p>
+          <p className="text-xs text-[#6E558B]">Enter the unique merchant code</p>
         </div>
       </div>
 
       {/* Input area */}
-      <div className="rounded-2xl bg-[#0B1A16] border border-[#0D9E8A]/[0.12] p-6 flex flex-col items-center gap-5">
-        <div className="w-14 h-14 rounded-2xl bg-[#0E2018] flex items-center justify-center">
+      <div
+        className="rounded-2xl p-6 flex flex-col items-center gap-5"
+        style={{
+          background: "var(--dash-shell-bg, #1C0A35)",
+          border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+        }}
+      >
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center"
+          style={{ background: "var(--dash-page-bg, #240E3C)" }}
+        >
           <Hash className="h-7 w-7 text-[#C9A84C]" />
         </div>
 
@@ -225,11 +455,11 @@ function CodeEntryView({
             onKeyDown={(e) => e.key === "Enter" && handleLookup()}
             placeholder="e.g. MRC-AB12"
             maxLength={12}
-            className="w-full text-center text-2xl font-black text-[#F0F1F5] placeholder-[#2A3448]
-                       bg-[#0E2018] border-2 rounded-2xl px-4 py-4 outline-none tracking-[0.3em]
+            className="w-full text-center text-2xl font-black text-[#F0F1F5] placeholder-[#3A3060]
+                       bg-transparent border-2 rounded-2xl px-4 py-4 outline-none tracking-[0.3em]
                        transition-colors"
             style={{
-              borderColor: code ? "#C9A84C" : "rgba(13,158,138,0.15)",
+              borderColor: code ? "#C9A84C" : "rgba(165,150,201,0.22)",
               boxShadow: code ? "0 0 20px -4px rgba(201,168,76,0.2)" : "none",
             }}
           />
@@ -291,48 +521,66 @@ function MerchantPayView({
       <div className="flex items-center gap-3">
         <button
           onClick={onBack}
-          className="p-2 rounded-xl bg-[#0E2018] hover:bg-[#122B22] text-[#6A8A7A] hover:text-[#E0E4EE] transition-all"
+          className="p-2 rounded-xl hover:bg-[#2A1050] transition-all"
+          style={{
+            background: "var(--dash-shell-bg, #1C0A35)",
+            border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+            color: "var(--dash-text-muted, #A596C9)",
+          }}
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
         <div>
           <h2 className="text-lg font-bold text-[#F0F1F5]">Pay Merchant</h2>
-          <p className="text-xs text-[#5A6B82]">Enter the amount to pay</p>
+          <p className="text-xs text-[#6E558B]">Enter the amount to pay</p>
         </div>
       </div>
 
       {/* Merchant card */}
-      <div className="rounded-2xl bg-[#0B1A16] border border-[#0D9E8A]/[0.12] p-5 flex items-center gap-4">
+      <div
+        className="rounded-2xl p-5 flex items-center gap-4"
+        style={{
+          background: "var(--dash-shell-bg, #1C0A35)",
+          border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+        }}
+      >
         <MerchantAvatar name={merchant.name} logo={merchant.logo} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-lg font-bold text-[#F0F1F5] truncate">{merchant.name}</span>
             {merchant.verified && (
-              <div className="flex items-center gap-1 bg-[#10B981]/10 border border-[#10B981]/20 rounded-full px-2 py-0.5 shrink-0">
-                <ShieldCheck className="h-3 w-3 text-[#10B981]" />
-                <span className="text-[9px] font-black text-[#10B981] uppercase tracking-wide">Verified</span>
+              <div className="flex items-center gap-1 rounded-full px-2 py-0.5 shrink-0"
+                style={{ background: "rgba(212,175,55,0.10)", border: "1px solid rgba(212,175,55,0.20)" }}>
+                <ShieldCheck className="h-3 w-3 text-[#D4AF37]" />
+                <span className="text-[9px] font-black text-[#D4AF37] uppercase tracking-wide">Verified</span>
               </div>
             )}
           </div>
           {merchant.category && (
-            <p className="text-xs text-[#5A6B82] mt-0.5">{merchant.category}</p>
+            <p className="text-xs text-[#6E558B] mt-0.5">{merchant.category}</p>
           )}
-          <p className="text-[10px] text-[#3A4558] mt-1 font-mono">ID: {merchant.id}</p>
+          <p className="text-[10px] text-[#6E558B] mt-1 font-mono">ID: {merchant.id}</p>
         </div>
       </div>
 
       {/* Amount input */}
-      <div className="rounded-2xl bg-[#0B1A16] border border-[#0D9E8A]/[0.12] p-5 flex flex-col gap-4">
-        <label className="text-xs font-bold text-[#5A6B82] uppercase tracking-wider">Amount</label>
+      <div
+        className="rounded-2xl p-5 flex flex-col gap-4"
+        style={{
+          background: "var(--dash-shell-bg, #1C0A35)",
+          border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+        }}
+      >
+        <label className="text-xs font-bold text-[#6E558B] uppercase tracking-wider">Amount</label>
 
         <div
           className="relative rounded-xl border-2 transition-all"
           style={{
-            borderColor: numAmount > 0 ? "#C9A84C" : "rgba(13,158,138,0.15)",
+            borderColor: numAmount > 0 ? "#C9A84C" : "rgba(165,150,201,0.22)",
             boxShadow: numAmount > 0 ? "0 0 20px -4px rgba(201,168,76,0.2)" : "none",
           }}
         >
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#5A6B82] text-sm font-bold">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6E558B] text-sm font-bold">
             {currency === "HTG" ? "G" : "$"}
           </div>
           <input
@@ -342,7 +590,7 @@ function MerchantPayView({
             placeholder="0.00"
             min="1"
             className="w-full bg-transparent text-right pr-4 pl-8 py-4 text-2xl font-black
-                       text-[#F0F1F5] placeholder-[#2A3448] outline-none"
+                       text-[#F0F1F5] placeholder-[#3A3060] outline-none"
           />
         </div>
 
@@ -355,14 +603,20 @@ function MerchantPayView({
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden"
             >
-              <div className="rounded-xl bg-[#0E2018] border border-[#0D9E8A]/[0.10] p-3 space-y-2">
+              <div
+                className="rounded-xl p-3 space-y-2"
+                style={{
+                  background: "var(--dash-page-bg, #240E3C)",
+                  border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+                }}
+              >
                 {[
                   { label: "Amount", value: fmt(numAmount, currency), color: "text-[#B8BCC8]" },
                   { label: "Service Fee (1.5%)", value: fmt(fee, currency), color: "text-[#7A8394]" },
                   { label: "Total Deducted", value: fmt(total, currency), color: "text-[#C9A84C] font-bold" },
                 ].map((row) => (
                   <div key={row.label} className="flex justify-between text-xs">
-                    <span className="text-[#5A6B82]">{row.label}</span>
+                    <span className="text-[#6E558B]">{row.label}</span>
                     <span className={row.color}>{row.value}</span>
                   </div>
                 ))}
@@ -418,24 +672,40 @@ function ConfirmView({
         <button
           onClick={onBack}
           disabled={processing}
-          className="p-2 rounded-xl bg-[#0E2018] hover:bg-[#122B22] text-[#6A8A7A] hover:text-[#E0E4EE] transition-all disabled:opacity-40"
+          className="p-2 rounded-xl hover:bg-[#2A1050] transition-all disabled:opacity-40"
+          style={{
+            background: "var(--dash-shell-bg, #1C0A35)",
+            border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+            color: "var(--dash-text-muted, #A596C9)",
+          }}
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
         <div>
           <h2 className="text-lg font-bold text-[#F0F1F5]">Confirm Payment</h2>
-          <p className="text-xs text-[#5A6B82]">Review before sending</p>
+          <p className="text-xs text-[#6E558B]">Review before sending</p>
         </div>
       </div>
 
       {/* Summary card */}
-      <div className="rounded-2xl bg-[#0B1A16] border border-[#0D9E8A]/[0.12] overflow-hidden">
+      <div
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background: "var(--dash-shell-bg, #1C0A35)",
+          border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+        }}
+      >
         {/* Amount hero */}
-        <div className="p-6 text-center border-b border-[#0D9E8A]/[0.08]"
-          style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.06), rgba(201,168,76,0.02))" }}>
-          <p className="text-xs text-[#5A6B82] uppercase tracking-widest mb-2">You're paying</p>
+        <div
+          className="p-6 text-center"
+          style={{
+            background: "linear-gradient(135deg, rgba(201,168,76,0.06), rgba(201,168,76,0.02))",
+            borderBottom: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+          }}
+        >
+          <p className="text-xs text-[#6E558B] uppercase tracking-widest mb-2">You're paying</p>
           <p className="text-4xl font-black text-[#F0F1F5]">{fmt(amount, currency)}</p>
-          <p className="text-sm text-[#5A6B82] mt-1">+ {fmt(fee, currency)} fee</p>
+          <p className="text-sm text-[#6E558B] mt-1">+ {fmt(fee, currency)} fee</p>
         </div>
 
         {/* Details */}
@@ -447,7 +717,7 @@ function ConfirmView({
             { label: "Total", value: fmt(amount + fee, currency), bold: true },
           ].map((row) => (
             <div key={row.label} className="flex justify-between items-center text-sm">
-              <span className="text-[#5A6B82]">{row.label}</span>
+              <span className="text-[#6E558B]">{row.label}</span>
               <span className={`${row.bold ? "text-[#C9A84C] font-black text-base" : "text-[#B8BCC8] font-medium"} ${row.mono ? "font-mono text-xs" : ""}`}>
                 {row.value}
               </span>
@@ -476,7 +746,7 @@ function ConfirmView({
         )}
       </motion.button>
 
-      <p className="text-center text-[10px] text-[#3A4558]">
+      <p className="text-center text-[10px] text-[#6E558B]">
         Protected by KobKlein Shield • End-to-end encrypted
       </p>
     </motion.div>
@@ -506,7 +776,10 @@ function ProcessingView() {
           className="absolute inset-0 rounded-full border-4 border-transparent"
           style={{ borderTopColor: "#C9A84C", borderRightColor: "#C9A84C44" }}
         />
-        <div className="absolute inset-3 rounded-full bg-[#071A14] flex items-center justify-center">
+        <div
+          className="absolute inset-3 rounded-full flex items-center justify-center"
+          style={{ background: "var(--dash-shell-bg, #1C0A35)" }}
+        >
           <Zap className="h-8 w-8 text-[#C9A84C]" />
         </div>
       </div>
@@ -515,7 +788,7 @@ function ProcessingView() {
         <p className="text-lg font-bold text-[#F0F1F5]">
           Processing{".".repeat(dots)}
         </p>
-        <p className="text-sm text-[#5A6B82] mt-1">Securing your transaction</p>
+        <p className="text-sm text-[#6E558B] mt-1">Securing your transaction</p>
       </div>
 
       <div className="flex gap-2">
@@ -525,7 +798,11 @@ function ProcessingView() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.3 }}
-            className="px-3 py-1.5 rounded-full bg-[#0E2018] border border-[#0D9E8A]/[0.10] text-xs text-[#5A6B82] flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-full text-xs text-[#6E558B] flex items-center gap-1.5"
+            style={{
+              background: "var(--dash-shell-bg, #1C0A35)",
+              border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+            }}
           >
             <div className="w-1.5 h-1.5 rounded-full bg-[#C9A84C] animate-pulse" />
             {step}
@@ -564,8 +841,8 @@ function SuccessView({
         className="relative"
       >
         <div className="w-24 h-24 rounded-full flex items-center justify-center"
-          style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05))", border: "2px solid rgba(16,185,129,0.3)" }}>
-          <CheckCircle2 className="h-12 w-12 text-[#10B981]" />
+          style={{ background: "linear-gradient(135deg, rgba(22,199,132,0.2), rgba(22,199,132,0.05))", border: "2px solid rgba(22,199,132,0.3)" }}>
+          <CheckCircle2 className="h-12 w-12" style={{ color: "#16C784" }} />
         </div>
         {/* Rings */}
         {[1, 2].map((r) => (
@@ -574,14 +851,15 @@ function SuccessView({
             initial={{ scale: 1, opacity: 0.6 }}
             animate={{ scale: 1 + r * 0.4, opacity: 0 }}
             transition={{ duration: 1, delay: r * 0.2, repeat: 2 }}
-            className="absolute inset-0 rounded-full border border-[#10B981]/30"
+            className="absolute inset-0 rounded-full"
+            style={{ border: "1px solid rgba(22,199,132,0.30)" }}
           />
         ))}
       </motion.div>
 
       <div className="text-center">
         <h2 className="text-2xl font-black text-[#F0F1F5]">Payment Sent!</h2>
-        <p className="text-sm text-[#5A6B82] mt-1">Your payment was processed successfully</p>
+        <p className="text-sm text-[#6E558B] mt-1">Your payment was processed successfully</p>
       </div>
 
       {/* Receipt card */}
@@ -589,17 +867,26 @@ function SuccessView({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="w-full rounded-2xl bg-[#0B1A16] border border-[#0D9E8A]/[0.12] overflow-hidden"
+        className="w-full rounded-2xl overflow-hidden"
+        style={{
+          background: "var(--dash-shell-bg, #1C0A35)",
+          border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+        }}
       >
         {/* Receipt header */}
-        <div className="p-5 border-b border-[#0D9E8A]/[0.08] flex items-center gap-3"
-          style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02))" }}>
-          <div className="w-9 h-9 rounded-xl bg-[#10B981]/10 flex items-center justify-center">
-            <Receipt className="h-5 w-5 text-[#10B981]" />
+        <div
+          className="p-5 flex items-center gap-3"
+          style={{
+            background: "linear-gradient(135deg, rgba(212,175,55,0.06), rgba(212,175,55,0.02))",
+            borderBottom: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+          }}
+        >
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(212,175,55,0.10)" }}>
+            <Receipt className="h-5 w-5 text-[#D4AF37]" />
           </div>
           <div>
             <p className="text-sm font-bold text-[#F0F1F5]">Receipt</p>
-            <p className="text-xs text-[#5A6B82]">{new Date(receipt.createdAt).toLocaleString()}</p>
+            <p className="text-xs text-[#6E558B]">{new Date(receipt.createdAt).toLocaleString()}</p>
           </div>
         </div>
 
@@ -612,7 +899,7 @@ function SuccessView({
             { label: "Net to Merchant", value: fmt(receipt.net, receipt.currency) },
           ].map((row) => (
             <div key={row.label} className="flex justify-between items-center text-sm">
-              <span className="text-[#5A6B82]">{row.label}</span>
+              <span className="text-[#6E558B]">{row.label}</span>
               <span className={row.highlight ? "text-[#C9A84C] font-black text-base" : "text-[#B8BCC8] font-medium"}>
                 {row.value}
               </span>
@@ -620,16 +907,16 @@ function SuccessView({
           ))}
 
           {/* Divider */}
-          <div className="border-t border-dashed border-[#0D9E8A]/[0.10] pt-3">
+          <div className="pt-3" style={{ borderTop: "1px dashed var(--dash-shell-border, rgba(165,150,201,0.22))" }}>
             <div className="flex justify-between items-center text-xs">
-              <span className="text-[#5A6B82]">Transaction ID</span>
+              <span className="text-[#6E558B]">Transaction ID</span>
               <button
                 onClick={copyTxId}
-                className="flex items-center gap-1.5 text-[#4A5A72] hover:text-[#C9A84C] transition-colors font-mono"
+                className="flex items-center gap-1.5 text-[#6E558B] hover:text-[#C9A84C] transition-colors font-mono"
               >
                 <span className="truncate max-w-[120px]">{receipt.transactionId}</span>
                 {copied ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981] shrink-0" />
+                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0" style={{ color: "#16C784" }} />
                 ) : (
                   <Copy className="h-3.5 w-3.5 shrink-0" />
                 )}
@@ -643,8 +930,12 @@ function SuccessView({
       <div className="w-full grid grid-cols-2 gap-3">
         <button
           onClick={onDone}
-          className="h-12 rounded-xl bg-[#0E2018] border border-[#0D9E8A]/[0.12] text-sm font-bold text-[#A0BBA8]
-                     hover:bg-[#122B22] hover:text-[#F0F1F5] transition-all flex items-center justify-center gap-2"
+          className="h-12 rounded-xl text-sm font-bold hover:bg-[#2A1050] transition-all flex items-center justify-center gap-2"
+          style={{
+            background: "var(--dash-shell-bg, #1C0A35)",
+            border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+            color: "var(--dash-text-muted, #A596C9)",
+          }}
         >
           <QrCode className="h-4 w-4" />
           Pay Again
@@ -676,7 +967,7 @@ function ErrorView({ message, onRetry }: { message: string; onRetry: () => void 
       </div>
       <div className="text-center">
         <h3 className="text-lg font-bold text-[#F0F1F5]">Payment Failed</h3>
-        <p className="text-sm text-[#5A6B82] mt-2 max-w-xs">{message}</p>
+        <p className="text-sm text-[#6E558B] mt-2 max-w-xs">{message}</p>
       </div>
       <button
         onClick={onRetry}
@@ -703,6 +994,12 @@ function PayContent() {
   const [errorMsg, setErrorMsg]   = useState("");
   const [processing, setProcessing] = useState(false);
   const [qrOpen, setQrOpen]       = useState(false);
+  const [nfcSupported, setNfcSupported] = useState(false);
+
+  // Detect Web NFC support (Android Chrome only)
+  useEffect(() => {
+    setNfcSupported(typeof window !== "undefined" && "NDEFReader" in window);
+  }, []);
 
   // Auto-load merchant from URL ?merchantId=
   useEffect(() => {
@@ -738,7 +1035,6 @@ function PayContent() {
     }
   }
 
-  // Parse QR payload: kobklein://pay?merchantId=XXX  or  kobklein://pay?code=XXX  or raw code
   async function handleQrResult(payload: string) {
     setQrOpen(false);
     try {
@@ -792,6 +1088,7 @@ function PayContent() {
 
       optimisticDebit(currency, amount + rec.fee);
       setReceipt(rec);
+      trackEvent("Payment Completed");
       setFlow("success");
     } catch (err: any) {
       setErrorMsg(err?.message || "Something went wrong. Please try again.");
@@ -829,10 +1126,20 @@ function PayContent() {
           {flow === "choose" && (
             <motion.div key="choose">
               <ChooseFlowView
+                nfcSupported={nfcSupported}
                 onChoose={(f) => {
                   if (f === "qr") { setQrOpen(true); }
                   else { setFlow(f); }
                 }}
+              />
+            </motion.div>
+          )}
+
+          {flow === "nfc" && (
+            <motion.div key="nfc">
+              <NfcPayView
+                onBack={() => setFlow("choose")}
+                onResult={(code) => handleCodeLookup(code)}
               />
             </motion.div>
           )}
@@ -906,7 +1213,7 @@ export default function PayMerchantPage() {
             className="w-10 h-10 rounded-full border-2 border-transparent"
             style={{ borderTopColor: "#C9A84C" }}
           />
-          <p className="text-sm text-[#5A6B82]">Loading…</p>
+          <p className="text-sm text-[#6E558B]">Loading…</p>
         </div>
       </div>
     }>

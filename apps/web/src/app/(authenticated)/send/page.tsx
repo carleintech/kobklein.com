@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { kkGet, kkPost } from "@/lib/kobklein-api";
+import { trackEvent } from "@/lib/analytics";
 import { attemptTransfer, confirmTransfer } from "@/lib/transfer";
 import { useWallet } from "@/context/wallet-context";
 import { useToast } from "@kobklein/ui";
@@ -47,9 +48,9 @@ function getDisplayName(r: Recipient) {
 }
 
 const TRUST_CONFIG = {
-  trusted:  { label: "Trusted",  color: "#22C55E", bg: "rgba(34,197,94,0.12)",   dot: "bg-emerald-400" },
-  moderate: { label: "Active",   color: "#F59E0B", bg: "rgba(245,158,11,0.12)",  dot: "bg-amber-400"   },
-  new:      { label: "New",      color: "#6B7280", bg: "rgba(107,114,128,0.12)", dot: "bg-gray-400"    },
+  trusted:  { label: "Trusted",  color: "#22C55E", bg: "rgba(34,197,94,0.12)",   dot: "bg-[#22C55E]" },
+  moderate: { label: "Active",   color: "#C9A84C", bg: "rgba(201,168,76,0.12)",  dot: "bg-[#C9A84C]"  },
+  new:      { label: "New",      color: "#6B7280", bg: "rgba(107,114,128,0.12)", dot: "bg-gray-400"   },
 };
 
 function TrustBadge({ level }: { level: string }) {
@@ -69,13 +70,18 @@ function TrustBadge({ level }: { level: string }) {
 
 function Avatar({ r, size = "md" }: { r: Recipient; size?: "sm" | "md" | "lg" }) {
   const sz = size === "lg" ? "w-16 h-16 text-xl" : size === "sm" ? "w-9 h-9 text-xs" : "w-11 h-11 text-sm";
-  const colors = ["from-blue-500/40 to-blue-600/20", "from-purple-500/40 to-purple-600/20",
-                  "from-teal-500/40 to-teal-600/20", "from-rose-500/40 to-rose-600/20",
-                  "from-amber-500/40 to-amber-600/20", "from-[#C9A84C]/40 to-[#9F7F2C]/20"];
+  const colors = [
+    "from-purple-700/40 to-purple-900/20",
+    "from-[#8A50C8]/40 to-[#5A2090]/20",
+    "from-[#A596C9]/30 to-[#6E558B]/20",
+    "from-rose-500/40 to-rose-600/20",
+    "from-[#C9A84C]/40 to-[#9F7F2C]/20",
+    "from-[#E1C97A]/40 to-[#C9A84C]/20",
+  ];
   const grad = colors[getInitials(r).charCodeAt(0) % colors.length];
   return (
     <div className={`${sz} rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center
-                     font-black text-[#F0F1F5] border border-[#0D9E8A]/[0.25] shrink-0`}>
+                     font-black text-[#F0F1F5] border border-[#A596C9]/[0.20] shrink-0`}>
       {getInitials(r)}
     </div>
   );
@@ -138,9 +144,8 @@ function SendPage() {
     kkGet<Recipient[]>("v1/recipients/smart").then(setSmartRecipients).catch(() => {});
   }, []);
 
-  // Debounced phone/K-ID lookup — runs when user types in the recipient field
+  // Debounced phone/K-ID lookup
   useEffect(() => {
-    // Don't look up if already resolved from smart recipients or URL
     if (selectedR) return;
     const trimmed = phone.trim();
     if (trimmed.length < 4) {
@@ -174,7 +179,7 @@ function SendPage() {
         }
       } catch {
         setLookupResult(null);
-        setLookupError(null); // Silent fail — don't alarm user mid-typing
+        setLookupError(null);
         setRecipientUserId("");
       } finally {
         setLookupLoading(false);
@@ -231,7 +236,7 @@ function SendPage() {
       }
       if (result.ok) {
         setReceipt(result); optimisticDebit(fromCurrency, Number(amount));
-        toast.show("Transfer sent successfully!"); setState("success"); return;
+        toast.show("Transfer sent successfully!"); trackEvent("Transfer Sent"); setState("success"); return;
       }
       setState("confirming");
     } catch (err: any) {
@@ -273,8 +278,11 @@ function SendPage() {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 24 }}
-          className="rounded-3xl overflow-hidden border border-emerald-500/20"
-          style={{ background: "linear-gradient(160deg, #071A14 0%, #061210 100%)" }}
+          className="rounded-3xl overflow-hidden"
+          style={{
+            background: "linear-gradient(160deg, var(--dash-shell-bg, #1C0A35) 0%, var(--dash-page-bg, #240E3C) 100%)",
+            border: "1px solid rgba(165,150,201,0.20)",
+          }}
         >
           <div className="p-8 flex flex-col items-center text-center gap-4">
             {/* Animated check */}
@@ -282,14 +290,17 @@ function SendPage() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.1, type: "spring", stiffness: 300 }}
-              className="w-20 h-20 rounded-full bg-emerald-500/15 border border-emerald-500/30
-                         flex items-center justify-center"
+              className="w-20 h-20 rounded-full flex items-center justify-center"
+              style={{
+                background: "rgba(212,175,55,0.12)",
+                border: "1px solid rgba(212,175,55,0.25)",
+              }}
             >
-              <CheckCircle2 className="h-10 w-10 text-emerald-400" />
+              <CheckCircle2 className="h-10 w-10 text-[#D4AF37]" />
             </motion.div>
 
             <div>
-              <p className="text-xs text-emerald-400/70 uppercase tracking-widest font-bold mb-1">
+              <p className="text-xs text-[#D4AF37]/70 uppercase tracking-widest font-bold mb-1">
                 Transfer Complete
               </p>
               <motion.p
@@ -307,12 +318,18 @@ function SendPage() {
               </motion.p>
             </div>
 
-            <div className="flex items-center gap-3 py-3 px-5 rounded-2xl bg-[#0E2018] border border-[#0D9E8A]/[0.12] w-full justify-center">
+            <div
+              className="flex items-center gap-3 py-3 px-5 rounded-2xl w-full justify-center"
+              style={{
+                background: "var(--dash-shell-bg, #1C0A35)",
+                border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+              }}
+            >
               <div className="text-xl">→</div>
               <div>
                 <p className="text-sm font-bold text-[#F0F1F5]">{recipientName}</p>
                 {isCross && fxPreview?.recipientAmount && (
-                  <p className="text-xs text-emerald-400">
+                  <p className="text-xs" style={{ color: "#16C784" }}>
                     Receives {Number(fxPreview.recipientAmount).toLocaleString()} {toCurrency}
                   </p>
                 )}
@@ -329,9 +346,12 @@ function SendPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={reset}
-              className="w-full py-3 rounded-2xl font-bold text-sm
-                         bg-emerald-500/10 border border-emerald-500/20
-                         text-emerald-400 hover:bg-emerald-500/20 transition-all"
+              className="w-full py-3 rounded-2xl font-bold text-sm transition-all"
+              style={{
+                background: "rgba(212,175,55,0.08)",
+                border: "1px solid rgba(212,175,55,0.18)",
+                color: "#D4AF37",
+              }}
             >
               Send Another
             </motion.button>
@@ -354,14 +374,17 @@ function SendPage() {
             whileTap={{ scale: 0.92 }}
             onClick={() => setState("idle")}
             disabled={isProcessing}
-            className="p-2 rounded-xl bg-[#0E2018] border border-[#0D9E8A]/[0.12]
-                       hover:bg-[#122B22] transition-colors disabled:opacity-40"
+            className="p-2 rounded-xl hover:bg-[#2A1050] transition-colors disabled:opacity-40"
+            style={{
+              background: "var(--dash-shell-bg, #1C0A35)",
+              border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+            }}
           >
-            <ArrowRight className="h-4 w-4 text-[#4A5A72] rotate-180" />
+            <ArrowRight className="h-4 w-4 text-[#6E558B] rotate-180" />
           </motion.button>
           <div>
             <h1 className="text-lg font-bold text-[#F0F1F5]">Confirm Transfer</h1>
-            <p className="text-xs text-[#5A6B82]">Review details carefully</p>
+            <p className="text-xs text-[#6E558B]">Review details carefully</p>
           </div>
         </div>
 
@@ -369,29 +392,38 @@ function SendPage() {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-3xl overflow-hidden border border-[#0D9E8A]/[0.15]"
-          style={{ background: "linear-gradient(160deg, #0B1A16 0%, #081410 100%)" }}
+          className="rounded-3xl overflow-hidden"
+          style={{
+            background: "linear-gradient(160deg, var(--dash-shell-bg, #1C0A35) 0%, var(--dash-page-bg, #240E3C) 100%)",
+            border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+          }}
         >
           <div className="p-6 space-y-5">
             {/* Recipient */}
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#0E2018] border border-[#0D9E8A]/[0.12]">
+            <div
+              className="flex items-center gap-3 p-3 rounded-2xl"
+              style={{
+                background: "var(--dash-shell-bg, #1C0A35)",
+                border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+              }}
+            >
               {selectedR ? (
                 <Avatar r={selectedR} size="sm" />
               ) : (
-                <div className="w-9 h-9 rounded-2xl bg-[#122B22] flex items-center justify-center">
-                  <User className="h-4 w-4 text-[#4A5A72]" />
+                <div className="w-9 h-9 rounded-2xl bg-[#2A1050] flex items-center justify-center">
+                  <User className="h-4 w-4 text-[#6E558B]" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-[#E0E4EE] truncate">{recipientName}</p>
-                {phone && <p className="text-xs text-[#5A6B82]">{phone.replace(/(.{3}).*(.{2})$/, "$1•••$2")}</p>}
+                {phone && <p className="text-xs text-[#6E558B]">{phone.replace(/(.{3}).*(.{2})$/, "$1•••$2")}</p>}
               </div>
               <TrustBadge level={recipientTrust} />
             </div>
 
             {/* Amount display */}
             <div className="text-center py-4">
-              <p className="text-[10px] uppercase tracking-widest text-[#5A6B82] font-bold mb-1">You are sending</p>
+              <p className="text-[10px] uppercase tracking-widest text-[#6E558B] font-bold mb-1">You are sending</p>
               <p
                 className="text-5xl font-black tabular-nums"
                 style={{
@@ -410,9 +442,9 @@ function SendPage() {
             )}
 
             {/* Warning */}
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/[0.06] border border-amber-500/[0.15]">
-              <Shield className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-              <p className="text-[10px] text-amber-400/80">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-[#C9A84C]/[0.06] border border-[#C9A84C]/[0.15]">
+              <Shield className="h-3.5 w-3.5 text-[#C9A84C] shrink-0" />
+              <p className="text-[10px] text-[#C9A84C]/80">
                 Transfers may not be reversible. Verify the recipient before confirming.
               </p>
             </div>
@@ -459,9 +491,12 @@ function SendPage() {
                 onClick={() => setState("idle")}
                 disabled={isProcessing}
                 className="w-full py-3 rounded-2xl font-semibold text-sm
-                           bg-[#0E2018] border border-[#0D9E8A]/[0.12]
-                           text-[#5A7A6A] hover:bg-[#122B22] hover:text-[#A0BBA8]
-                           transition-all disabled:opacity-40"
+                           hover:bg-[#2A1050] transition-all disabled:opacity-40"
+                style={{
+                  background: "var(--dash-shell-bg, #1C0A35)",
+                  border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+                  color: "var(--dash-text-muted, #A596C9)",
+                }}
               >
                 Go Back
               </motion.button>
@@ -489,7 +524,7 @@ function SendPage() {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-xl font-bold text-[#F0F1F5]">Send Money</h1>
-        <p className="text-xs text-[#5A6B82] mt-0.5">Fast, secure transfers in HTG or USD</p>
+        <p className="text-xs text-[#6E558B] mt-0.5">Fast, secure transfers in HTG or USD</p>
       </motion.div>
 
       {/* Smart Recipients */}
@@ -500,7 +535,7 @@ function SendPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
           >
-            <p className="text-[9px] uppercase tracking-[0.15em] text-[#4A5A72] font-bold mb-2.5">
+            <p className="text-[9px] uppercase tracking-[0.15em] text-[#6E558B] font-bold mb-2.5">
               Recent &amp; Favorites
             </p>
             <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
@@ -513,12 +548,15 @@ function SendPage() {
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => selectRecipient(r)}
-                  className={`shrink-0 flex flex-col items-center gap-2 p-3 rounded-2xl
-                               border transition-all duration-200 min-w-[70px]
-                               ${recipientUserId === r.contactUserId
-                                 ? "border-[#C9A84C]/50 bg-[#C9A84C]/10"
-                                 : "border-[#0D9E8A]/[0.12] bg-[#0B1A16]/60 hover:bg-[#122B22] hover:border-[#0D9E8A]/[0.20]"
-                               }`}
+                  className="shrink-0 flex flex-col items-center gap-2 p-3 rounded-2xl
+                             transition-all duration-200 min-w-[70px] hover:bg-[#2A1050]"
+                  style={recipientUserId === r.contactUserId ? {
+                    border: "1px solid rgba(201,168,76,0.50)",
+                    background: "rgba(201,168,76,0.10)",
+                  } : {
+                    border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+                    background: "var(--dash-shell-bg, #1C0A35)",
+                  }}
                 >
                   <div className="relative">
                     <Avatar r={r} size="sm" />
@@ -527,12 +565,12 @@ function SendPage() {
                     )}
                     {recipientUserId === r.contactUserId && (
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#C9A84C]
-                                      flex items-center justify-center border border-[#050F0C]">
+                                      flex items-center justify-center border border-[#1C0A35]">
                         <Check className="h-2.5 w-2.5 text-[#050F0C]" />
                       </div>
                     )}
                   </div>
-                  <span className="text-[10px] font-semibold text-[#B0BBCC] truncate max-w-[60px] text-center leading-tight">
+                  <span className="text-[10px] font-semibold text-[#A596C9] truncate max-w-[60px] text-center leading-tight">
                     {r.user.firstName || r.user.handle || "User"}
                   </span>
                   <TrustBadge level={r.trust.level} />
@@ -548,39 +586,46 @@ function SendPage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="rounded-3xl overflow-hidden border border-[#0D9E8A]/[0.15]"
-        style={{ background: "linear-gradient(160deg, #0B1A16 0%, #081410 100%)" }}
+        className="rounded-3xl overflow-hidden"
+        style={{
+          background: "linear-gradient(160deg, var(--dash-shell-bg, #1C0A35) 0%, var(--dash-page-bg, #240E3C) 100%)",
+          border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+        }}
       >
         <div className="p-5 space-y-4">
 
           {/* Recipient input */}
           <div>
-            <label className="text-[10px] uppercase tracking-widest text-[#5A6B82] font-bold mb-2 block">
+            <label className="text-[10px] uppercase tracking-widest text-[#6E558B] font-bold mb-2 block">
               Recipient
             </label>
-            <div className={`flex items-center gap-3 px-4 h-12 rounded-2xl border
-                             transition-all duration-200
-                             ${lookupError
-                               ? "border-red-500/30 bg-red-500/[0.04]"
-                               : recipientUserId
-                               ? "border-[#C9A84C]/30 bg-[#C9A84C]/[0.04]"
-                               : "border-[#0D9E8A]/[0.12] bg-[#0E2018] focus-within:border-[#C9A84C]/30"
-                             }`}>
-              <Phone className="h-4 w-4 text-[#5A6B82] shrink-0" />
+            <div
+              className="flex items-center gap-3 px-4 h-12 rounded-2xl transition-all duration-200"
+              style={lookupError ? {
+                border: "1px solid rgba(239,68,68,0.30)",
+                background: "rgba(239,68,68,0.04)",
+              } : recipientUserId ? {
+                border: "1px solid rgba(201,168,76,0.30)",
+                background: "rgba(201,168,76,0.04)",
+              } : {
+                border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+                background: "var(--dash-shell-bg, #1C0A35)",
+              }}
+            >
+              <Phone className="h-4 w-4 text-[#6E558B] shrink-0" />
               <input
                 type="text"
                 value={phone}
                 onChange={(e) => {
                   setPhone(e.target.value);
-                  // Clear smart selection when user types manually
                   if (selectedR) { setSelectedR(null); }
                 }}
                 placeholder="Phone, K-ID, or @handle"
-                className="flex-1 bg-transparent text-sm text-[#E0E4EE] placeholder-[#3A4A60]
+                className="flex-1 bg-transparent text-sm text-[#E0E4EE] placeholder-[#3A3060]
                            outline-none border-none"
               />
               {lookupLoading && (
-                <RefreshCw className="h-3.5 w-3.5 text-[#5A6B82] animate-spin shrink-0" />
+                <RefreshCw className="h-3.5 w-3.5 text-[#6E558B] animate-spin shrink-0" />
               )}
               {!lookupLoading && recipientUserId && (
                 <div className="w-5 h-5 rounded-full bg-[#C9A84C] flex items-center justify-center shrink-0">
@@ -602,10 +647,10 @@ function SendPage() {
                   exit={{ opacity: 0, height: 0 }}
                   className="flex items-center gap-2 mt-2 px-2"
                 >
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <p className="text-xs text-emerald-400 font-medium">{lookupResult.name}</p>
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#16C784" }} />
+                  <p className="text-xs font-medium" style={{ color: "#16C784" }}>{lookupResult.name}</p>
                   {lookupResult.kId && (
-                    <span className="text-[9px] font-mono text-[#4A5A72]">{lookupResult.kId}</span>
+                    <span className="text-[9px] font-mono text-[#6E558B]">{lookupResult.kId}</span>
                   )}
                 </motion.div>
               )}
@@ -618,8 +663,8 @@ function SendPage() {
                   exit={{ opacity: 0, height: 0 }}
                   className="flex items-center gap-2 mt-2 px-2"
                 >
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <p className="text-xs text-emerald-400 font-medium">
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#16C784" }} />
+                  <p className="text-xs font-medium" style={{ color: "#16C784" }}>
                     {getDisplayName(selectedR)} selected
                   </p>
                   <TrustBadge level={selectedR.trust.level} />
@@ -643,7 +688,7 @@ function SendPage() {
 
           {/* Currency pair */}
           <div>
-            <label className="text-[10px] uppercase tracking-widest text-[#5A6B82] font-bold mb-2 block">
+            <label className="text-[10px] uppercase tracking-widest text-[#6E558B] font-bold mb-2 block">
               Currency
             </label>
             <div className="flex items-center gap-2">
@@ -652,10 +697,12 @@ function SendPage() {
                   value={fromCurrency}
                   onChange={(e) => setFromCurrency(e.target.value)}
                   className="w-full appearance-none px-4 py-3 rounded-2xl
-                             bg-[#0E2018] border border-[#0D9E8A]/[0.12]
                              text-sm text-[#E0E4EE] font-semibold
-                             focus:outline-none focus:border-[#C9A84C]/30 cursor-pointer
-                             transition-all"
+                             focus:outline-none cursor-pointer transition-all"
+                  style={{
+                    background: "var(--dash-shell-bg, #1C0A35)",
+                    border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+                  }}
                 >
                   <option value="HTG">🇭🇹 Send HTG</option>
                   <option value="USD">🇺🇸 Send USD</option>
@@ -663,7 +710,7 @@ function SendPage() {
               </div>
 
               <div className="flex flex-col items-center justify-center w-8 shrink-0">
-                <ArrowLeftRight className="h-4 w-4 text-[#5A6B82]" />
+                <ArrowLeftRight className="h-4 w-4 text-[#6E558B]" />
               </div>
 
               <div className="flex-1 relative">
@@ -671,10 +718,12 @@ function SendPage() {
                   value={toCurrency}
                   onChange={(e) => setToCurrency(e.target.value)}
                   className="w-full appearance-none px-4 py-3 rounded-2xl
-                             bg-[#0E2018] border border-[#0D9E8A]/[0.12]
                              text-sm text-[#E0E4EE] font-semibold
-                             focus:outline-none focus:border-[#C9A84C]/30 cursor-pointer
-                             transition-all"
+                             focus:outline-none cursor-pointer transition-all"
+                  style={{
+                    background: "var(--dash-shell-bg, #1C0A35)",
+                    border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+                  }}
                 >
                   <option value="HTG">🇭🇹 Receive HTG</option>
                   <option value="USD">🇺🇸 Receive USD</option>
@@ -697,27 +746,31 @@ function SendPage() {
 
           {/* Amount input */}
           <div>
-            <label className="text-[10px] uppercase tracking-widest text-[#5A6B82] font-bold mb-2 block">
+            <label className="text-[10px] uppercase tracking-widest text-[#6E558B] font-bold mb-2 block">
               Amount
             </label>
-            <div className={`flex items-center gap-3 px-4 h-14 rounded-2xl border
-                             transition-all duration-200
-                             ${amount && Number(amount) > 0
-                               ? "border-[#C9A84C]/30 bg-[#C9A84C]/[0.04]"
-                               : "border-[#0D9E8A]/[0.12] bg-[#0E2018] focus-within:border-[#C9A84C]/30"
-                             }`}>
-              <span className="text-sm font-bold text-[#5A6B82] shrink-0">{fromCurrency}</span>
-              <div className="w-px h-5 bg-[#0D9E8A]/[0.20] shrink-0" />
+            <div
+              className="flex items-center gap-3 px-4 h-14 rounded-2xl transition-all duration-200"
+              style={amount && Number(amount) > 0 ? {
+                border: "1px solid rgba(201,168,76,0.30)",
+                background: "rgba(201,168,76,0.04)",
+              } : {
+                border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+                background: "var(--dash-shell-bg, #1C0A35)",
+              }}
+            >
+              <span className="text-sm font-bold text-[#6E558B] shrink-0">{fromCurrency}</span>
+              <div className="w-px h-5 bg-[#A596C9]/[0.20] shrink-0" />
               <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
                 className="flex-1 bg-transparent text-2xl font-black text-[#F0F1F5]
-                           placeholder-[#3A4A60] outline-none border-none tabular-nums"
+                           placeholder-[#3A3060] outline-none border-none tabular-nums"
               />
               {previewLoading && (
-                <RefreshCw className="h-4 w-4 text-[#5A6B82] animate-spin shrink-0" />
+                <RefreshCw className="h-4 w-4 text-[#6E558B] animate-spin shrink-0" />
               )}
             </div>
           </div>
@@ -773,14 +826,11 @@ function SendPage() {
 
           {/* Security note */}
           <div className="flex items-center justify-center gap-1.5 pt-1">
-            <Shield className="h-3 w-3 text-[#4A5A72]" />
-            <p className="text-[10px] text-[#4A5A72]">256-bit encrypted · KYC verified</p>
+            <Shield className="h-3 w-3 text-[#6E558B]" />
+            <p className="text-[10px] text-[#6E558B]">256-bit encrypted · KYC verified</p>
           </div>
         </div>
       </motion.div>
     </div>
   );
 }
-
-
-

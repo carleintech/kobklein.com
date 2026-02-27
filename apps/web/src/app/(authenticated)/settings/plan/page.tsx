@@ -68,7 +68,7 @@ export default function PlanPage() {
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="p-2 rounded-xl bg-[#162038] hover:bg-[#1A2640] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
+            className="p-2 rounded-xl bg-[#0D2018] hover:bg-[#122A1E] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -80,7 +80,7 @@ export default function PlanPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="rounded-2xl bg-[#0E1829] border border-white/[0.06] p-6 text-center flex flex-col items-center gap-3"
+          className="rounded-2xl bg-[#091C14] border border-white/[0.06] p-6 text-center flex flex-col items-center gap-3"
         >
           <ShieldCheck className="h-10 w-10 text-[#0D9E8A]" />
           <p className="text-base font-bold text-[#F0F1F5]">Business accounts are managed separately</p>
@@ -100,7 +100,7 @@ export default function PlanPage() {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-xl bg-[#162038] hover:bg-[#1A2640] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
+          className="p-2 rounded-xl bg-[#0D2018] hover:bg-[#122A1E] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -120,11 +120,11 @@ export default function PlanPage() {
           background: isVerified
             ? "linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.04))"
             : isPending
-              ? "linear-gradient(135deg, rgba(245,158,11,0.10), rgba(245,158,11,0.03))"
+              ? "linear-gradient(135deg, rgba(201,168,76,0.10), rgba(201,168,76,0.03))"
               : "linear-gradient(135deg, rgba(13,158,138,0.10), rgba(13,158,138,0.03))",
           border: `1px solid ${
             isVerified ? "rgba(16,185,129,0.25)"
-            : isPending ? "rgba(245,158,11,0.20)"
+            : isPending ? "rgba(201,168,76,0.20)"
             : "rgba(13,158,138,0.15)"
           }`,
         }}
@@ -135,14 +135,14 @@ export default function PlanPage() {
             style={{
               background: isVerified
                 ? "rgba(16,185,129,0.15)"
-                : isPending ? "rgba(245,158,11,0.12)"
+                : isPending ? "rgba(201,168,76,0.12)"
                 : "rgba(13,158,138,0.12)",
             }}
           >
             {isVerified
               ? <CheckCircle2 className="h-7 w-7 text-[#10B981]" />
               : isPending
-                ? <ShieldCheck className="h-7 w-7 text-amber-400" />
+                ? <ShieldCheck className="h-7 w-7 text-[#C9A84C]" />
                 : <Lock className="h-7 w-7 text-[#0D9E8A]" />}
           </div>
           <div className="flex-1">
@@ -168,7 +168,7 @@ export default function PlanPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.08 }}
-        className="rounded-2xl bg-[#0E1829] border border-[#0D9E8A]/[0.12] overflow-hidden"
+        className="rounded-2xl bg-[#091C14] border border-[#0D9E8A]/[0.12] overflow-hidden"
       >
         <div className="h-0.5 bg-gradient-to-r from-[#0D9E8A]/60 via-[#0D9E8A]/20 to-transparent" />
         <div className="p-5 flex flex-col gap-4">
@@ -208,7 +208,7 @@ export default function PlanPage() {
         transition={{ delay: 0.12 }}
         className="rounded-2xl overflow-hidden"
         style={{
-          background: "#0E1829",
+          background: "#091C14",
           border: isVerified ? "1px solid rgba(16,185,129,0.20)" : "1px solid rgba(255,255,255,0.06)",
         }}
       >
@@ -264,7 +264,7 @@ export default function PlanPage() {
           {/* CTA */}
           {!isVerified && !isPending && (
             <motion.button
-              onClick={() => router.push("/kyc")}
+              onClick={() => router.push("/verify")}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="w-full h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
@@ -284,9 +284,9 @@ export default function PlanPage() {
             <div
               className="w-full h-11 rounded-xl flex items-center justify-center gap-2 text-sm font-bold"
               style={{
-                background: "rgba(245,158,11,0.08)",
-                border: "1px solid rgba(245,158,11,0.15)",
-                color: "#FBBF24",
+                background: "rgba(201,168,76,0.08)",
+                border: "1px solid rgba(201,168,76,0.15)",
+                color: "#C9A84C",
               }}
             >
               <ShieldCheck className="h-4 w-4" />
@@ -301,7 +301,7 @@ export default function PlanPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.22 }}
-        className="rounded-2xl bg-[#0A1422] border border-white/[0.04] p-5 flex flex-col gap-3"
+        className="rounded-2xl bg-[#081510] border border-white/[0.04] p-5 flex flex-col gap-3"
       >
         <p className="text-[10px] font-black text-[#3A4558] uppercase tracking-widest">Why KobKlein is free for clients</p>
         {[

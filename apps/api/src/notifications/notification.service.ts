@@ -1,4 +1,5 @@
 import { sendSMS, isTwilioConfigured } from "./sms.service";
+import { sendEmail, isEmailConfigured } from "./email.service";
 import { enqueueNotification, NotificationJob } from "./notification.queue";
 
 // ─── Message Templates (Haiti / HTG) ──────────────────────────
@@ -141,4 +142,25 @@ export async function createNotification(
   return prisma.notification.create({
     data: { userId, title, body, type },
   });
+}
+
+/**
+ * Send a transactional HTML email to a user by their DB user ID.
+ * Looks up the user's email address, then calls sendEmail() directly (not queued).
+ * Silently no-ops if the user has no email on record or email is not configured.
+ */
+export async function notifyWithEmail(
+  userId: string,
+  template: () => { subject: string; html: string },
+): Promise<void> {
+  if (!isEmailConfigured()) return;
+  try {
+    const { prisma } = await import("../db/prisma.js");
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+    if (!user?.email) return;
+    const { subject, html } = template();
+    await sendEmail(user.email, subject, html);
+  } catch (err) {
+    console.error("[notifyWithEmail] failed:", err);
+  }
 }

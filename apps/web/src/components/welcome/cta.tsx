@@ -22,7 +22,7 @@ export function CtaSection() {
           className="relative rounded-3xl overflow-hidden"
         >
           {/* Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#111A30] via-[#0F1626] to-[#0A1128]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#111A30] via-[#091C14] to-[#0A1128]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,#C9A84C08,transparent)]" />
 
           {/* Decorative border */}

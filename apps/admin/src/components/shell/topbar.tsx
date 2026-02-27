@@ -2,9 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useUser } from "@auth0/nextjs-auth0";
+import { createAdminBrowserClient } from "@/lib/supabase";
 import { Bell, ChevronDown, LogOut, Plus, Search, Shield, TrendingUp } from "lucide-react";
+import { ROLE_LABELS } from "@/lib/admin-role";
+import { useAdminRole } from "@/lib/admin-role-context";
 import { kkGet } from "@/lib/kobklein-api";
+import type { User } from "@supabase/supabase-js";
 
 function fmt(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
@@ -34,16 +37,37 @@ function BalanceBadge() {
 }
 
 export function Topbar() {
-  const { user } = useUser();
+  const role = useAdminRole();
+  const [user, setUser] = useState<User | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  const initials = user?.name
-    ? user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
-    : "AD";
+
+  useEffect(() => {
+    const supabase = createAdminBrowserClient();
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+  }, []);
+
+  const meta = user?.user_metadata as Record<string, string> | undefined;
+  const displayName = meta?.["first_name"]
+    ? `${meta["first_name"]} ${meta["last_name"] ?? ""}`.trim()
+    : (user?.email ?? "Admin");
+
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "AD";
 
   const openSearch = () => {
     setSearchOpen(true);
     setTimeout(() => searchRef.current?.focus(), 50);
+  };
+
+  const handleSignOut = async () => {
+    const supabase = createAdminBrowserClient();
+    await supabase.auth.signOut();
+    window.location.href = "/auth/login";
   };
 
   return (
@@ -85,7 +109,9 @@ export function Topbar() {
           <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-kob-gold" />
         </button>
 
-        <span className="hidden sm:inline-flex text-[10px] font-semibold px-2 py-0.5 rounded bg-kob-gold/10 text-kob-gold border border-kob-gold/20 tracking-wide">ADMIN</span>
+        <span className="hidden sm:inline-flex text-[10px] font-semibold px-2 py-0.5 rounded bg-kob-gold/10 text-kob-gold border border-kob-gold/20 tracking-wide uppercase">
+          {ROLE_LABELS[role]}
+        </span>
 
         {/* User menu */}
         <div className="relative group">
@@ -93,19 +119,23 @@ export function Topbar() {
             <div className="h-7 w-7 rounded-full bg-linear-to-br from-kob-gold to-kob-gold-dark flex items-center justify-center text-[10px] font-bold text-kob-black">
               {initials}
             </div>
-            <span className="hidden md:block text-xs text-kob-body max-w-22.5 truncate">{user?.name ?? "Admin"}</span>
+            <span className="hidden md:block text-xs text-kob-body max-w-22.5 truncate">{displayName}</span>
             <ChevronDown className="h-3 w-3 text-kob-muted" />
           </button>
           <div className="absolute right-0 top-full mt-1 w-44 rounded-xl bg-kob-panel border border-white/10 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
             <div className="p-3 border-b border-white/5">
-              <p className="text-xs font-medium text-kob-text truncate">{user?.name ?? "Admin"}</p>
+              <p className="text-xs font-medium text-kob-text truncate">{displayName}</p>
               <p className="text-[10px] text-kob-muted truncate mt-0.5">{user?.email ?? ""}</p>
             </div>
             <div className="p-1">
-              <a href="/auth/logout" className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-kob-body hover:text-kob-text hover:bg-white/5 transition-colors">
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-kob-body hover:text-kob-text hover:bg-white/5 transition-colors"
+              >
                 <LogOut className="h-3.5 w-3.5" />
                 Sign out
-              </a>
+              </button>
             </div>
           </div>
         </div>

@@ -326,9 +326,9 @@ export default function CompliancePage() {
           <>
             {/* Column headers */}
             <div className="grid grid-cols-[12px_100px_1fr_120px_90px_60px] gap-4 px-5 py-2.5 border-b border-white/4">
-              {["", "Priority", "Subject", "Status", "Created", ""].map((h) => (
+              {["", "Priority", "Subject", "Status", "Created", ""].map((h, i) => (
                 <span
-                  key={h}
+                  key={"col-" + i}
                   className="text-[10px] font-semibold text-kob-muted uppercase tracking-widest"
                 >
                   {h}

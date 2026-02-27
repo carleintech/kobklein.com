@@ -1,9 +1,8 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 
 /**
- * /merchant → redirect to the unified dashboard which renders
- * MerchantDashboard when the user's role is "merchant".
+ * /merchant -> redirect to the merchant-owned dashboard.
  */
 export default function MerchantPage() {
-  redirect("/dashboard");
+  redirect("/merchant/dashboard");
 }

@@ -9,11 +9,11 @@ import {
   Server,
   Handshake,
   ArrowRight,
-  Mail,
   BarChart3,
   Landmark,
 } from "lucide-react";
 import Link from "next/link";
+import { PartnerContactForm } from "@/components/partner-contact-form";
 
 const platformStats = [
   { value: "100K+", label: "Active Users", Icon: Users },
@@ -247,22 +247,20 @@ export default async function InstitutionalPage({
         </div>
       </section>
 
-      {/* Contact */}
+      {/* Contact / Partner Lead Form */}
       <section className="py-16 bg-kob-black">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Mail className="h-8 w-8 text-kob-gold/40 mx-auto mb-4" />
-          <h2 className="font-serif-luxury text-xl font-bold text-kob-text mb-2">
-            Institutional Inquiries
-          </h2>
-          <p className="text-sm text-kob-muted mb-6">
-            For partnership discussions, regulatory inquiries, or institutional due diligence
-          </p>
-          <a
-            href="mailto:institutional@kobklein.com"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-kob-gold text-kob-black font-semibold hover:bg-kob-gold-light transition-all duration-200 text-sm"
-          >
-            institutional@kobklein.com
-          </a>
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="font-serif-luxury text-2xl font-bold text-kob-text mb-2">
+              Institutional Inquiries
+            </h2>
+            <p className="text-sm text-kob-muted">
+              For partnership discussions, investment inquiries, or institutional due diligence
+            </p>
+          </div>
+          <div className="card-sovereign p-6 md:p-8">
+            <PartnerContactForm />
+          </div>
         </div>
       </section>
     </>

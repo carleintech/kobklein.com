@@ -30,7 +30,7 @@ type Schedule = { id: string; status: string };
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const RELATIONSHIP_CONFIG: Record<string, { emoji: string; color: string[] }> = {
   parent:  { emoji: "👩", color: ["#C9A84C", "#9F7F2C"] },
-  child:   { emoji: "👧", color: ["#3B82F6", "#1D4ED8"] },
+  child:   { emoji: "👧", color: ["#0D9E8A", "#077A60"] },
   sibling: { emoji: "🧑", color: ["#10B981", "#059669"] },
   spouse:  { emoji: "💑", color: ["#EC4899", "#BE185D"] },
   cousin:  { emoji: "🤝", color: ["#8B5CF6", "#7C3AED"] },
@@ -65,7 +65,7 @@ const FREQ_OPTIONS = [
     label: "Every 2 Weeks",
     desc: "2× per month",
     icon: RefreshCcw,
-    color: "#3B82F6",
+    color: "#0D9E8A",
   },
   {
     value: "monthly",
@@ -93,7 +93,7 @@ function MemberCard({
       whileTap={{ scale: 0.97 }}
       className="relative w-full rounded-2xl border p-3 text-left transition-all overflow-hidden"
       style={{
-        background: selected ? "rgba(201,168,76,0.06)" : "#0E1829",
+        background: selected ? "rgba(201,168,76,0.06)" : "#091C14",
         borderColor: selected ? "rgba(201,168,76,0.35)" : "rgba(255,255,255,0.06)",
         boxShadow: selected ? "0 0 20px -4px rgba(201,168,76,0.15)" : "none",
       }}
@@ -151,7 +151,7 @@ function FreqCard({
       whileTap={{ scale: 0.97 }}
       className="relative w-full rounded-2xl border p-4 text-left transition-all"
       style={{
-        background: selected ? `${opt.color}09` : "#0E1829",
+        background: selected ? `${opt.color}09` : "#091C14",
         borderColor: selected ? `${opt.color}40` : "rgba(255,255,255,0.06)",
         boxShadow: selected ? `0 0 20px -4px ${opt.color}20` : "none",
       }}
@@ -289,7 +289,7 @@ export default function CreateRecurringPage() {
           onClick={() => (step > 1 ? setStep((s) => (s - 1) as 1 | 2 | 3) : router.back())}
           aria-label={step > 1 ? "Go to previous step" : "Go back"}
           title={step > 1 ? "Go to previous step" : "Go back"}
-          className="p-2 rounded-xl bg-[#162038] hover:bg-[#1A2640] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
+          className="p-2 rounded-xl bg-[#0D2018] hover:bg-[#122A1E] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -347,7 +347,7 @@ export default function CreateRecurringPage() {
             </p>
 
             {sortedMembers.length === 0 ? (
-              <div className="rounded-2xl bg-[#0E1829] border border-white/[0.06] p-8 text-center">
+              <div className="rounded-2xl bg-[#091C14] border border-white/[0.06] p-8 text-center">
                 <p className="text-sm text-[#5A6B82]">No family members linked.</p>
                 <p className="text-xs text-[#3A4558] mt-1">Add family from your dashboard first.</p>
               </div>
@@ -395,7 +395,7 @@ export default function CreateRecurringPage() {
           >
             {/* Selected member recap */}
             {selectedMember && (
-              <div className="rounded-2xl bg-[#0E1829] border border-white/[0.06] px-4 py-3 flex items-center gap-3">
+              <div className="rounded-2xl bg-[#091C14] border border-white/[0.06] px-4 py-3 flex items-center gap-3">
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black text-white shrink-0"
                   style={{
@@ -415,7 +415,7 @@ export default function CreateRecurringPage() {
             )}
 
             {/* Amount input */}
-            <div className="rounded-2xl bg-[#0E1829] border border-white/[0.07] p-5 flex flex-col gap-3">
+            <div className="rounded-2xl bg-[#091C14] border border-white/[0.07] p-5 flex flex-col gap-3">
               <label className="text-xs font-bold text-[#5A6B82] uppercase tracking-wider">Amount (USD)</label>
               <div
                 className="relative rounded-xl border-2 transition-all"
@@ -456,7 +456,7 @@ export default function CreateRecurringPage() {
             </div>
 
             {/* Note */}
-            <div className="rounded-2xl bg-[#0E1829] border border-white/[0.07] p-5 flex flex-col gap-3">
+            <div className="rounded-2xl bg-[#091C14] border border-white/[0.07] p-5 flex flex-col gap-3">
               <label className="text-xs font-bold text-[#5A6B82] uppercase tracking-wider">
                 Note <span className="normal-case text-[#3A4558]">(optional)</span>
               </label>
@@ -466,7 +466,7 @@ export default function CreateRecurringPage() {
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="e.g., School fees, groceries…"
                 maxLength={60}
-                className="w-full bg-[#162038] border border-white/[0.07] rounded-xl px-4 py-3 text-sm text-[#F0F1F5] placeholder-[#2A3448] outline-none focus:border-[#C9A84C]/40 transition-colors"
+                className="w-full bg-[#0D2018] border border-white/[0.07] rounded-xl px-4 py-3 text-sm text-[#F0F1F5] placeholder-[#2A3448] outline-none focus:border-[#C9A84C]/40 transition-colors"
               />
             </div>
 
@@ -499,7 +499,7 @@ export default function CreateRecurringPage() {
             className="flex flex-col gap-5"
           >
             {/* Summary card */}
-            <div className="rounded-2xl bg-[#0E1829] border border-white/[0.07] overflow-hidden">
+            <div className="rounded-2xl bg-[#091C14] border border-white/[0.07] overflow-hidden">
               {/* Gold header */}
               <div className="p-5 text-center border-b border-white/[0.05]"
                 style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.02))" }}>

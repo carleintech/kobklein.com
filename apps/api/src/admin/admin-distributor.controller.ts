@@ -30,27 +30,27 @@ export class AdminDistributorController {
     @Query("limit") limit?: string,
   ) {
     const take = Math.min(parseInt(limit || "50", 10), 200);
-    const where: any = {};
-    if (status) where.status = status;
 
-    const distributors = await prisma.distributor.findMany({
-      where,
+    // Query from User table — shows distributor-role users even if they haven't
+    // completed the Distributor profile onboarding in the web app yet.
+    const userWhere: any = { role: "distributor" };
+    if (status) userWhere.distributor = { status };
+
+    const users = await prisma.user.findMany({
+      where: userWhere,
       take,
       orderBy: { createdAt: "desc" },
-      include: {
-        user: {
-          select: { id: true, phone: true, firstName: true, lastName: true, kycTier: true },
-        },
-      },
+      include: { distributor: true },
     });
 
     // Get float balances for active distributors
     const results: any[] = [];
-    for (const d of distributors) {
+    for (const u of users) {
+      const d = u.distributor;
       let floatBalance = 0;
-      if (d.status === "active") {
+      if (d?.status === "active") {
         const wallet = await prisma.wallet.findFirst({
-          where: { userId: d.userId, type: "DISTRIBUTOR" },
+          where: { userId: u.id, type: "DISTRIBUTOR" },
         });
         if (wallet) {
           const bal = await computeWalletBalance(wallet.id);
@@ -59,18 +59,25 @@ export class AdminDistributorController {
       }
 
       results.push({
-        id: d.id,
-        userId: d.userId,
-        displayName: d.displayName,
-        businessName: d.businessName,
-        locationText: d.locationText,
-        status: d.status,
-        tier: d.tier,
-        commissionIn: Number(d.commissionIn),
-        commissionOut: Number(d.commissionOut),
+        id: d?.id ?? `usr_${u.id}`,
+        userId: u.id,
+        displayName: d?.displayName ?? null,
+        businessName: d?.businessName ?? null,
+        locationText: d?.locationText ?? null,
+        status: d?.status ?? "pending",
+        tier: d?.tier ?? 1,
+        commissionIn: d ? Number(d.commissionIn) : 0,
+        commissionOut: d ? Number(d.commissionOut) : 0,
         floatBalance,
-        user: d.user,
-        createdAt: d.createdAt,
+        hasProfile: !!d,
+        user: {
+          id: u.id,
+          phone: u.phone,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          kycTier: u.kycTier,
+        },
+        createdAt: (d?.createdAt ?? u.createdAt).toISOString(),
       });
     }
 
@@ -85,11 +92,12 @@ export class AdminDistributorController {
   @Roles("admin")
   @Get("network/stats")
   async networkStats() {
+    // Count from User table so users without Distributor profiles are included.
     const [totalDist, activeDist, pendingDist, suspendedDist] = await Promise.all([
-      prisma.distributor.count(),
-      prisma.distributor.count({ where: { status: "active" } }),
-      prisma.distributor.count({ where: { status: "pending" } }),
-      prisma.distributor.count({ where: { status: "suspended" } }),
+      prisma.user.count({ where: { role: "distributor" } }),
+      prisma.user.count({ where: { role: "distributor", distributor: { status: "active" } } }),
+      prisma.user.count({ where: { role: "distributor", distributor: { status: "pending" } } }),
+      prisma.user.count({ where: { role: "distributor", distributor: { status: "suspended" } } }),
     ]);
 
     const since = new Date();

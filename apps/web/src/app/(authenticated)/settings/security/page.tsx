@@ -29,7 +29,7 @@ function LockConfirmModal({
         exit={{ scale: 0.9, y: 40 }}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm rounded-3xl border border-red-500/20 p-6 flex flex-col gap-5"
-        style={{ background: "#0E1829" }}
+        style={{ background: "#091C14" }}
       >
         <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 mx-auto flex items-center justify-center">
           <Lock className="h-7 w-7 text-red-400" />
@@ -49,7 +49,7 @@ function LockConfirmModal({
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={onCancel}
-            className="h-11 rounded-xl bg-[#162038] border border-white/[0.07] text-sm font-bold text-[#B8BCC8] hover:text-[#F0F1F5] transition-all"
+            className="h-11 rounded-xl bg-[#0D2018] border border-white/[0.07] text-sm font-bold text-[#B8BCC8] hover:text-[#F0F1F5] transition-all"
           >
             Cancel
           </button>
@@ -88,7 +88,7 @@ function DeleteConfirmModal({
         exit={{ scale: 0.9, y: 40 }}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm rounded-3xl border border-red-500/25 p-6 flex flex-col gap-5"
-        style={{ background: "#0E1829" }}
+        style={{ background: "#091C14" }}
       >
         {/* Icon */}
         <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 mx-auto flex items-center justify-center">
@@ -128,7 +128,7 @@ function DeleteConfirmModal({
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
             placeholder="DELETE"
-            className="w-full bg-[#162038] border border-white/[0.07] rounded-xl px-3 py-2.5
+            className="w-full bg-[#0D2018] border border-white/[0.07] rounded-xl px-3 py-2.5
                        text-sm text-[#F0F1F5] placeholder-[#3A4558] outline-none
                        focus:border-red-500/40 transition-colors text-center tracking-widest font-bold uppercase"
           />
@@ -138,7 +138,7 @@ function DeleteConfirmModal({
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={onCancel}
-            className="h-11 rounded-xl bg-[#162038] border border-white/[0.07] text-sm font-bold text-[#B8BCC8] hover:text-[#F0F1F5] transition-all"
+            className="h-11 rounded-xl bg-[#0D2018] border border-white/[0.07] text-sm font-bold text-[#B8BCC8] hover:text-[#F0F1F5] transition-all"
           >
             Cancel
           </button>
@@ -285,7 +285,7 @@ export default function SecurityPage() {
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="p-2 rounded-xl bg-[#162038] hover:bg-[#1A2640] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
+            className="p-2 rounded-xl bg-[#0D2018] hover:bg-[#122A1E] text-[#7A8394] hover:text-[#E0E4EE] transition-all"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -320,17 +320,17 @@ export default function SecurityPage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="rounded-2xl border border-amber-500/20 overflow-hidden"
+              className="rounded-2xl border border-[#C9A84C]/20 overflow-hidden"
               style={{ background: "#100D08" }}
             >
-              <div className="h-0.5 w-full bg-gradient-to-r from-amber-500/60 via-amber-400/20 to-transparent" />
+              <div className="h-0.5 w-full bg-gradient-to-r from-[#C9A84C]/60 via-[#C9A84C]/20 to-transparent" />
               <div className="p-5 flex flex-col gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-                    <Lock className="h-5 w-5 text-amber-400" />
+                  <div className="w-10 h-10 rounded-xl bg-[#C9A84C]/10 border border-[#C9A84C]/20 flex items-center justify-center shrink-0">
+                    <Lock className="h-5 w-5 text-[#C9A84C]" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-amber-400">Account Locked</p>
+                    <p className="text-sm font-bold text-[#C9A84C]">Account Locked</p>
                     <p className="text-xs text-[#7A8394] mt-0.5 leading-relaxed">
                       {adminLocked
                         ? "Your account was locked by our security team. Contact support to restore access."
@@ -385,7 +385,7 @@ export default function SecurityPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.07 }}
           className="rounded-2xl border border-red-500/12 overflow-hidden"
-          style={{ background: "#0E1829" }}
+          style={{ background: "#1A0909" }}
         >
           <div className="h-0.5 w-full bg-gradient-to-r from-red-500/60 via-red-400/30 to-transparent" />
           <div className="p-5 flex flex-col gap-4">
@@ -401,7 +401,7 @@ export default function SecurityPage() {
               </div>
             </div>
 
-            <div className="rounded-xl bg-[#162038] border border-white/[0.05] p-3 flex flex-col gap-1.5">
+            <div className="rounded-xl bg-[#0D2018] border border-white/[0.05] p-3 flex flex-col gap-1.5">
               {[
                 "Blocks all outgoing transfers instantly",
                 "Blocks merchant payments and QR codes",
@@ -438,7 +438,7 @@ export default function SecurityPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.12 }}
-          className="rounded-2xl bg-[#0A1422] border border-white/[0.04] p-4 flex flex-col gap-2.5"
+          className="rounded-2xl bg-[#081510] border border-white/[0.04] p-4 flex flex-col gap-2.5"
         >
           <p className="text-[10px] font-black text-[#3A4558] uppercase tracking-widest">To restore access</p>
           <p className="text-xs text-[#4A5A72] leading-relaxed">
@@ -452,7 +452,7 @@ export default function SecurityPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
           className="rounded-2xl border border-[#0D9E8A]/[0.12] overflow-hidden"
-          style={{ background: "#0E1829" }}
+          style={{ background: "#091C14" }}
         >
           <div className="h-0.5 w-full bg-gradient-to-r from-[#0D9E8A]/60 via-[#0D9E8A]/20 to-transparent" />
           <div className="p-5 flex flex-col gap-4">
@@ -481,10 +481,10 @@ export default function SecurityPage() {
               {unlockPending && (
                 <motion.div
                   initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                  className="rounded-xl bg-amber-500/08 border border-amber-500/15 px-4 py-3 flex items-center gap-2.5"
+                  className="rounded-xl bg-[#C9A84C]/08 border border-[#C9A84C]/15 px-4 py-3 flex items-center gap-2.5"
                 >
-                  <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
-                  <p className="text-xs text-amber-300">You already have a pending unlock request. Support will be in touch soon.</p>
+                  <AlertTriangle className="h-4 w-4 text-[#C9A84C] shrink-0" />
+                  <p className="text-xs text-[#E1C97A]">You already have a pending unlock request. Support will be in touch soon.</p>
                 </motion.div>
               )}
               {unlockError && (
@@ -510,7 +510,7 @@ export default function SecurityPage() {
                       onChange={(e) => setUnlockReason(e.target.value)}
                       placeholder="Optional: describe the situation (e.g. phone was lost, account frozen in error…)"
                       rows={3}
-                      className="w-full bg-[#162038] border border-white/[0.07] rounded-xl px-3 py-2.5
+                      className="w-full bg-[#0D2018] border border-white/[0.07] rounded-xl px-3 py-2.5
                                  text-sm text-[#B8BCC8] placeholder-[#3A4558] resize-none outline-none
                                  focus:border-[#0D9E8A]/30 transition-colors"
                     />
@@ -521,7 +521,7 @@ export default function SecurityPage() {
                     <>
                       <button
                         onClick={() => setShowUnlockForm(false)}
-                        className="flex-1 h-10 rounded-xl bg-[#162038] border border-white/[0.07] text-xs font-bold text-[#7A8394] hover:text-[#F0F1F5] transition-all"
+                        className="flex-1 h-10 rounded-xl bg-[#0D2018] border border-white/[0.07] text-xs font-bold text-[#7A8394] hover:text-[#F0F1F5] transition-all"
                       >
                         Cancel
                       </button>
@@ -554,7 +554,7 @@ export default function SecurityPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.18 }}
           className="rounded-2xl border border-white/[0.06] overflow-hidden"
-          style={{ background: "#0E1829" }}
+          style={{ background: "#091C14" }}
         >
           <div className="p-5 flex flex-col gap-4">
             <div className="flex items-start gap-3">

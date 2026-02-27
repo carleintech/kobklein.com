@@ -7,8 +7,10 @@ import {
   Search,
   ShieldCheck,
   ShieldX,
+  Trash2,
   UserCog,
   Users,
+  Wallet,
 } from "lucide-react";
 import { type FormEvent, useCallback, useState } from "react";
 import { ApiError, kkGet, kkPost } from "@/lib/kobklein-api";
@@ -91,6 +93,8 @@ const ROLES = [
 
 // ── User Card ─────────────────────────────────────────────────────────────────
 
+type WalletInfo = { id: string; currency: string; balance: number };
+
 function UserCard({
   user,
   onAction,
@@ -99,58 +103,90 @@ function UserCard({
   onAction: () => void;
 }) {
   const [roleOpen, setRoleOpen] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [newRole, setNewRole] = useState(user.role);
-  const [submitting, setSubmitting] = useState<"freeze" | "role" | null>(null);
+  const [submitting, setSubmitting] = useState<"freeze" | "role" | "wallet" | "delete" | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [wallets, setWallets] = useState<WalletInfo[]>([]);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [adjustCurrency, setAdjustCurrency] = useState("HTG");
+  const [adjustDirection, setAdjustDirection] = useState<"credit" | "debit">("credit");
+  const [adjustAmount, setAdjustAmount] = useState("");
+  const [adjustReason, setAdjustReason] = useState("");
 
   const rs = roleStyle(user.role);
   const ts = tierStyle(user.kycTier);
 
   async function handleFreeze() {
     setSubmitting("freeze");
-    setError("");
-    setSuccess("");
+    setError(""); setSuccess("");
     try {
-      await kkPost("v1/admin/users/freeze", {
-        userId: user.id,
-        frozen: !user.isFrozen,
-      });
-      setSuccess(
-        user.isFrozen ? "Account successfully unfrozen" : "Account frozen",
-      );
+      await kkPost("v1/admin/users/freeze", { userId: user.id, frozen: !user.isFrozen });
+      setSuccess(user.isFrozen ? "Account successfully unfrozen" : "Account frozen");
       onAction();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Action failed");
-    } finally {
-      setSubmitting(null);
-    }
+    } finally { setSubmitting(null); }
   }
 
   async function handleSetRole() {
     if (!newRole) return;
-    setSubmitting("role");
-    setError("");
-    setSuccess("");
+    setSubmitting("role"); setError(""); setSuccess("");
     try {
-      await kkPost("v1/admin/users/set-role", {
-        userId: user.id,
-        role: newRole,
-      });
+      await kkPost("v1/admin/users/set-role", { userId: user.id, role: newRole });
       setSuccess(`Role updated to "${newRole}"`);
-      setRoleOpen(false);
-      onAction();
+      setRoleOpen(false); onAction();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Role update failed");
-    } finally {
-      setSubmitting(null);
-    }
+    } finally { setSubmitting(null); }
+  }
+
+  async function handleWalletOpen() {
+    if (walletOpen) { setWalletOpen(false); return; }
+    setWalletOpen(true);
+    setWalletLoading(true);
+    try {
+      const data = await kkGet<{ wallets: WalletInfo[] }>(`v1/admin/users/${user.id}/wallets`);
+      setWallets(data?.wallets ?? []);
+      if (data?.wallets?.length) setAdjustCurrency(data.wallets[0].currency);
+    } catch { /* silent */ }
+    finally { setWalletLoading(false); }
+  }
+
+  async function handleWalletAdjust() {
+    if (!adjustAmount || !adjustReason) return;
+    setSubmitting("wallet"); setError(""); setSuccess("");
+    try {
+      const res = await kkPost<{ newBalance: number }>("v1/admin/wallets/adjust", {
+        userId: user.id, currency: adjustCurrency,
+        direction: adjustDirection, amount: Number(adjustAmount), reason: adjustReason,
+      });
+      setSuccess(`${adjustDirection === "credit" ? "+" : "-"}${adjustAmount} ${adjustCurrency} · new balance: ${res.newBalance}`);
+      setAdjustAmount(""); setAdjustReason("");
+      const data = await kkGet<{ wallets: WalletInfo[] }>(`v1/admin/users/${user.id}/wallets`);
+      setWallets(data?.wallets ?? []);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Adjustment failed");
+    } finally { setSubmitting(null); }
+  }
+
+  async function handleDelete() {
+    setSubmitting("delete"); setError(""); setSuccess("");
+    try {
+      await kkPost(`v1/admin/users/${user.id}/delete`, {});
+      setSuccess("Account deleted");
+      setDeleteConfirm(false); onAction();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Delete failed");
+    } finally { setSubmitting(null); }
   }
 
   return (
     <div
       className={`rounded-2xl border bg-[#080E20] overflow-hidden transition-colors ${
-        roleOpen ? "border-kob-gold/20" : "border-white/8"
+        roleOpen || walletOpen || deleteConfirm ? "border-kob-gold/20" : "border-white/8"
       }`}
     >
       {/* ── Main row ── */}
@@ -253,25 +289,40 @@ function UserCard({
           <button
             type="button"
             disabled={submitting !== null}
-            onClick={() => {
-              setRoleOpen((v) => !v);
-              setNewRole(user.role);
-              setError("");
-              setSuccess("");
-            }}
+            onClick={() => { setRoleOpen((v) => !v); setNewRole(user.role); setError(""); setSuccess(""); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-semibold transition-all disabled:opacity-40 ${
-              roleOpen
-                ? "bg-kob-gold/10 border-kob-gold/30 text-kob-gold"
-                : "bg-white/5 border-white/10 text-kob-muted hover:text-kob-text hover:border-white/20"
+              roleOpen ? "bg-kob-gold/10 border-kob-gold/30 text-kob-gold" : "bg-white/5 border-white/10 text-kob-muted hover:text-kob-text hover:border-white/20"
             }`}
           >
             <UserCog className="h-3.5 w-3.5" />
             Role
-            {roleOpen ? (
-              <ChevronUp className="h-3 w-3" />
-            ) : (
-              <ChevronDown className="h-3 w-3" />
-            )}
+            {roleOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </button>
+
+          {/* Wallet adjust toggle */}
+          <button
+            type="button"
+            disabled={submitting !== null}
+            onClick={handleWalletOpen}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-semibold transition-all disabled:opacity-40 ${
+              walletOpen ? "bg-sky-500/10 border-sky-500/30 text-sky-400" : "bg-white/5 border-white/10 text-kob-muted hover:text-kob-text hover:border-white/20"
+            }`}
+          >
+            <Wallet className="h-3.5 w-3.5" />
+            Wallet
+          </button>
+
+          {/* Delete toggle */}
+          <button
+            type="button"
+            aria-label="Delete account"
+            disabled={submitting !== null}
+            onClick={() => { setDeleteConfirm((v) => !v); setError(""); setSuccess(""); }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-semibold transition-all disabled:opacity-40 ${
+              deleteConfirm ? "bg-red-500/10 border-red-500/30 text-red-400" : "bg-white/5 border-white/10 text-kob-muted hover:text-red-400 hover:border-red-500/25 hover:bg-red-500/8"
+            }`}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
@@ -309,30 +360,90 @@ function UserCard({
                   </option>
                 ))}
               </select>
-
               <button
                 type="button"
                 disabled={submitting !== null || newRole === user.role}
                 onClick={handleSetRole}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-kob-gold text-kob-black text-[11px] font-bold hover:bg-kob-gold-light transition-all disabled:opacity-40"
               >
-                {submitting === "role" ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <UserCog className="h-3.5 w-3.5" />
-                )}
+                {submitting === "role" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserCog className="h-3.5 w-3.5" />}
                 Update Role
               </button>
+              <button type="button" onClick={() => { setRoleOpen(false); setNewRole(user.role); setError(""); }} className="px-3 py-2 rounded-xl border border-white/8 text-[11px] text-kob-muted hover:text-kob-text transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  setRoleOpen(false);
-                  setNewRole(user.role);
-                  setError("");
-                }}
-                className="px-3 py-2 rounded-xl border border-white/8 text-[11px] text-kob-muted hover:text-kob-text transition-colors"
-              >
+      {/* ── Wallet controls panel ── */}
+      {walletOpen && (
+        <div className="px-5 pb-5 pt-0 border-t border-sky-500/10">
+          <div className="pt-4 space-y-3">
+            <p className="text-[10px] text-sky-400/70 uppercase tracking-widest font-semibold">Manual Wallet Adjustment</p>
+            {walletLoading ? (
+              <div className="flex items-center gap-2 text-xs text-kob-muted"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading wallets…</div>
+            ) : (
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="space-y-1">
+                  <label htmlFor={`${user.id}-currency`} className="text-[9px] text-kob-muted uppercase tracking-wider">Currency</label>
+                  <select id={`${user.id}-currency`} value={adjustCurrency} onChange={(e) => setAdjustCurrency(e.target.value)}
+                    className="h-9 rounded-xl bg-white/5 border border-white/10 focus:border-sky-400/40 focus:outline-none px-3 text-xs text-kob-text appearance-none transition-colors">
+                    {wallets.map((w) => (
+                      <option key={w.currency} value={w.currency} className="bg-[#0F1626]">
+                        {w.currency} — bal: {w.balance.toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] text-kob-muted uppercase tracking-wider">Direction</p>
+                  <div className="flex gap-1.5">
+                    {(["credit", "debit"] as const).map((d) => (
+                      <button key={d} type="button" onClick={() => setAdjustDirection(d)}
+                        className={`px-3 py-2 rounded-xl border text-[11px] font-semibold capitalize transition-all ${adjustDirection === d ? (d === "credit" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-red-500/10 border-red-500/30 text-red-400") : "bg-white/5 border-white/10 text-kob-muted"}`}>
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor={`${user.id}-amount`} className="text-[9px] text-kob-muted uppercase tracking-wider">Amount</label>
+                  <input id={`${user.id}-amount`} type="number" min="0.01" step="0.01" value={adjustAmount} onChange={(e) => setAdjustAmount(e.target.value)} placeholder="0.00"
+                    className="w-28 h-9 rounded-xl bg-white/5 border border-white/10 focus:border-sky-400/40 focus:outline-none px-3 text-xs text-kob-text transition-colors" />
+                </div>
+                <div className="flex-1 min-w-40 space-y-1">
+                  <label htmlFor={`${user.id}-reason`} className="text-[9px] text-kob-muted uppercase tracking-wider">Reason (required)</label>
+                  <input id={`${user.id}-reason`} type="text" value={adjustReason} onChange={(e) => setAdjustReason(e.target.value)} placeholder="e.g. Refund for error TX-123"
+                    className="w-full h-9 rounded-xl bg-white/5 border border-white/10 focus:border-sky-400/40 focus:outline-none px-3 text-xs text-kob-text transition-colors" />
+                </div>
+                <button type="button" disabled={submitting !== null || !adjustAmount || !adjustReason} onClick={handleWalletAdjust}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-500/10 border border-sky-500/25 text-[11px] font-bold text-sky-400 hover:bg-sky-500/20 transition-all disabled:opacity-40">
+                  {submitting === "wallet" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wallet className="h-3.5 w-3.5" />}
+                  Apply
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete confirmation panel ── */}
+      {deleteConfirm && (
+        <div className="px-5 pb-5 pt-0 border-t border-red-500/10">
+          <div className="pt-4 space-y-3">
+            <p className="text-[10px] text-red-400/70 uppercase tracking-widest font-semibold">Delete Account — Irreversible</p>
+            <p className="text-xs text-kob-muted">
+              This will anonymize all PII and freeze the account for <span className="text-kob-text font-medium">{user.firstName} {user.lastName}</span>. Wallet history is preserved for compliance.
+            </p>
+            <div className="flex items-center gap-3">
+              <button type="button" disabled={submitting !== null} onClick={handleDelete}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-[11px] font-bold text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-40">
+                {submitting === "delete" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                Confirm Delete
+              </button>
+              <button type="button" onClick={() => setDeleteConfirm(false)} className="px-3 py-2 rounded-xl border border-white/8 text-[11px] text-kob-muted hover:text-kob-text transition-colors">
                 Cancel
               </button>
             </div>

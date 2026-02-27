@@ -30,3 +30,41 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+// ─── Web Push Notifications ───────────────────────────────────────────────────
+
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+  const data = event.data.json() as {
+    title?: string;
+    body?: string;
+    url?: string;
+  };
+
+  const title = data.title ?? "KobKlein";
+  const options: NotificationOptions = {
+    body: data.body ?? "",
+    icon: "/icons/icon-192x192.png",
+    badge: "/icons/badge-72x72.png",
+    data: { url: data.url ?? "/notifications" },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url: string = (event.notification.data as { url?: string })?.url ?? "/notifications";
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientList: readonly WindowClient[]) => {
+        for (const client of clientList) {
+          if (client.url.includes(self.location.origin) && "focus" in client) {
+            return client.navigate(url).then((c: WindowClient | null) => c?.focus());
+          }
+        }
+        return self.clients.openWindow(url);
+      }),
+  );
+});

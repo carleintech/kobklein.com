@@ -1,12 +1,32 @@
 /**
  * Push Notification Service — KobKlein API
  *
- * Registers Expo push tokens, deactivates stale tokens,
- * and sends notifications via Expo Push API.
+ * Supports two push channels:
+ *   1. Expo SDK (mobile: iOS/Android) — existing
+ *   2. VAPID Web Push (PWA) — new
+ *
+ * Required env vars for web push:
+ *   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_EMAIL
+ * Generate with: npx web-push generate-vapid-keys
  */
+import * as webpush from "web-push";
 import { prisma } from "../db/prisma";
 
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
+
+// ─── VAPID Init ──────────────────────────────────────────────────────
+
+if (
+  process.env.VAPID_PUBLIC_KEY &&
+  process.env.VAPID_PRIVATE_KEY &&
+  process.env.VAPID_EMAIL
+) {
+  webpush.setVapidDetails(
+    process.env.VAPID_EMAIL,
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY,
+  );
+}
 
 // ─── Token Management ────────────────────────────────────────────────
 
@@ -125,4 +145,104 @@ export async function notifyUsers(
   await Promise.allSettled(
     userIds.map((userId) => notifyUser(userId, message)),
   );
+}
+
+// ─── VAPID Web Push ──────────────────────────────────────────────────
+
+export interface WebPushSubscription {
+  endpoint: string;
+  keys: { auth: string; p256dh: string };
+}
+
+/**
+ * Register a web push subscription (PWA).
+ * Stores the full subscription JSON as the token field.
+ */
+export async function registerWebSubscription(
+  userId: string,
+  subscription: WebPushSubscription,
+): Promise<{ id: string }> {
+  const token = subscription.endpoint; // endpoint is unique per browser/device
+  const tokenData = JSON.stringify(subscription);
+
+  const existing = await prisma.pushToken.findUnique({ where: { token } });
+
+  if (existing) {
+    const updated = await prisma.pushToken.update({
+      where: { token },
+      // Store full subscription in a custom field via the token value
+      data: { userId, platform: "web", active: true, token: tokenData },
+    });
+    return { id: updated.id };
+  }
+
+  const created = await prisma.pushToken.create({
+    data: { userId, token: tokenData, platform: "web" },
+  });
+  return { id: created.id };
+}
+
+/**
+ * Send VAPID web push notification to all web subscriptions for a user.
+ * Deactivates expired/invalid subscriptions automatically.
+ */
+export async function notifyUserWebPush(
+  userId: string,
+  message: PushMessage,
+): Promise<{ sent: number; failed: number }> {
+  if (
+    !process.env.VAPID_PUBLIC_KEY ||
+    !process.env.VAPID_PRIVATE_KEY ||
+    !process.env.VAPID_EMAIL
+  ) {
+    return { sent: 0, failed: 0 }; // VAPID not configured
+  }
+
+  const tokens = await prisma.pushToken.findMany({
+    where: { userId, platform: "web", active: true },
+    select: { token: true },
+  });
+
+  if (tokens.length === 0) return { sent: 0, failed: 0 };
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const { token } of tokens) {
+    try {
+      let subscription: webpush.PushSubscription;
+      try {
+        subscription = JSON.parse(token) as webpush.PushSubscription;
+      } catch {
+        await prisma.pushToken.updateMany({ where: { token }, data: { active: false } });
+        failed++;
+        continue;
+      }
+
+      await webpush.sendNotification(
+        subscription,
+        JSON.stringify({
+          title: message.title,
+          body: message.body,
+          data: message.data ?? {},
+          url: (message.data?.url as string) ?? "/notifications",
+        }),
+      );
+      sent++;
+    } catch (err: unknown) {
+      failed++;
+      // 410 Gone or 404 = subscription expired; deactivate it
+      if (
+        err &&
+        typeof err === "object" &&
+        "statusCode" in err &&
+        ((err as { statusCode: number }).statusCode === 410 ||
+          (err as { statusCode: number }).statusCode === 404)
+      ) {
+        await prisma.pushToken.updateMany({ where: { token }, data: { active: false } });
+      }
+    }
+  }
+
+  return { sent, failed };
 }

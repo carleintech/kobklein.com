@@ -21,9 +21,9 @@ interface Transaction {
 
 const typeIcons: Record<string, React.ReactNode> = {
   send: <ArrowUpRight size={18} color={colors.danger} />,
-  receive: <ArrowDownLeft size={18} color={colors.emerald} />,
+  receive: <ArrowDownLeft size={18} color={colors.gold} />,
   transfer: <Repeat size={18} color={colors.gold} />,
-  cash_in: <Banknote size={18} color={colors.emerald} />,
+  cash_in: <Banknote size={18} color={colors.gold} />,
   cash_out: <Banknote size={18} color={colors.danger} />,
   card: <CreditCard size={18} color={colors.textBody} />,
 };
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     color: colors.textBody,
   },
   txCredit: {
-    color: colors.emerald,
+    color: colors.gold,
   },
   empty: {
     paddingVertical: spacing["4xl"],

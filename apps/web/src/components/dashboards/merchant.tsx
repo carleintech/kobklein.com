@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -59,6 +59,30 @@ type SettlementReport = {
   }[];
 };
 
+// ─── Design tokens — Merchant: Deep Navy ──────────────────────────────────────
+
+const M = {
+  bg:        "#0A1628",
+  bg2:       "#0D1B35",
+  bg3:       "#1A2555",
+  card:      "#0F1E3A",
+  panel:     "#102240",
+  panel2:    "#132850",
+  border:    "rgba(100,140,220,0.13)",
+  border2:   "rgba(100,140,220,0.08)",
+  border3:   "rgba(100,140,220,0.20)",
+  accent:    "#6E8DAE",       // replaces teal
+  accentDim: "#3A5A7A",
+  gold:      "#D4AF37",
+  goldL:     "#F5B77A",
+  goldD:     "#A08030",
+  text:      "#E6EDF7",
+  muted:     "#6EB2A6",
+  dimmed:    "#3A5A7A",
+  success:   "#16C734",
+  expense:   "#FF74D4",
+} as const;
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function useCountUp(target: number, duration = 1200) {
@@ -108,10 +132,10 @@ function thirtyDaysAgoISO(): string {
 function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl px-3 py-2 text-xs border border-[#0D9E8A]/[0.15]"
-      style={{ background: "#0B1A16" }}>
-      <p className="text-[#5A7A6A] mb-1">{label}</p>
-      <p className="font-bold text-[#C9A84C]">
+    <div className="rounded-xl px-3 py-2 text-xs"
+      style={{ background: M.card, border: `1px solid ${M.border}` }}>
+      <p className="mb-1" style={{ color: M.muted }}>{label}</p>
+      <p className="font-bold" style={{ color: M.gold }}>
         {Number(payload[0].value).toLocaleString("fr-HT")} HTG
       </p>
     </div>
@@ -170,6 +194,7 @@ export function MerchantDashboard({ profile }: Props) {
   }, [monthStart, todayStr]);
 
   useEffect(() => { load(); }, [load]);
+
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -251,7 +276,7 @@ export function MerchantDashboard({ profile }: Props) {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-5 pb-8">
+    <div className="space-y-5 pb-8" data-dashboard="merchant">
 
       {/* ── HEADER ─────────────────────────────────────────────────── */}
       <motion.div
@@ -260,17 +285,19 @@ export function MerchantDashboard({ profile }: Props) {
         className="flex items-start justify-between"
       >
         <div>
-          <div className="flex items-center gap-1.5 text-[10px] text-[#5A7A6A] font-bold uppercase tracking-widest mb-1">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest mb-1"
+            style={{ color: M.muted }}>
             <Store className="h-3 w-3" />
             KobKlein Merchant
           </div>
-          <h1 className="text-2xl font-black text-[#F0F1F5]">
+          <h1 className="text-2xl font-black" style={{ color: M.text }}>
             {greeting}{name}! 🏪
           </h1>
           {profile.handle && (
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-4 h-4 rounded bg-[#C9A84C]/20 flex items-center justify-center text-[8px] font-black text-[#C9A84C]">K</span>
-              <span className="text-xs font-bold text-[#C9A84C]">@{profile.handle}</span>
+              <span className="w-4 h-4 rounded flex items-center justify-center text-[8px] font-black"
+                style={{ background: `${M.gold}20`, color: M.gold }}>K</span>
+              <span className="text-xs font-bold" style={{ color: M.gold }}>@{profile.handle}</span>
             </div>
           )}
         </div>
@@ -279,7 +306,7 @@ export function MerchantDashboard({ profile }: Props) {
           <div className="flex items-center gap-1.5">
             {profile.planName && (
               <span className="inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full"
-                style={{ background: "rgba(201,168,76,0.15)", color: "#C9A84C", border: "1px solid rgba(201,168,76,0.25)" }}>
+                style={{ background: `${M.gold}25`, color: M.gold, border: `1px solid ${M.gold}40` }}>
                 <Crown className="h-2.5 w-2.5" />{profile.planName}
               </span>
             )}
@@ -298,7 +325,8 @@ export function MerchantDashboard({ profile }: Props) {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleRefresh}
-            className="p-1.5 rounded-lg bg-[#0E2018] border border-[#0D9E8A]/[0.12] text-[#5A7A6A] hover:text-[#0D9E8A] transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ background: M.panel, border: `1px solid ${M.border}`, color: M.muted }}
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
           </motion.button>
@@ -348,22 +376,22 @@ export function MerchantDashboard({ profile }: Props) {
             transition={{ delay: 0.05 }}
             className="relative rounded-3xl overflow-hidden"
             style={{
-              background: "linear-gradient(135deg, #071A14 0%, #0C2A1E 40%, #0F3226 70%, #071A14 100%)",
-              boxShadow: "0 24px 60px -12px rgba(0,0,0,0.6), 0 0 0 1px rgba(13,158,138,0.15)",
+              background: `linear-gradient(135deg, ${M.bg} 0%, ${M.bg2} 40%, ${M.bg3} 70%, ${M.bg} 100%)`,
+              boxShadow: `0 24px 60px -12px rgba(0,0,0,0.7), 0 0 0 1px ${M.border}`,
             }}
           >
             {/* Ambient glows */}
-            <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-20 pointer-events-none"
-              style={{ background: "radial-gradient(circle, #C9A84C 0%, transparent 70%)", transform: "translate(30%,-30%)" }} />
+            <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-25 pointer-events-none"
+              style={{ background: `radial-gradient(circle, ${M.gold} 0%, transparent 70%)`, transform: "translate(30%,-30%)" }} />
             <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full opacity-10 pointer-events-none"
-              style={{ background: "radial-gradient(circle, #0D9E8A 0%, transparent 70%)", transform: "translate(-20%,20%)" }} />
+              style={{ background: `radial-gradient(circle, ${M.accent} 0%, transparent 70%)`, transform: "translate(-20%,20%)" }} />
 
             <div className="relative p-5">
               {/* Label row */}
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.15em] text-[#5A7A6A] font-bold">Merchant Balance</p>
-                  <p className="text-[10px] text-[#4A6A5A] mt-0.5">
+                  <p className="text-[10px] uppercase tracking-[0.15em] font-bold" style={{ color: M.muted }}>Commercial Operating Balance</p>
+                  <p className="text-[10px] mt-0.5" style={{ color: M.dimmed }}>
                     ≈ <span className="font-bold">${balance > 0 ? (balance / 130).toFixed(2) : "0.00"}</span> USD
                   </p>
                 </div>
@@ -372,8 +400,8 @@ export function MerchantDashboard({ profile }: Props) {
                   className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] transition-colors"
                 >
                   {hideBalance
-                    ? <EyeOff className="h-3.5 w-3.5 text-[#5A7A6A]" />
-                    : <Eye    className="h-3.5 w-3.5 text-[#5A7A6A]" />}
+                    ? <EyeOff className="h-3.5 w-3.5" style={{ color: M.muted }} />
+                    : <Eye    className="h-3.5 w-3.5" style={{ color: M.muted }} />}
                 </button>
               </div>
 
@@ -382,23 +410,23 @@ export function MerchantDashboard({ profile }: Props) {
                 <AnimatePresence mode="wait">
                   {hideBalance ? (
                     <motion.p key="hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                      className="text-4xl font-black text-[#5A7A6A] tracking-widest">
+                      className="text-4xl font-black tracking-widest" style={{ color: M.muted }}>
                       ●●●●●●
                     </motion.p>
                   ) : (
                     <motion.div key="shown" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                       {loading ? (
-                        <div className="h-10 w-48 rounded-xl animate-pulse bg-[#0E2018]" />
+                        <div className="h-10 w-48 rounded-xl animate-pulse" style={{ background: M.panel }} />
                       ) : (
                         <>
                           <span className="text-4xl font-black tabular-nums"
                             style={{
-                              background: "linear-gradient(135deg, #E2CA6E, #C9A84C, #A08030)",
+                              background: `linear-gradient(135deg, ${M.goldL}, ${M.gold}, ${M.goldD})`,
                               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
                             }}>
                             {animBalance.toLocaleString("fr-HT")}
                           </span>
-                          <span className="text-lg font-bold text-[#C9A84C]/50 ml-2">HTG</span>
+                          <span className="text-lg font-bold ml-2" style={{ color: `${M.gold}80` }}>HTG</span>
                         </>
                       )}
                     </motion.div>
@@ -409,22 +437,22 @@ export function MerchantDashboard({ profile }: Props) {
               {/* Stat pills — all from real stats */}
               <div className="grid grid-cols-3 gap-2 mb-4">
                 {[
-                  { label: "Today Sales", value: loading ? null : todaySales, icon: Zap,        color: "#C9A84C" },
-                  { label: "Net Today",   value: loading ? null : netToday,   icon: TrendingUp, color: "#0D9E8A" },
-                  { label: "Today Fees",  value: loading ? null : todayFees,  icon: Receipt,    color: "#6366F1" },
+                  { label: "Today's Sales", value: loading ? null : todaySales, icon: Zap,        color: M.gold   },
+                  { label: "Pending",       value: loading ? null : netToday,   icon: TrendingUp, color: M.accent },
+                  { label: "Payouts",       value: loading ? null : todayFees,  icon: Receipt,    color: "#FF74D4" },
                 ].map((s) => (
                   <div key={s.label}
                     className="rounded-xl px-3 py-2 flex flex-col gap-1"
-                    style={{ background: "rgba(13,158,138,0.06)", border: "1px solid rgba(13,158,138,0.10)" }}>
+                    style={{ background: `${M.panel}CC`, border: `1px solid ${M.border2}` }}>
                     <s.icon className="h-3.5 w-3.5" style={{ color: s.color }} />
                     {s.value === null ? (
-                      <div className="h-4 w-16 rounded animate-pulse bg-[#0E2018]" />
+                      <div className="h-4 w-16 rounded animate-pulse" style={{ background: M.panel2 }} />
                     ) : (
-                      <p className="text-sm font-black text-[#E0E4EE] tabular-nums leading-none">
+                      <p className="text-sm font-black tabular-nums leading-none" style={{ color: M.text }}>
                         {s.value.toLocaleString("fr-HT")}
                       </p>
                     )}
-                    <p className="text-[9px] text-[#4A6A5A] uppercase tracking-wide font-bold">{s.label}</p>
+                    <p className="text-[9px] uppercase tracking-wide font-bold" style={{ color: M.dimmed }}>{s.label}</p>
                   </div>
                 ))}
               </div>
@@ -444,12 +472,12 @@ export function MerchantDashboard({ profile }: Props) {
                     onClick={() => router.push(a.href)}
                     className="flex flex-col items-center gap-1.5 py-3 rounded-2xl transition-all"
                     style={a.gold
-                      ? { background: "linear-gradient(135deg, rgba(226,202,110,0.2), rgba(201,168,76,0.1))", border: "1px solid rgba(201,168,76,0.3)" }
-                      : { background: "rgba(13,158,138,0.06)", border: "1px solid rgba(13,158,138,0.10)" }}
+                      ? { background: `linear-gradient(135deg, ${M.goldL}30, ${M.gold}18)`, border: `1px solid ${M.gold}50` }
+                      : { background: `${M.panel}AA`, border: `1px solid ${M.border2}` }}
                   >
-                    <a.icon className="h-4 w-4" style={{ color: a.gold ? "#C9A84C" : "#0D9E8A" }} />
+                    <a.icon className="h-4 w-4" style={{ color: a.gold ? M.gold : M.accent }} />
                     <span className="text-[9px] font-bold uppercase tracking-wide"
-                      style={{ color: a.gold ? "#C9A84C" : "#5A8A7A" }}>
+                      style={{ color: a.gold ? M.gold : M.muted }}>
                       {a.label}
                     </span>
                   </motion.button>
@@ -463,20 +491,19 @@ export function MerchantDashboard({ profile }: Props) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="rounded-3xl overflow-hidden border border-[#0D9E8A]/[0.12]"
-            style={{ background: "linear-gradient(160deg, #0B1A16 0%, #081410 100%)" }}
+            className="rounded-3xl overflow-hidden"
+            style={{ background: `linear-gradient(160deg, ${M.card} 0%, ${M.bg} 100%)`, border: `1px solid ${M.border}` }}
           >
             {/* Tab bar */}
-            <div className="flex border-b border-[#0D9E8A]/[0.08]">
+            <div className="flex" style={{ borderBottom: `1px solid ${M.border2}` }}>
               {(["today", "week", "month"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setActiveTab(t)}
-                  className={`flex-1 py-3.5 text-xs font-bold capitalize transition-all border-b-2 ${
-                    activeTab === t
-                      ? "border-[#C9A84C] text-[#C9A84C]"
-                      : "border-transparent text-[#4A6A5A] hover:text-[#7A9A8A]"
-                  }`}
+                  className={`flex-1 py-3.5 text-xs font-bold capitalize transition-all border-b-2`}
+                  style={activeTab === t
+                    ? { borderBottomColor: M.gold, color: M.gold }
+                    : { borderBottomColor: "transparent", color: M.dimmed }}
                 >
                   {t === "today" ? "Today" : t === "week" ? "This Week" : "This Month"}
                 </button>
@@ -495,18 +522,18 @@ export function MerchantDashboard({ profile }: Props) {
                   {loading ? (
                     <div className="space-y-2">
                       {[1,2,3].map(i => (
-                        <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: "#0E2018" }} />
+                        <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: M.panel }} />
                       ))}
                     </div>
                   ) : currentEntries.length === 0 ? (
                     <div className="py-10 flex flex-col items-center gap-3">
                       <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                        style={{ background: "rgba(13,158,138,0.06)", border: "1px solid rgba(13,158,138,0.10)" }}>
-                        <Receipt className="h-5 w-5 text-[#3A5A4A]" />
+                        style={{ background: `${M.panel}CC`, border: `1px solid ${M.border2}` }}>
+                        <Receipt className="h-5 w-5" style={{ color: M.dimmed }} />
                       </div>
-                      <p className="text-sm text-[#4A6A5A]">No transactions yet</p>
+                      <p className="text-sm" style={{ color: M.dimmed }}>No transactions yet</p>
                       {activeTab === "today" && stats && todaySales > 0 && (
-                        <p className="text-[10px] text-[#3A5A4A]">
+                        <p className="text-[10px]" style={{ color: M.dimmed }}>
                           {stats.todayCount} payment{stats.todayCount !== 1 ? "s" : ""} recorded today
                         </p>
                       )}
@@ -514,14 +541,13 @@ export function MerchantDashboard({ profile }: Props) {
                   ) : (
                     currentEntries.slice(0, 8).map((entry, i) => {
                       const palette = [
-                        { from: "#C9A84C", to: "#9F7F2C" },
-                        { from: "#0D9E8A", to: "#0B7A6A" },
+                        { from: M.gold,    to: M.goldD  },
+                        { from: M.accent,  to: M.accentDim },
                         { from: "#6366F1", to: "#4F46E5" },
                         { from: "#F97316", to: "#EA580C" },
                         { from: "#10B981", to: "#059669" },
                       ];
                       const col = palette[i % palette.length];
-                      // Use reference as display label (e.g. "pos_XXXXX")
                       const label = entry.reference
                         ? entry.reference.replace(/_/g, " ").toUpperCase()
                         : entry.type?.replace(/_/g, " ") || "Payment";
@@ -536,25 +562,25 @@ export function MerchantDashboard({ profile }: Props) {
                           initial={{ opacity: 0, y: 4 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.04 }}
-                          className="flex items-center gap-3 p-3 rounded-2xl border border-[#0D9E8A]/[0.08] hover:border-[#0D9E8A]/[0.15] transition-colors"
-                          style={{ background: "#0E2018" }}
+                          className="flex items-center gap-3 p-3 rounded-2xl transition-colors"
+                          style={{ background: M.panel, border: `1px solid ${M.border2}` }}
                         >
                           <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm text-white shrink-0"
                             style={{ background: `linear-gradient(135deg, ${col.from}, ${col.to})` }}>
                             {initial}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-[#E0E4EE] truncate">{label}</p>
+                            <p className="text-sm font-bold truncate" style={{ color: M.text }}>{label}</p>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <Clock className="h-2.5 w-2.5 text-[#3A5A4A]" />
-                              <p className="text-[10px] text-[#4A6A5A]">{time}</p>
+                              <Clock className="h-2.5 w-2.5" style={{ color: M.dimmed }} />
+                              <p className="text-[10px]" style={{ color: M.dimmed }}>{time}</p>
                             </div>
                           </div>
                           <div className="text-right shrink-0">
-                            <p className="text-sm font-black text-[#C9A84C]">
+                            <p className="text-sm font-black" style={{ color: M.gold }}>
                               +{amt.toLocaleString("fr-HT")}
                             </p>
-                            <p className="text-[10px] text-[#5A7A6A]">HTG</p>
+                            <p className="text-[10px]" style={{ color: M.muted }}>HTG</p>
                           </div>
                         </motion.div>
                       );
@@ -566,7 +592,8 @@ export function MerchantDashboard({ profile }: Props) {
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
                       onClick={() => router.push("/merchant/sales")}
-                      className="w-full py-3 rounded-2xl text-xs font-bold text-[#5A7A6A] border border-[#0D9E8A]/[0.10] hover:border-[#0D9E8A]/[0.20] hover:text-[#0D9E8A] transition-all flex items-center justify-center gap-1.5 mt-1"
+                      className="w-full py-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 mt-1"
+                      style={{ color: M.muted, border: `1px solid ${M.border2}` }}
                     >
                       View Full History <ChevronRight className="h-3.5 w-3.5" />
                     </motion.button>
@@ -581,42 +608,42 @@ export function MerchantDashboard({ profile }: Props) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="rounded-3xl overflow-hidden border border-[#0D9E8A]/[0.12]"
-            style={{ background: "linear-gradient(160deg, #0B1A16 0%, #081410 100%)" }}
+            className="rounded-3xl overflow-hidden"
+            style={{ background: `linear-gradient(160deg, ${M.card} 0%, ${M.bg} 100%)`, border: `1px solid ${M.border}` }}
           >
             <div className="p-5">
               <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-bold text-[#E0E4EE]">Sales Performance</p>
-                <span className="text-[10px] text-[#4A6A5A]">Last 7 days</span>
+                <p className="text-sm font-bold" style={{ color: M.text }}>Sales Overview</p>
+                <span className="text-[10px]" style={{ color: M.dimmed }}>Last 7 days</span>
               </div>
 
               {loading ? (
-                <div className="h-40 rounded-2xl animate-pulse mt-4" style={{ background: "#0E2018" }} />
+                <div className="h-40 rounded-2xl animate-pulse mt-4" style={{ background: M.panel }} />
               ) : (
                 <>
                   <div className="flex items-end gap-4 mb-4 mt-2">
                     <div>
                       <p className="text-2xl font-black tabular-nums"
                         style={{
-                          background: "linear-gradient(135deg, #E2CA6E, #C9A84C)",
+                          background: `linear-gradient(135deg, ${M.goldL}, ${M.gold})`,
                           WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
                         }}>
                         {weekSales.toLocaleString("fr-HT")}
                       </p>
-                      <p className="text-[10px] text-[#4A6A5A]">Week total (HTG)</p>
+                      <p className="text-[10px]" style={{ color: M.dimmed }}>Week total (HTG)</p>
                     </div>
                   </div>
 
                   <div className="h-40 min-w-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartData} barCategoryGap="30%">
-                        <XAxis dataKey="day" tick={{ fontSize: 9, fill: "#4A6A5A" }} axisLine={false} tickLine={false} />
+                        <XAxis dataKey="day" tick={{ fontSize: 9, fill: M.dimmed }} axisLine={false} tickLine={false} />
                         <YAxis hide />
-                        <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(13,158,138,0.05)" }} />
+                        <Tooltip content={<ChartTooltip />} cursor={{ fill: `${M.accent}0D` }} />
                         <Bar dataKey="sales" radius={[5, 5, 0, 0]} maxBarSize={28}>
                           {chartData.map((d, i) => (
                             <Cell key={i}
-                              fill={d.isToday ? "#C9A84C" : "#0D9E8A"}
+                              fill={d.isToday ? M.gold : M.accent}
                               fillOpacity={d.isToday ? 1 : 0.55}
                             />
                           ))}
@@ -626,10 +653,10 @@ export function MerchantDashboard({ profile }: Props) {
                   </div>
 
                   <div className="flex items-center gap-4 mt-1">
-                    {[{ color: "#0D9E8A", label: "Past days" }, { color: "#C9A84C", label: "Today" }].map(l => (
+                    {[{ color: M.accent, label: "Past days" }, { color: M.gold, label: "Today" }].map(l => (
                       <div key={l.label} className="flex items-center gap-1.5">
                         <div className="w-2 h-2 rounded-sm" style={{ background: l.color }} />
-                        <span className="text-[10px] text-[#4A6A5A]">{l.label}</span>
+                        <span className="text-[10px]" style={{ color: M.dimmed }}>{l.label}</span>
                       </div>
                     ))}
                   </div>
@@ -647,26 +674,26 @@ export function MerchantDashboard({ profile }: Props) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="rounded-3xl overflow-hidden border border-[#0D9E8A]/[0.12]"
-            style={{ background: "linear-gradient(160deg, #0B1A16 0%, #081410 100%)" }}
+            className="rounded-3xl overflow-hidden"
+            style={{ background: `linear-gradient(160deg, ${M.card} 0%, ${M.bg} 100%)`, border: `1px solid ${M.border}` }}
           >
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-bold text-[#E0E4EE]">Monthly Overview</p>
-                <span className="text-[10px] text-[#4A6A5A]">Last 30 days</span>
+                <p className="text-sm font-bold" style={{ color: M.text }}>Monthly Overview</p>
+                <span className="text-[10px]" style={{ color: M.dimmed }}>Last 30 days</span>
               </div>
 
               {loading ? (
                 <div className="space-y-3">
-                  {[1,2,3].map(i => <div key={i} className="h-10 rounded-xl animate-pulse" style={{ background: "#0E2018" }} />)}
+                  {[1,2,3].map(i => <div key={i} className="h-10 rounded-xl animate-pulse" style={{ background: M.panel }} />)}
                 </div>
               ) : (
                 <>
                   <div className="mb-4">
-                    <p className="text-[10px] text-[#5A7A6A] uppercase tracking-widest mb-1">Gross Sales</p>
+                    <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: M.muted }}>Gross Sales</p>
                     <p className="text-3xl font-black tabular-nums"
                       style={{
-                        background: "linear-gradient(135deg, #E2CA6E, #C9A84C)",
+                        background: `linear-gradient(135deg, ${M.goldL}, ${M.gold})`,
                         WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
                       }}>
                       {animMonth.toLocaleString("fr-HT")}
@@ -679,7 +706,7 @@ export function MerchantDashboard({ profile }: Props) {
                     <div className="h-14 mb-4 min-w-0">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={sparkData}>
-                          <Line type="monotone" dataKey="v" stroke="#C9A84C" strokeWidth={2} dot={false} />
+                          <Line type="monotone" dataKey="v" stroke={M.gold} strokeWidth={2} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -687,17 +714,17 @@ export function MerchantDashboard({ profile }: Props) {
 
                   <div className="space-y-2">
                     {[
-                      { label: "Total Fees",   value: monthFee.toLocaleString("fr-HT") + " HTG",               color: "#6366F1", icon: Receipt     },
-                      { label: "Net Revenue",  value: monthNet.toLocaleString("fr-HT") + " HTG",               color: "#10B981", icon: TrendingUp  },
-                      { label: "Transactions", value: (settlement?.transactionCount ?? 0).toString() + " tx",  color: "#0D9E8A", icon: Zap         },
+                      { label: "Total Fees",   value: monthFee.toLocaleString("fr-HT") + " HTG",               color: "#9FB8E0", icon: Receipt     },
+                      { label: "Net Revenue",  value: monthNet.toLocaleString("fr-HT") + " HTG",               color: M.success, icon: TrendingUp  },
+                      { label: "Transactions", value: (settlement?.transactionCount ?? 0).toString() + " tx",  color: M.accent,  icon: Zap         },
                     ].map((s) => (
                       <div key={s.label} className="flex items-center gap-3 p-2.5 rounded-xl"
-                        style={{ background: "rgba(13,158,138,0.05)", border: "1px solid rgba(13,158,138,0.08)" }}>
+                        style={{ background: `${M.panel}CC`, border: `1px solid ${M.border2}` }}>
                         <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                           style={{ background: `${s.color}18` }}>
                           <s.icon className="h-3.5 w-3.5" style={{ color: s.color }} />
                         </div>
-                        <p className="text-[10px] text-[#4A6A5A] flex-1">{s.label}</p>
+                        <p className="text-[10px] flex-1" style={{ color: M.dimmed }}>{s.label}</p>
                         <p className="text-sm font-black tabular-nums" style={{ color: s.color }}>{s.value}</p>
                       </div>
                     ))}
@@ -712,49 +739,49 @@ export function MerchantDashboard({ profile }: Props) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="rounded-3xl overflow-hidden border border-[#0D9E8A]/[0.12]"
-            style={{ background: "linear-gradient(160deg, #0B1A16 0%, #081410 100%)" }}
+            className="rounded-3xl overflow-hidden"
+            style={{ background: `linear-gradient(160deg, ${M.card} 0%, ${M.bg} 100%)`, border: `1px solid ${M.border}` }}
           >
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-bold text-[#E0E4EE]">Your K-Pay QR</p>
+                <p className="text-sm font-bold" style={{ color: M.text }}>Your K-Pay QR</p>
                 <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full"
-                  style={{ background: "rgba(16,185,129,0.12)", color: "#10B981", border: "1px solid rgba(16,185,129,0.2)" }}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  style={{ background: `${M.success}18`, color: M.success, border: `1px solid ${M.success}30` }}>
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: M.success }} />
                   Active
                 </span>
               </div>
 
               <div className="flex flex-col items-center gap-3 mb-4">
-                {/* QR placeholder — tap to open full screen QR */}
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => router.push("/merchant/qr")}
                   className="relative w-28 h-28 rounded-2xl flex items-center justify-center"
-                  style={{ border: "2px dashed rgba(13,158,138,0.30)", background: "rgba(13,158,138,0.05)" }}
+                  style={{ border: `2px dashed ${M.accent}50`, background: `${M.accent}08` }}
                 >
-                  <QrCode className="h-14 w-14 text-[#0D9E8A]/40" />
+                  <QrCode className="h-14 w-14" style={{ color: `${M.accent}66` }} />
                   {[
                     "top-1 left-1 border-t-2 border-l-2 rounded-tl-lg",
                     "top-1 right-1 border-t-2 border-r-2 rounded-tr-lg",
                     "bottom-1 left-1 border-b-2 border-l-2 rounded-bl-lg",
                     "bottom-1 right-1 border-b-2 border-r-2 rounded-br-lg",
                   ].map((cls, i) => (
-                    <div key={i} className={`absolute w-4 h-4 border-[#C9A84C] ${cls}`} />
+                    <div key={i} className={`absolute w-4 h-4 ${cls}`} style={{ borderColor: M.gold }} />
                   ))}
                 </motion.button>
                 <div className="text-center">
-                  <p className="text-xs font-bold text-[#E0E4EE]">
+                  <p className="text-xs font-bold" style={{ color: M.text }}>
                     {profile.handle ? `@${profile.handle}` : profile.firstName || "Merchant"}
                   </p>
                   <button
                     onClick={copyId}
-                    className="flex items-center gap-1 mt-0.5 text-[10px] text-[#4A6A5A] hover:text-[#C9A84C] transition-colors mx-auto"
+                    className="flex items-center gap-1 mt-0.5 text-[10px] transition-colors mx-auto"
+                    style={{ color: M.dimmed }}
                   >
                     <span className="font-mono">ID: {profile.id.slice(0, 8)}…</span>
                     {copied
-                      ? <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                      ? <CheckCircle2 className="h-3 w-3" style={{ color: M.success }} />
                       : <Copy className="h-3 w-3" />}
                   </button>
                 </div>
@@ -765,10 +792,11 @@ export function MerchantDashboard({ profile }: Props) {
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   onClick={() => router.push("/merchant/qr")}
-                  className="w-full py-3 rounded-2xl font-bold text-sm text-[#050F0C] flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
                   style={{
-                    background: "linear-gradient(135deg, #E2CA6E 0%, #C9A84C 50%, #9F7F2C 100%)",
-                    boxShadow: "0 8px 24px -4px rgba(201,168,76,0.35)",
+                    background: `linear-gradient(135deg, ${M.goldL} 0%, ${M.gold} 50%, ${M.goldD} 100%)`,
+                    boxShadow: `0 8px 24px -4px ${M.gold}55`,
+                    color: M.bg,
                   }}
                 >
                   <QrCode className="h-4 w-4" />
@@ -776,7 +804,8 @@ export function MerchantDashboard({ profile }: Props) {
                 </motion.button>
                 <button
                   onClick={() => router.push("/merchant/pos")}
-                  className="w-full py-2.5 rounded-2xl font-semibold text-xs text-[#5A7A6A] border border-[#0D9E8A]/[0.12] hover:bg-[#0E2018] hover:text-[#A0BBA8] transition-all"
+                  className="w-full py-2.5 rounded-2xl font-semibold text-xs transition-all"
+                  style={{ color: M.muted, border: `1px solid ${M.border}` }}
                 >
                   Open POS Terminal
                 </button>
@@ -793,18 +822,19 @@ export function MerchantDashboard({ profile }: Props) {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={() => router.push("/verify")}
-              className="w-full rounded-2xl overflow-hidden border border-[#0D9E8A]/[0.20] text-left"
-              style={{ background: "linear-gradient(135deg, rgba(13,158,138,0.08), rgba(13,158,138,0.03))" }}
+              className="w-full rounded-2xl overflow-hidden text-left"
+              style={{ background: `linear-gradient(135deg, ${M.accent}14, ${M.accent}06)`, border: `1px solid ${M.accent}30` }}
             >
               <div className="p-4 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#0D9E8A]/10 flex items-center justify-center shrink-0">
-                  <Shield className="h-4 w-4 text-[#0D9E8A]" />
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: `${M.accent}18` }}>
+                  <Shield className="h-4 w-4" style={{ color: M.accent }} />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-[#E0E4EE]">Verify Your Business</p>
-                  <p className="text-xs text-[#4A6A5A]">Unlock higher payment limits</p>
+                  <p className="text-sm font-bold" style={{ color: M.text }}>Verify Your Business</p>
+                  <p className="text-xs" style={{ color: M.dimmed }}>Unlock higher payment limits</p>
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-[#0D9E8A]" />
+                <ArrowUpRight className="h-4 w-4" style={{ color: M.accent }} />
               </div>
             </motion.button>
           )}
@@ -818,18 +848,19 @@ export function MerchantDashboard({ profile }: Props) {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={() => router.push("/settings/plan")}
-              className="w-full rounded-2xl overflow-hidden border border-[#C9A84C]/[0.20] text-left"
-              style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.03))" }}
+              className="w-full rounded-2xl overflow-hidden text-left"
+              style={{ background: `linear-gradient(135deg, ${M.gold}14, ${M.gold}06)`, border: `1px solid ${M.gold}30` }}
             >
               <div className="p-4 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#C9A84C]/10 flex items-center justify-center shrink-0">
-                  <Crown className="h-4 w-4 text-[#C9A84C]" />
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: `${M.gold}18` }}>
+                  <Crown className="h-4 w-4" style={{ color: M.gold }} />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-[#E0E4EE]">Merchant Pro</p>
-                  <p className="text-xs text-[#4A6A5A]">Lower fees · Analytics · Priority support</p>
+                  <p className="text-sm font-bold" style={{ color: M.text }}>Merchant Pro</p>
+                  <p className="text-xs" style={{ color: M.dimmed }}>Lower fees · Analytics · Priority support</p>
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-[#C9A84C]" />
+                <ArrowUpRight className="h-4 w-4" style={{ color: M.gold }} />
               </div>
             </motion.button>
           )}

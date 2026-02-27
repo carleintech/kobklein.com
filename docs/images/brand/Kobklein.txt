@@ -1,0 +1,29 @@
+KobKlein — Third-Party Service Configuration Reference
+=======================================================
+Store all real credentials in your .env files, password manager, or secrets vault.
+NEVER commit real API keys to version control.
+
+Supabase:
+Project URL: https://kfemludaiujielpimjpx.supabase.co
+password: [REDACTED - stored in secrets vault]
+Publishable Key: [REDACTED]
+anon public: [REDACTED - set NEXT_PUBLIC_SUPABASE_ANON_KEY in .env]
+service_role secret: [REDACTED - set SUPABASE_SERVICE_ROLE_KEY in .env]
+JWT Keys: [REDACTED]
+
+Auth0 (legacy — replaced with Supabase):
+Tenant: carleintech.us.auth0.com
+[All Auth0 credentials REDACTED — replaced by Supabase auth]
+
+Stripe:
+Publishable key: [REDACTED - set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in .env]
+Secret key: [REDACTED - set STRIPE_SECRET_KEY in .env]
+
+Resend:
+RESEND_API_KEY: [REDACTED - set RESEND_API_KEY in .env]
+RESEND_FROM: noreply@kobklein.com
+
+Twilio:
+TWILIO_ACCOUNT_SID: [REDACTED - set TWILIO_ACCOUNT_SID in .env]
+TWILIO_AUTH_TOKEN: [REDACTED - set TWILIO_AUTH_TOKEN in .env]
+TWILIO_PHONE: [REDACTED - set TWILIO_PHONE in .env]

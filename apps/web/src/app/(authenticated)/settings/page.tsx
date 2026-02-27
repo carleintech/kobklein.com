@@ -13,9 +13,9 @@ export default function SettingsPage() {
       icon: User,
       title: t("settings.profile"),
       description: t("kyc.tier1"),
-      color: "#3B82F6",
-      bg: "rgba(59,130,246,0.10)",
-      border: "rgba(59,130,246,0.18)",
+      color: "#D4AF37",
+      bg: "rgba(212,175,55,0.10)",
+      border: "rgba(212,175,55,0.18)",
     },
     {
       href: "/settings/security",
@@ -40,9 +40,9 @@ export default function SettingsPage() {
       icon: ShieldCheck,
       title: t("settings.kyc"),
       description: t("kyc.startVerification"),
-      color: "#10B981",
-      bg: "rgba(16,185,129,0.10)",
-      border: "rgba(16,185,129,0.18)",
+      color: "#16C784",
+      bg: "rgba(22,199,132,0.10)",
+      border: "rgba(22,199,132,0.18)",
     },
   ];
 
@@ -51,10 +51,7 @@ export default function SettingsPage() {
 
       {/* Header */}
       <div>
-        <h1
-          className="text-2xl font-black text-[#F0F1F5]"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
+        <h1 className="text-2xl font-black text-[#F0F1F5] [font-family:var(--font-playfair)]">
           {t("settings.title")}
         </h1>
         <p className="text-sm text-[#5A6B82] mt-1">{t("settings.about")}</p>
@@ -66,8 +63,8 @@ export default function SettingsPage() {
           <Link
             key={href}
             href={href}
-            className="flex items-center gap-4 rounded-2xl p-4 border border-white/[0.06] bg-[#0E1829]
-                       transition-all group hover:-translate-y-0.5 hover:bg-[#111D33] hover:border-white/[0.12]"
+            className="flex items-center gap-4 rounded-2xl p-4 transition-all group hover:-translate-y-0.5 hover:bg-[#2A1050]"
+            style={{ background: "var(--dash-shell-bg, #1C0A35)", border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))" }}
           >
             <div
               className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
@@ -89,14 +86,14 @@ export default function SettingsPage() {
       {/* Language row */}
       <Link
         href="/settings/language"
-        className="flex items-center gap-4 rounded-2xl p-4 border border-white/[0.06] bg-[#0E1829]
-                   transition-all group hover:-translate-y-0.5 hover:bg-[#111D33] hover:border-white/[0.12]"
+        className="flex items-center gap-4 rounded-2xl p-4 transition-all group hover:-translate-y-0.5 hover:bg-[#2A1050]"
+        style={{ background: "var(--dash-shell-bg, #1C0A35)", border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))" }}
       >
         <div
           className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: "rgba(13,158,138,0.10)", border: "1px solid rgba(13,158,138,0.18)" }}
+          style={{ background: "rgba(165,150,201,0.10)", border: "1px solid rgba(165,150,201,0.18)" }}
         >
-          <svg className="h-5 w-5" style={{ color: "#0D9E8A" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-5 w-5" style={{ color: "#A596C9" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
           </svg>
         </div>
@@ -110,7 +107,7 @@ export default function SettingsPage() {
       </Link>
 
       {/* App info */}
-      <div className="rounded-2xl bg-[#0A1422] border border-white/[0.04] p-4 flex items-center justify-between">
+      <div className="rounded-2xl p-4 flex items-center justify-between" style={{ background: "var(--dash-shell-bg, #1C0A35)", border: "1px solid rgba(165,150,201,0.12)" }}>
         <div>
           <p className="text-xs font-bold text-[#3A4558] uppercase tracking-wider">{t("common.appName")}</p>
           <p className="text-[10px] text-[#2A3448] mt-0.5">{t("settings.version", { version: "1.0.0" })} · All rights reserved</p>

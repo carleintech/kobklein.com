@@ -353,8 +353,8 @@ export default function FxPage() {
           <>
             {/* Column headers */}
             <div className="grid grid-cols-[90px_90px_90px_90px_100px_80px_1fr] gap-x-4 px-5 py-2.5 border-b border-white/4">
-              {["Mid", "Buy", "Sell", "Spread", "Source", "Status", "Set At"].map((h) => (
-                <span key={h} className="text-[10px] font-semibold text-kob-muted uppercase tracking-widest">{h}</span>
+              {["Mid", "Buy", "Sell", "Spread", "Source", "Status", "Set At"].map((h, i) => (
+                <span key={"col-" + i} className="text-[10px] font-semibold text-kob-muted uppercase tracking-widest">{h}</span>
               ))}
             </div>
 

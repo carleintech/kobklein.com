@@ -62,7 +62,7 @@ export function LanguageSwitcher() {
       {open && (
         <div
           className="absolute right-0 top-full mt-2 w-44 z-50
-                     bg-[#0D1525] border border-white/[0.08] rounded-xl
+                     bg-[#081A12] border border-[#0D9E8A]/[0.20] rounded-xl
                      shadow-2xl shadow-black/60 overflow-hidden py-1"
         >
           {LOCALES.map((loc) => (
