@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "KobKlein — Libète Finansyè Dijital pou Ayiti",
-    "description": "Voye lajan touswit. Pa bezwen bank. Yon bous dijital ki an sekirite pou Ayisyen ak fanmi yo toupatou nan mond lan."
+    "title": "KobKlein — Enfrastrikti Peman Dijital pou Ayiti",
+    "description": "Peman dijital ki an sekirite ki konekte financement dyaspora a ak bous ayisyen, machann, ak patnè distribisyon otorize."
   },
   "nav": {
     "home": "Akèy",
@@ -14,59 +14,59 @@
     "login": "Konekte"
   },
   "hero": {
-    "badge": "Lavni Finans Dijital an Ayiti",
-    "title": "Lajan Ou. Pouvwa Ou. San Bank.",
-    "subtitle": "Bous dijital ki an sekirite ki konekte Ayiti ak dyaspora li. Voye, peye, epi grandi — touswit.",
-    "description": "Yon sistèm bous dijital ki an sekirite, san lajan kach, fèt pou Ayisyen ak fanmi yo toupatou nan mond lan.",
-    "cta": "Kòmanse",
-    "ctaSecondary": "Gade Kijan li Mache",
+    "badge": "Lanse Pilòt — Enfrastrikti Peman Dijital pou Ayiti",
+    "title": "Bati Enfrastrikti Peman Dijital Ayiti",
+    "subtitle": "Yon platfòm peman dijital ki konekte financement dyaspora a ak bous ayisyen, machann, ak patnè distribisyon otorize — an sekirite ak transparans.",
+    "description": "Pon peman dijital estriktire ki fèt pou transparans, sekirite, ak dirab alontèm.",
+    "cta": "Rejwenn Pwogram Pilòt la",
+    "ctaSecondary": "Vin Patnè Machann",
     "stats": {
-      "users": "100K+",
-      "usersLabel": "Itilizatè Aktif",
-      "transfers": "$50M+",
-      "transfersLabel": "Lajan Transfere",
-      "countries": "15+",
-      "countriesLabel": "Peyi",
-      "uptime": "99.9%",
-      "uptimeLabel": "Disponibilite"
+      "users": "Pilòt",
+      "usersLabel": "Lansman an Kou",
+      "transfers": "Patnè",
+      "transfersLabel": "Modèl Konformite",
+      "countries": "AML/KYC",
+      "countriesLabel": "Kad Pare",
+      "uptime": "Sekirize",
+      "uptimeLabel": "Enfrastrikti"
     },
     "features": {
       "security": {
-        "title": "Sekirite Nivo Bank",
-        "description": "Ankripte pwofesyonèl ak prevansyon fwod an tan reyèl pwoteje chak tranzaksyon ou fè."
+        "title": "Sekirite Nivo Antrepriz",
+        "description": "Chiffreman debou-an-debou, otantifikasyon milti-faktè, ak siveyans tranzaksyon an tan reyèl pwoteje chak entèraksyon."
       },
       "instant": {
         "title": "Tretman Enstantane",
-        "description": "Tranzaksyon an tan reyèl ki rive nan segonn, pa jou. Fanmi ou jwenn lajan lè yo bezwen li."
+        "description": "Tranzaksyon an tan reyèl ki rive nan segonn. Fanmi ou jwenn fon lè yo bezwen yo."
       },
       "fees": {
-        "title": "Zero Frè Kache",
-        "description": "Tarif transparan san sipriz. Transfè P2P gratis epi sèlman $1.99 pou voye lajan entènasyonal."
+        "title": "Pri Transparan",
+        "description": "Tarif transfè entènasyonal ki kòmanse a $1.99. To echanj montre anvan konfirmasyon. Pa gen frè kache."
       }
     }
   },
   "features": {
     "title": "Poukisa KobKlein?",
-    "subtitle": "Tout sa ou bezwen pou peman dijital modèn",
+    "subtitle": "Fèt pou transparans. Bati pou konfyans. Estriktire pou kwasans.",
     "instant": {
       "title": "K-Pay Transfè Enstantane",
-      "description": "Voye ak resevwa lajan an tan reyèl. Transfè KobKlein a KobKlein gratis anba $500."
+      "description": "Voye ak resevwa lajan an tan reyèl. Transfè KobKlein a KobKlein enstantane ak gratis anba $500."
     },
     "security": {
-      "title": "Sekirite Nivo Bank",
-      "description": "Ankripte avanse, prevansyon fwod pa konsepsyon, ak verifikasyon OTP pou gwo tranzaksyon."
+      "title": "Achitekti Sekirite Nivo Antrepriz",
+      "description": "Chiffreman avanse, pwotokòl deteksyon fwod, ak verifikasyon OTP pou gwo tranzaksyon."
     },
     "global": {
       "title": "K-Link Rezo Mondyal",
       "description": "Konekte ak dyaspora ayisyen an toupatou. Miami, Montreal, Pari pou Pòtoprens — transfè lajan touswit."
     },
     "card": {
-      "title": "K-Card Kat Vityèl",
-      "description": "Achte Netflix, Amazon, ak plis ankò ak bous KobKlein ou. Byento disponib pou kont verifye."
+      "title": "K-Card — Aksè sou Entènèt",
+      "description": "Achte Netflix, Amazon, ak plis ankò ak bous KobKlein ou. Kat vityèl pou kont verifye, emèt via patnè rezo kat otorize."
     },
     "lowFees": {
-      "title": "Frè Pi Ba Garanti",
-      "description": "Transfè K-Pay gratis. Remitans entènasyonal pou sèlman $1.99. Bat Western Union, MoneyGram, ak tout lòt yo."
+      "title": "Transfè Transparan ak Ba Pri",
+      "description": "Tarif transfè entènasyonal ki kòmanse a $1.99. Transfè KobKlein a KobKlein gratis. To echanj transparan anvan konfirmasyon."
     },
     "kcode": {
       "title": "K-Code & K-Scan",
@@ -78,74 +78,76 @@
     "subtitle": "Kòmanse nan kèk minit sèlman",
     "step1": {
       "label": "ETAP 01",
-      "title": "Telechaje App la",
-      "description": "Disponib gratis sou iOS ak Android. Chèche KobKlein."
+      "title": "Kreye yon Bous Verifye",
+      "description": "Konplete verifikasyon idantite pou kreye bous KobKlein sekirize ou a ak debloke tout fonksyon kont."
     },
     "step2": {
       "label": "ETAP 02",
-      "title": "Kreye yon Kont",
-      "description": "Enskripsyon senp ak nimewo telefòn ou sèlman. Verifye pou debloke pi gwo limit."
+      "title": "Finanse via Patnè Lisansye",
+      "description": "Rechaje lakay yon K-Ajan distribitè otorize, pa virement bankè, oswa depi fanmi aletranje."
     },
     "step3": {
       "label": "ETAP 03",
-      "title": "Mete Lajan",
-      "description": "Rechaje lakay yon K-Ajan distribitè, pa bank, oswa depi fanmi aletranje."
+      "title": "Peye Machann Touswit",
+      "description": "Voye, resevwa, ak peye machann touswit via K-Scan QR oswa transfè bous. Règleman an tan reyèl."
     },
     "step4": {
       "label": "ETAP 04",
-      "title": "Kòmanse Peye",
-      "description": "Voye, resevwa, ak peye machann touswit. Sèvi ak K-Card pou achte sou entènèt."
+      "title": "Retire via Patnè Otorize",
+      "description": "Retire lajan kach via rezo patnè distribisyon otorize nou an (K-Ajan) atravè Ayiti."
     }
   },
   "ecosystem": {
     "title": "Ekosistèm KobKlein",
-    "subtitle": "Kat poto mitan ki travay ansanm pou kreye revolisyon peman dijital Ayiti",
+    "subtitle": "Kat poto mitan ki travay ansanm pou bati enfrastrikti peman dijital Ayiti",
     "clients": {
       "number": "01",
       "title": "Kliyan",
-      "description": "Ayisyen ak manm dyaspora kreye yon bous pou voye, resevwa, ak estoke lajan dijital an sekirite.",
-      "features": ["Kreyasyon Bous Sekirize", "Voye & Resevwa Lajan", "Achte sou Entènèt ak K-Card", "Badj K-Trust Verifye"]
+      "description": "Ayisyen ak manm dyaspora kreye yon bous verifye pou jere lajan dijital yo an sekirite.",
+      "features": ["Kreyasyon Bous Verifye", "Voye & Resevwa Lajan", "Aksè sou Entènèt K-Card", "Badj K-Trust Verifye"]
     },
     "distributors": {
       "number": "02",
-      "title": "K-Ajan (Distribitè)",
-      "description": "Patnè lokal yo jere rechajman lajan kach ak retrè, fè pon ant ekonomi dijital ak fizik.",
-      "features": ["Rechajman Lajan Kach", "Retrè Lajan Kach", "Touche Komisyon", "Jesyon Flote"]
+      "title": "Patnè Distribisyon Otorize (K-Ajan)",
+      "description": "Patnè lokal otorize ki jere rechajman ak retrè lajan kach, asire likidite dijital ak fizik.",
+      "features": ["Rechajman Lajan Kach Jere", "Retrè Estriktire", "Modèl Komisyon", "Kad Jesyon Flote"]
     },
     "merchants": {
       "number": "03",
       "title": "Machann",
-      "description": "Biznis yo aksepte peman dijital pa K-Scan QR, elaji baz kliyan yo.",
-      "features": ["Aksepte Peman K-Pay", "Kòd QR K-Scan", "Rapò Vant Jounen", "Règleman Enstantane"]
+      "description": "Biznis yo aksepte peman dijital via K-Scan QR, ak règleman enstantane nan bous yo.",
+      "features": ["Aksepte Peman Dijital", "Kòd QR K-Scan", "Rapò Tranzaksyon Jounen", "Règleman Dijital Enstantane"]
     },
     "diaspora": {
       "number": "04",
       "title": "Dyaspora",
-      "description": "Voye lajan lakay touswit pou frè pi ba yo. Kenbe fanmi ou konekte ak K-Link.",
-      "features": ["Panèl Fanmi K-Link", "Frè Remitans Pi Ba", "Konvèsyon USD a HTG", "Plan Sipò Mansyèl"]
+      "description": "Voye lajan lakay via patnè otorize ak tarif transparan ak to echanj montre anvan konfirmasyon.",
+      "features": ["Panèl Fanmi K-Link", "Tarif Transfè Transparan", "Konvèsyon USD a HTG", "Plan Sipò Mansyèl"]
     }
   },
   "comparison": {
-    "title": "Konpare & Ekonomize",
-    "subtitle": "Gade poukisa KobKlein se fason ki pi entèlijan pou voye lajan an Ayiti",
-    "route": "Wout",
-    "westernUnion": "Western Union",
-    "moneyGram": "MoneyGram",
+    "title": "Tarif Transparan. Pa Gen Sipriz.",
+    "subtitle": "Founisè remitans tradisyonèl ka chaje frè ki pi wo selon peyi ak metòd peman. KobKlein bati sou tarif plat, transparan.",
+    "route": "Sèvis",
     "kobklein": "KobKlein",
-    "usToHaiti": "USA → Ayiti ($100)",
-    "p2p": "KobKlein → KobKlein",
-    "cashOut": "Retrè nan Ajan",
+    "pricing": "Frè",
+    "note": "Kòmanse a",
+    "usToHaiti": "Transfè Entènasyonal (USA → Ayiti)",
+    "p2p": "Transfè KobKlein a KobKlein",
+    "cashOut": "Retrè nan K-Ajan Otorize",
     "onlinePurchase": "Acha K-Card",
     "free": "GRATIS",
-    "na": "N/A"
+    "flatFee": "Frè plat",
+    "na": "N/A",
+    "disclaimer": "Tarif final depann sou korido ak frè tretman patnè. Tout frè montre anvan konfirmasyon tranzaksyon."
   },
   "kcard": {
     "title": "K-Card — Achte nan Mond Lan",
-    "subtitle": "Pou premye fwa, Ayisyen ka achte sou entènèt nenpòt kote",
-    "description": "Netflix, Amazon, Spotify, ak plis ankò — tout alimante pa bous KobKlein ou. Kat Visa vityèl pou kont verifye. Kat fizik ap vini byento.",
+    "subtitle": "Elaji aksè dijital pou Ayisyen toupatou",
+    "description": "Netflix, Amazon, Spotify, ak plis ankò — tout alimante pa bous KobKlein ou. Kat vityèl pou kont verifye, emèt via patnè rezo kat otorize. Kat fizik ap vini byento.",
     "features": {
-      "virtual": "Kat Visa Vityèl",
-      "instant": "Aktivasyon Enstantane",
+      "virtual": "Kat Vityèl (via Patnè Otorize)",
+      "instant": "Aktivasyon Rapid pou Kont Verifye",
       "global": "Aksepte Toupatou",
       "control": "Notifikasyon an Tan Reyèl"
     },
@@ -164,34 +166,34 @@
   },
   "mission": {
     "title": "Misyon Nou",
-    "subtitle": "Bay Ayiti Pouvwa pou Lavni",
-    "description": "KobKlein te bati pou bay Ayisyen pouvwa ak yon sistèm peman modèn, san lajan kach. Twòp moun rete san bank, san aksè a remitans mondyal oswa finans dijital. Nap chanje sa ak yon platfòm ki enklizif, transparan, epi ki pou kominote a.",
+    "subtitle": "Bati Avni Finansyè Ayiti",
+    "description": "KobKlein ap bati pon peman dijital estriktire pou elaji aksè finansyè pou Ayisyen. Twòp moun rete mal sèvi pa enfrastrikti finansyè fòmèl. Nap chanje sa ak yon platfòm bati sou transparans, sekirite, ak disiplin enstitisyonèl.",
     "values": {
       "title": "Valè Fondamantal",
-      "trust": { "title": "Konfyans", "description": "Transparans ak responsabilite nan chak tranzaksyon." },
-      "accessibility": { "title": "Aksesibilite", "description": "Sèvis enklizif pou Ayisyen toupatou, ak bank oswa san bank." },
-      "security": { "title": "Sekirite", "description": "Ankripte nivo bank ak prevansyon fwod pa konsepsyon." },
-      "innovation": { "title": "Inovasyon", "description": "Zouti dijital modèn adapte pou ekonomi fiti Ayiti." }
+      "trust": { "title": "Konfyans", "description": "Gouvènans estriktire, tarif transparan, ak operasyon disipline." },
+      "accessibility": { "title": "Aksesibilite", "description": "Sèvis enklizif pou Ayisyen toupatou — popilasyon ak bank ak san bank." },
+      "security": { "title": "Sekirite", "description": "Chiffreman nivo antrepriz, deteksyon fwod, ak otantifikasyon milti-faktè pa konsepsyon." },
+      "innovation": { "title": "Disiplin Enstitisyonèl", "description": "Modèl konformite patnè-premye, aliyman regilasyon, ak panse estriktire alontèm." }
     },
     "vision": {
       "title": "Gade Pi Devan",
-      "description": "KobKlein se plis pase peman — se yon mouvman pou endepandans finansyè Ayiti. Vizyon nou se grandi nan tout Karayib la ak dyaspora a, konekte fanmi, bay machann pouvwa, epi bay Ayisyen toupatou zouti yo merite nan ekonomi mondyal la."
+      "description": "KobKlein imajine yon Ayiti kote peman dijital yo konfyab ak aksepte patou, remitans yo antre nan chèn ekonomik pwodiktif, machann yo travay ak likidite amelyore, ak fanmi dyaspora ka sipòte moun yo renmen yo ak konfyans."
     }
   },
   "compliance": {
     "title": "Kad Konformite",
-    "subtitle": "Kat poto mitan nan pwogram konformite regilatè konplè nou an",
-    "financial": { "title": "Regilasyon Finansyè", "description": "Konformite total ak regilasyon sèvis bankè ak finansyè nan tout jiridiksyon operasyon yo." },
-    "data": { "title": "Pwoteksyon Done", "description": "Respè lwa entènasyonal sou vi prive done ak pwoteksyon itilizatè." },
-    "international": { "title": "Estanda Entènasyonal", "description": "Konformite ak egzijans mondyal AML ak finansman kontr-teworis." },
-    "operational": { "title": "Ekselans Operasyonèl", "description": "Satisfè pi bon pratik endistri pou jesyon risk operasyonèl ak kontinyite biznis." },
-    "licensesTitle": "Lisans & Anrejistreman",
-    "metricsTitle": "Mezi Konformite",
+    "subtitle": "Kat poto mitan nan pwogram konformite regilatè nou an",
+    "financial": { "title": "Regilasyon Finansyè", "description": "Opere anba yon estriktire sèvis finansyè ki baze sou patnè, aliye ak kad regilatè ki aplikab." },
+    "data": { "title": "Pwoteksyon Done", "description": "Respè estanda entènasyonal pwoteksyon done ak egzijans pwoteksyon itilizatè." },
+    "international": { "title": "Estanda Entènasyonal", "description": "Kad AML/KYC entegre. Kontwòl finansman kontr-teworis an plas." },
+    "operational": { "title": "Ekselans Operasyonèl", "description": "Pi bon pratik endistri pou jesyon risk ak kontinyite biznis." },
+    "licensesTitle": "Estriktire Konformite",
+    "metricsTitle": "Kad Konformite",
     "metrics": {
-      "examinations": { "value": "5/5", "label": "Egzamen Regilatè Pase" },
-      "score": { "value": "98.5%", "label": "Nòt Konformite Global" },
-      "audit": { "value": "Pwòp", "label": "Rezilta Odit — Pa gen Konklizyon Materyèl" },
-      "actions": { "value": "0", "label": "Aksyon Ranfòsman Regilatè" }
+      "examinations": { "value": "AML/KYC", "label": "Kad Entegre" },
+      "score": { "value": "Patnè", "label": "Modèl Konformite" },
+      "audit": { "value": "Estriktire", "label": "Modèl Gouvènans" },
+      "actions": { "value": "Pilòt", "label": "Faz Deplayman" }
     }
   },
   "download": {
@@ -199,10 +201,10 @@
     "subtitle": "Disponib kounye a sou iOS ak Android",
     "appStore": "Telechaje sou App Store",
     "playStore": "Jwenn li sou Google Play",
-    "features": ["Transfè enstantane", "Sekirite nivo bank", "Rezo distribitè", "Sipò 24/7"]
+    "features": ["Transfè enstantane", "Sekirite nivo antrepriz", "Rezo distribitè otorize", "Sipò milti-lang"]
   },
   "footer": {
-    "tagline": "Lajan ou, nan men ou.",
+    "tagline": "Peman dijital ki an sekirite pou Ayiti ak dyaspora li.",
     "product": "Pwodui",
     "company": "Konpayi",
     "legal": "Legal",
@@ -217,56 +219,57 @@
     "contact": "Kontakte Nou",
     "careers": "Karyè",
     "press": "Laprès",
-    "copyright": "KobKlein Inc. Tout dwa rezève."
+    "copyright": "KobKlein Inc. Tout dwa rezève.",
+    "legalNote": "KobKlein opere anba yon modèl sèvis finansyè ki baze sou patnè epi ap prepare deplayman pilòt li an konfòmite ak kad regilatè ki aplikab. Sèten sèvis sijè a verifikasyon, disponibilite rejyonal, ak apwobasyon patnè."
   },
   "cta": {
-    "title": "Pare pou Rejwenn Revolisyon an?",
-    "subtitle": "Telechaje KobKlein jodi a epi fè eksperyans lavni peman dijital pou Ayiti.",
-    "button": "Kòmanse Gratis"
+    "title": "Pare pou Bati Avni Finansyè Ayiti?",
+    "subtitle": "Rejwenn pwogram pilòt KobKlein. Kreye yon bous verifye oswa vin patnè machann jodi a.",
+    "button": "Rejwenn Pwogram Pilòt la"
   },
   "about": {
     "badge": "Istwa Nou",
-    "title": "Peman San Fwontyè pou Ayiti",
-    "subtitle": "Nap bati pon ant Ayiti ak dyaspora li toupatou nan mond lan — yon tranzaksyon enstantane ak sekirize alafwa.",
+    "title": "Bati Enfrastrikti Peman Dijital Ayiti",
+    "subtitle": "Nap bati pon peman dijital estriktire ak transparan — redui depandans lajan kach ak ranfòse sikilasyon ekonomik nan Ayiti.",
     "founding": {
       "title": "Poukisa Nou Kreye KobKlein",
-      "p1": "Ayiti gen youn nan to enklizyon finansyè ki pi ba nan emisfè oksidantal la. Plis pase 80% popilasyon an rete san bank, yo konte sou lajan kach pou prèske chak tranzaksyon. Anmenmtan, dyaspora ayisyen an voye plis pase 4 milya dola nan remitans chak ane — souvan yo peye frè eksòbitant.",
-      "p2": "KobKlein te fonde pou chanje sa. Nou kwè chak Ayisyen merite aksè a zouti finansye dijital modèn, ki an sekirite ak abòdab — kit yo rete Pòtoprens, Miami, Montreal, oswa Pari.",
-      "p3": "Platfòm nou an fè pon ant Ayiti ak dyaspora mondyal li, pèmèt transfè enstantane, peman san lajan kach, ak yon chemen pou rive nan vre endepandans finansyè.",
-      "problem": { "label": "Pwoblèm nan", "text": "80%+ san bank, frè remitans $12+, pa gen enfrastrikti peman dijital" },
-      "solution": { "label": "Solisyon Nou", "text": "Bous dijital mobil ak transfè enstantane, remitans $1.99, rezo K-Ajan" },
-      "reach": { "label": "Pòte Nou", "text": "Ap sèvi Ayiti, USA, Kanada, Lafrans, ak 15+ peyi kote Ayisyen ap viv ak travay" }
+      "p1": "Ayiti rete fòtman depandan sou lajan kach, ak aksè limite a sèvis finansyè fòmèl. Dyaspora ayisyen an voye milya dola nan remitans chak ane — fon ki souvan antre nan ekonomi a via chèn ki chè ak baze sou lajan kach.",
+      "p2": "KobKlein te fonde pou ponye fant sa a. Objektif nou pa sèlman deplase lajan — men pou konvèti flèks remitans an pouvwa acha dijital estriktire ki sipòte fanmi, machann, ak kwasans ekonomik lokal.",
+      "p3": "Nap bati ak pasyans, disiplin enstitisyonèl, ak yon modèl konformite patnè-premye. Platfòm nou an konekte kapital dyaspora ak bous dijital ak rezo machann, ogmante transparans ak redui risk lajan kach.",
+      "problem": { "label": "Defi a", "text": "Ekonomi depandan sou lajan kach, enfrastrikti finansyè dijital limite, chèn remitans ki chè" },
+      "solution": { "label": "Apwòch Nou", "text": "Bous dijital patnè-premye ak tarif transparan, rezo K-Ajan, kad konformite AML/KYC" },
+      "reach": { "label": "Fokis Nou", "text": "Ayiti, USA, Kanada, Lafrans, ak kominote dyaspora nan mond lan" }
     },
     "stats": {
-      "users": { "value": "100K+", "label": "Itilizatè Aktif" },
-      "transfers": { "value": "$50M+", "label": "Lajan Transfere" },
-      "countries": { "value": "15+", "label": "Peyi" },
-      "uptime": { "value": "99.9%", "label": "Disponibilite" }
+      "users": { "value": "Pilòt", "label": "Lansman an Kou" },
+      "transfers": { "value": "Patnè", "label": "Modèl Konformite" },
+      "countries": { "value": "AML/KYC", "label": "Kad Pare" },
+      "uptime": { "value": "Sekirize", "label": "Enfrastrikti" }
     },
-    "missionCard": "Bay chak Ayisyen zouti finansye dijital ki an sekirite, aksesib ak abòdab — kreye yon chemen soti nan depandans lajan kach pou rive nan vre souverènte finansyè.",
+    "missionCard": "Elaji zouti finansye dijital ki an sekirite, transparan, ak aksesib pou Ayisyen — redui depandans lajan kach pandan ranfòse sikilasyon ekonomik machann.",
     "journey": {
-      "title": "Vwayaj Nou",
-      "subtitle": "Etap kle nan istwa KobKlein",
-      "m1": { "year": "2024", "title": "Fonde nan Virginia Beach", "description": "KobKlein fèt ak yon lide senp: Ayisyen merite menm zouti finansye dijital tankou rès mond lan." },
-      "m2": { "year": "2024", "title": "Lansman Platfòm", "description": "Transfè enstantane K-Pay, rezo distribitè K-Ajan, ak premye panèl fanmi K-Link lanse an Ayiti." },
-      "m3": { "year": "2025", "title": "Ekspansyon Dyaspora", "description": "Operasyon yo elaji pou sèvi dyaspora ayisyen an nan USA, Kanada ak Lafrans ak remitans transfwontalyè." },
-      "m4": { "year": "2025", "title": "K-Card & Motè FX", "description": "Lansman kat Visa vityèl K-Card ak motè chanj an tan reyèl pou konvèsyon konpetitif." }
+      "title": "Kalandriye Devlopman Nou",
+      "subtitle": "Bati enfrastrikti peman ak disiplin ak aliyman alontèm",
+      "m1": { "year": "2024", "title": "Fondasyon & Achitekti Platfòm", "description": "KobKlein etabli nan Virginia Beach. Devlopman bous prensipal, enfrastrikti machann, ak kad distribisyon K-Ajan kòmanse." },
+      "m2": { "year": "2025", "title": "Preparasyon Pilòt & Angajman Patnè", "description": "Planifikasyon deplayman pilòt estriktire, aliyman konformite AML/KYC, ak devlopman kad rezo distribitè." },
+      "m3": { "year": "Byento", "title": "Entegrasyon Rezo Kat", "description": "Emision kat vityèl via patnè rezo kat otorize — sijè a apwobasyon regilatè." },
+      "m4": { "year": "Byento", "title": "Rezo Machann Elaji", "description": "Sant likidite rejyonal, entegrasyon machann elaji, ak devlopman korido Karayib." }
     },
     "team": {
       "title": "Rankontre Ekip la",
-      "subtitle": "Yon ekip pasyone enjenyè, konseptè, ak pwofesyonèl finansye ki angaje nan transfòmasyon dijital Ayiti.",
+      "subtitle": "Yon ekip miltidisiplinè teknolojis ak operatè ki fokize sou bati enfrastrikti finansyè estriktire pou avni Ayiti.",
       "cta": "Gade Ekip Nou"
     }
   },
   "distributor": {
-    "title": "Vin yon K-Ajan",
-    "subtitle": "Rejwenn rezo peman dijital ki ap grandi pi vit an Ayiti",
-    "description": "Kòm yon K-Ajan, ou fè pon ant lajan dijital ak fizik. Touche komisyon sou chak tranzaksyon lajan kach ki antre ak ki sòti nan kominote ou.",
+    "title": "Vin yon K-Ajan Otorize",
+    "subtitle": "Rejwenn rezo distribisyon peman dijital estriktire Ayiti",
+    "description": "Kòm yon K-Ajan otorize, ou fè pon ant likidite dijital ak fizik. Touche komisyon sou tranzaksyon rechajman ak retrè lajan kach jere nan kominote ou.",
     "benefits": {
-      "earn": { "title": "Touche Komisyon", "description": "Touche sou chak tranzaksyon. Plis volim, plis ou touche." },
-      "community": { "title": "Sèvi Kominote Ou", "description": "Ede vwazen ou yo gen aksè a peman dijital ak remitans." },
-      "support": { "title": "Sipò Konplè", "description": "Fòmasyon, zouti jesyon flote, ak sipò 24/7 nan men KobKlein." },
-      "grow": { "title": "Fè Biznis Ou Grandi", "description": "Ajoute sèvis peman dijital nan biznis ou deja genyen an." }
+      "earn": { "title": "Touche Komisyon", "description": "Modèl komisyon estriktire sou chak tranzaksyon otorize." },
+      "community": { "title": "Sèvi Kominote Ou", "description": "Ede vwazen ou yo gen aksè a peman dijital ak remitans dyaspora." },
+      "support": { "title": "Sipò Operasyonèl Konplè", "description": "Fòmasyon, zouti jesyon flote, ak sipò kontinyèl nan men KobKlein." },
+      "grow": { "title": "Fè Biznis Ou Grandi", "description": "Ajoute sèvis peman dijital otorize nan biznis ou deja genyen an." }
     },
     "apply": "Aplike pou Vin yon K-Ajan"
   }

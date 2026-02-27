@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Twitter, Instagram, Facebook, Youtube, Shield, Award, CheckCircle } from "lucide-react";
+import { Twitter, Instagram, Facebook, Youtube } from "lucide-react";
 import type { Dictionary, Locale } from "@/i18n";
 
 export function Footer({ dict, locale }: { dict: Dictionary; locale?: Locale }) {
@@ -88,30 +88,17 @@ export function Footer({ dict, locale }: { dict: Dictionary; locale?: Locale }) 
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 mb-8 h-px bg-gradient-to-r from-transparent via-kob-gold/20 to-transparent" />
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="mt-12 mb-6 h-px bg-gradient-to-r from-transparent via-kob-gold/20 to-transparent" />
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <p className="text-xs text-kob-muted">
             &copy; {year} {dict.footer.copyright}
           </p>
-          <div className="flex items-center gap-3">
-            {[
-              { label: "PCI", ariaLabel: "PCI DSS Compliant", icon: Shield },
-              { label: "SOC", ariaLabel: "SOC 2 Certified", icon: Award },
-              { label: "AML", ariaLabel: "AML Compliant", icon: CheckCircle },
-            ].map(({ label, ariaLabel, icon: Icon }) => (
-              <div
-                key={label}
-                aria-label={ariaLabel}
-                role="img"
-                className="px-2.5 py-1.5 rounded border border-kob-gold/20 flex items-center gap-1.5 hover:border-kob-gold/40 transition-colors duration-200"
-              >
-                <Icon className="h-3 w-3 text-kob-gold" />
-                <span className="text-[9px] font-bold text-kob-gold tracking-wider">{label}</span>
-              </div>
-            ))}
-            <span className="text-xs text-kob-muted ml-1">Bank-Grade Security</span>
-          </div>
         </div>
+
+        {/* Legal note */}
+        <p className="text-xs text-kob-muted/70 leading-relaxed border-t border-white/[0.04] pt-5">
+          {dict.footer.legalNote}
+        </p>
       </div>
     </footer>
   );

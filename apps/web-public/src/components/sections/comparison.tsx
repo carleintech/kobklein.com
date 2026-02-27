@@ -2,34 +2,33 @@
 
 import { motion } from "framer-motion";
 import type { Dictionary } from "@/i18n";
-import { Check, X } from "lucide-react";
+import { Check } from "lucide-react";
 
 export function ComparisonSection({ dict }: { dict: Dictionary }) {
-	const routes = [
+	const rows = [
 		{
 			label: dict.comparison.usToHaiti,
-			wu: "$12.99",
-			mg: "$9.99",
-			kob: "$1.99",
+			fee: "$1.99",
+			note: dict.comparison.note,
+			isFree: false,
 		},
 		{
 			label: dict.comparison.p2p,
-			wu: null,
-			mg: null,
-			kob: dict.comparison.free,
-			kobFree: true,
+			fee: dict.comparison.free,
+			note: null,
+			isFree: true,
 		},
 		{
 			label: dict.comparison.cashOut,
-			wu: "$5.00",
-			mg: "$4.50",
-			kob: "$0.99",
+			fee: "$0.99",
+			note: dict.comparison.note,
+			isFree: false,
 		},
 		{
 			label: dict.comparison.onlinePurchase,
-			wu: null,
-			mg: null,
-			kob: "$0.49",
+			fee: "$0.49",
+			note: dict.comparison.note,
+			isFree: false,
 		},
 	];
 
@@ -37,7 +36,7 @@ export function ComparisonSection({ dict }: { dict: Dictionary }) {
 		<section className="relative py-24 md:py-32">
 			<div className="absolute inset-0 bg-kob-navy/40" />
 
-			<div className="relative max-w-5xl mx-auto px-6">
+			<div className="relative max-w-3xl mx-auto px-6">
 				<motion.div
 					initial={{ opacity: 0, y: 30 }}
 					whileInView={{ opacity: 1, y: 0 }}
@@ -48,7 +47,7 @@ export function ComparisonSection({ dict }: { dict: Dictionary }) {
 					<h2 className="text-4xl md:text-5xl font-bold text-kob-text font-serif">
 						{dict.comparison.title}
 					</h2>
-					<p className="mt-4 text-lg text-kob-muted">
+					<p className="mt-4 text-lg text-kob-muted max-w-xl mx-auto">
 						{dict.comparison.subtitle}
 					</p>
 					<div className="mt-6 mx-auto w-24 h-0.5 bg-gradient-to-r from-transparent via-kob-gold to-transparent" />
@@ -63,20 +62,14 @@ export function ComparisonSection({ dict }: { dict: Dictionary }) {
 				>
 					<table className="w-full text-sm">
 						<caption className="sr-only">
-							Fee comparison between Western Union, MoneyGram, and KobKlein
+							KobKlein transparent pricing
 						</caption>
 						<thead>
 							<tr className="bg-kob-panel/80">
-								<th scope="col" className="text-left px-3 sm:px-6 py-3 sm:py-4 text-kob-muted font-medium text-xs sm:text-sm">
+								<th scope="col" className="text-left px-6 py-4 text-kob-muted font-medium">
 									{dict.comparison.route}
 								</th>
-								<th scope="col" className="px-3 sm:px-6 py-3 sm:py-4 text-kob-muted font-medium text-center text-xs sm:text-sm">
-									{dict.comparison.westernUnion}
-								</th>
-								<th scope="col" className="px-3 sm:px-6 py-3 sm:py-4 text-kob-muted font-medium text-center text-xs sm:text-sm">
-									{dict.comparison.moneyGram}
-								</th>
-								<th scope="col" className="px-3 sm:px-6 py-3 sm:py-4 font-bold text-center relative text-xs sm:text-sm">
+								<th scope="col" className="px-6 py-4 font-bold text-right relative">
 									<div className="absolute inset-0 bg-kob-gold/[0.06]" />
 									<span className="relative text-kob-gold font-semibold">
 										{dict.comparison.kobklein}
@@ -85,9 +78,9 @@ export function ComparisonSection({ dict }: { dict: Dictionary }) {
 							</tr>
 						</thead>
 						<tbody>
-							{routes.map((route, i) => (
+							{rows.map((row, i) => (
 								<tr
-									key={route.label}
+									key={row.label}
 									className={
 										i % 2 === 0
 											? "bg-kob-black/30"
@@ -95,27 +88,22 @@ export function ComparisonSection({ dict }: { dict: Dictionary }) {
 									}
 								>
 									<th scope="row" className="px-6 py-4 text-kob-body font-medium text-left">
-										{route.label}
+										{row.label}
 									</th>
-									<td className="px-6 py-4 text-center text-kob-muted">
-										{route.wu ?? (
-											<X className="h-4 w-4 mx-auto text-kob-muted/40" />
-										)}
-									</td>
-									<td className="px-6 py-4 text-center text-kob-muted">
-										{route.mg ?? (
-											<X className="h-4 w-4 mx-auto text-kob-muted/40" />
-										)}
-									</td>
-									<td className="px-6 py-4 text-center relative">
+									<td className="px-6 py-4 text-right relative">
 										<div className="absolute inset-0 bg-kob-gold/[0.06]" />
 										<span
-											className={`relative font-semibold flex items-center justify-center gap-1.5 ${route.kobFree ? "text-kob-emerald" : "text-kob-gold"}`}
+											className={`relative font-semibold inline-flex items-center justify-end gap-1.5 ${row.isFree ? "text-kob-emerald" : "text-kob-gold"}`}
 										>
-											{route.kobFree && (
+											{row.isFree && (
 												<Check className="h-4 w-4" />
 											)}
-											{route.kob}
+											{row.fee}
+											{row.note && (
+												<span className="text-kob-muted text-xs font-normal ml-1">
+													({row.note})
+												</span>
+											)}
 										</span>
 									</td>
 								</tr>
@@ -123,6 +111,17 @@ export function ComparisonSection({ dict }: { dict: Dictionary }) {
 						</tbody>
 					</table>
 				</motion.div>
+
+				{/* Disclaimer */}
+				<motion.p
+					initial={{ opacity: 0 }}
+					whileInView={{ opacity: 1 }}
+					viewport={{ once: true }}
+					transition={{ duration: 0.6, delay: 0.4 }}
+					className="mt-5 text-xs text-kob-muted text-center leading-relaxed"
+				>
+					{dict.comparison.disclaimer}
+				</motion.p>
 			</div>
 		</section>
 	);
