@@ -132,6 +132,8 @@ import { PosDeviceService } from "./merchant/pos-device.service";
 import { FxLiveController } from "./fx/fx-live.controller";
 import { DiasporaStatsController } from "./diaspora/diaspora-stats.controller";
 import { EmergencySendController } from "./diaspora/emergency-send.controller";
+import { UserTimelineController } from "./wallets/user-timeline.controller";
+import { UserLocationController } from "./users/user-location.controller";
 
 @Module({
   imports: [
@@ -258,6 +260,8 @@ import { EmergencySendController } from "./diaspora/emergency-send.controller";
     FxLiveController,
     DiasporaStatsController,
     EmergencySendController,
+    UserTimelineController,
+    UserLocationController,
   ],
   providers: [StripeService, AuditService, DualControlService, PlaidService, PosDeviceService],
 })

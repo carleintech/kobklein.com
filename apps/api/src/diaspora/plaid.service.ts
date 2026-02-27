@@ -72,7 +72,10 @@ export class PlaidService {
    */
   async createLinkToken(userId: string, userEmail?: string) {
     if (!process.env.PLAID_CLIENT_ID) {
-      throw new BadRequestException("Plaid is not configured on this server");
+      // Return a structured "not configured" response instead of crashing —
+      // the frontend PlaidLinkButton component checks for configured: false
+      // and shows a "Coming Soon" state instead of an error.
+      return { configured: false as const, linkToken: null, expiration: null };
     }
 
     const client = createPlaidClient();

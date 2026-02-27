@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePlaidLink } from "react-plaid-link";
 import {
@@ -70,16 +71,22 @@ function PlaidPanel() {
   // Fetch Plaid link token on demand (when user clicks "Add Bank")
   async function fetchLinkToken() {
     try {
-      const res = await kkPost<{ linkToken: string }>("v1/diaspora/plaid/link-token", {});
+      const res = await kkPost<{ linkToken: string | null; configured?: boolean }>(
+        "v1/diaspora/plaid/link-token", {}
+      );
+      if (res.configured === false || !res.linkToken) {
+        toast.show("Bank linking is not yet available. Contact support.", "error");
+        return;
+      }
       setLinkToken(res.linkToken);
     } catch (err: unknown) {
       toast.show("Could not start bank linking. Try again.", "error");
     }
   }
 
-  // Plaid Link hook — initializes when linkToken is available
+  // Plaid Link hook — only initializes when a real token is available (avoids double-embed)
   const { open: openPlaid, ready: plaidReady } = usePlaidLink({
-    token: linkToken ?? "",
+    token: linkToken ?? "",   // "" → Plaid stays inactive; openPlaid() is blocked by plaidReady
     onSuccess: async (publicToken: string, metadata: any) => {
       try {
         await kkPost("v1/diaspora/plaid/exchange", {
@@ -517,6 +524,12 @@ export default function AddFundsPage() {
 
   return (
     <div className="space-y-5 pb-10 max-w-md mx-auto">
+      {/* Load Stripe.js once (idempotent — Next Script deduplicates by id) */}
+      <Script
+        id="stripe-js"
+        src="https://js.stripe.com/v3/"
+        strategy="lazyOnload"
+      />
 
       {/* ── Header ──────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
