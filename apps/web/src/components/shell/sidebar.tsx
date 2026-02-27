@@ -27,6 +27,7 @@ import {
   History,
   HelpCircle,
   Headphones,
+  PlusCircle,
 } from "lucide-react";
 import { createBrowserSupabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -95,7 +96,8 @@ function buildNavSections(t: (k: string) => string, role: string): { title?: str
     {
       title: t("diaspora.title"),
       items: [
-        { label: t("diaspora.sendHome"), href: "/send", icon: Globe, roles: ["diaspora"] },
+        { label: t("diaspora.sendHome"), href: "/send",                    icon: Globe,       roles: ["diaspora"] },
+        { label: "Add Funds",            href: "/diaspora/add-funds",      icon: PlusCircle,  roles: ["diaspora"] },
       ],
     },
     {

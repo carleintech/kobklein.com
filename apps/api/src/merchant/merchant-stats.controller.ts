@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req } from "@nestjs/common";
+import { Controller, Get, Query, UseGuards, Req } from "@nestjs/common";
 import { prisma } from "../db/prisma";
 import { SupabaseGuard } from "../auth/supabase.guard";
 
@@ -98,5 +98,48 @@ export class MerchantStatsController {
   @Get("today")
   async today(@Req() req: any) {
     return this.stats(req);
+  }
+
+  /**
+   * GET /v1/merchant/recent-payments?limit=5
+   * Returns the last N payments received by the merchant.
+   * Used by the POS terminal screen to show real-time payment history.
+   */
+  @UseGuards(SupabaseGuard)
+  @Get("recent-payments")
+  async recentPayments(@Req() req: any, @Query("limit") limitParam?: string) {
+    const userId = req.localUser?.id || req.user?.sub;
+    const limit  = Math.min(parseInt(limitParam ?? "10", 10), 50);
+
+    const wallet = await prisma.wallet.findFirst({
+      where: { userId, type: "MERCHANT" },
+    });
+
+    if (!wallet) return [];
+
+    const entries = await prisma.ledgerEntry.findMany({
+      where: {
+        walletId: wallet.id,
+        type:     "merchant_payment",
+        amount:   { gt: 0 },
+      },
+      orderBy: { createdAt: "desc" },
+      take:    limit,
+      select: {
+        id:        true,
+        amount:    true,
+        reference: true,
+        createdAt: true,
+        wallet:    { select: { currency: true } },
+      },
+    });
+
+    return entries.map((e) => ({
+      id:          e.id,
+      amount:      Number(e.amount),
+      currency:    e.wallet.currency,
+      payerHandle: e.reference?.replace("pos_payment:", "") ?? "customer",
+      createdAt:   e.createdAt,
+    }));
   }
 }

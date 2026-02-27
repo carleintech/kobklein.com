@@ -27,7 +27,7 @@
         "backgroundColor": "#080B14"
       },
       "package": "com.kobklein.app",
-      "permissions": ["CAMERA"]
+      "permissions": ["CAMERA", "android.permission.NFC"]
     },
     "web": {
       "bundler": "metro",

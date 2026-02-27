@@ -93,14 +93,14 @@ const METHODS: MethodConfig[] = [
   },
   {
     key:       "apple_pay",
-    label:     "Apple Pay",
-    desc:      "Pay with Face ID using your Apple Wallet",
+    label:     "Apple Pay / Bank",
+    desc:      "Apple Pay, Google Pay, or link your bank account",
     icon:      Smartphone,
     gradient:  "from-white/5 to-white/2",
     border:    "border-white/10",
     iconColor: "#F0F1F5",
-    available: false,
-    eta:       "Instant",
+    available: true,
+    eta:       "Instant (card) · 1-3 days (ACH)",
     fee:       "0% KobKlein fee",
   },
   {
@@ -527,7 +527,10 @@ export default function WalletFundPage() {
                 whileHover={{ scale: 1.01, x: 2 }}
                 whileTap={{ scale: 0.99 }}
                 onClick={() => {
-                  if (method.available) {
+                  if (method.key === "apple_pay") {
+                    // Apple Pay + Plaid handled by the unified Add Funds page
+                    router.push("/diaspora/add-funds");
+                  } else if (method.available) {
                     setActive(method.key);
                   } else {
                     setComingSoon(method);

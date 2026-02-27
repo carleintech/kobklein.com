@@ -290,6 +290,7 @@ model FamilyLink {
   relationship                         String?
   createdAt                            DateTime @default(now())
   isFavorite                           Boolean  @default(false)
+  isEmergencyContact                   Boolean  @default(false)
   diasporaUser User     @relation("FamilyLink_diasporaUserIdToUser", fields: [diasporaUserId], references: [id])
   familyUser   User     @relation("FamilyLink_familyUserIdToUser", fields: [familyUserId], references: [id])
 
@@ -940,6 +941,8 @@ model User {
   physicalCardRequests       PhysicalCardRequest[]
   localPaymentTxns           LocalPaymentTxn[]
   supportTickets             SupportTicket[]
+  plaidAccounts              PlaidAccount[]
+  posDevices                 PosDevice[]
 }
 
 model UserPlan {
@@ -1098,6 +1101,71 @@ model PartnerLead {
   @@index([email])
   @@index([type])
   @@index([createdAt])
+}
+
+// ─── Plaid Bank Account Linking (Diaspora ACH Top-up) ───────────────────────
+model PlaidAccount {
+  id                    String             @id @default(cuid())
+  userId                String
+  user                  User               @relation(fields: [userId], references: [id])
+  plaidItemId           String
+  plaidAccessTokenEnc   String             // AES-256-GCM encrypted at rest
+  institutionId         String
+  institutionName       String
+  accountId             String
+  accountName           String
+  last4                 String
+  accountType           String             // checking | savings
+  status                PlaidAccountStatus @default(active)
+  stripePaymentMethodId String?            // set after Stripe ACH setup
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  @@unique([userId, accountId])
+  @@index([userId])
+  @@index([status])
+}
+
+enum PlaidAccountStatus {
+  active
+  inactive
+}
+
+// ─── POS Device Registration (Phone-as-POS Terminal) ───────────────────────
+model PosDevice {
+  id                  String          @id @default(cuid())
+  userId              String
+  user                User            @relation(fields: [userId], references: [id])
+  deviceFingerprint   String
+  deviceLabel         String?         // e.g. "Samsung Galaxy A53"
+  platform            String          // web | ios | android
+  agreementAcceptedAt DateTime
+  status              PosDeviceStatus @default(active)
+  lastUsedAt          DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@unique([userId, deviceFingerprint])
+  @@index([userId])
+  @@index([status])
+}
+
+enum PosDeviceStatus {
+  active
+  revoked
+}
+
+// ─── K-Agent Trust Rating ───────────────────────────────────────────────────
+model AgentRating {
+  id            String   @id @default(cuid())
+  distributorId String
+  raterId       String
+  stars         Int      // 1-5
+  comment       String?
+  createdAt     DateTime @default(now())
+
+  @@unique([distributorId, raterId])
+  @@index([distributorId])
 }
 
 enum WalletType {

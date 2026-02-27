@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Home, Wallet, Send, ScanLine, Settings } from "lucide-react-native";
+import { Home, Wallet, Send, ScanLine, Settings, Smartphone } from "lucide-react-native";
 import { colors, fonts } from "@/constants/theme";
 import { useAuthStore } from "@/context/auth-store";
 import i18n from "@/i18n";
@@ -8,8 +8,8 @@ export default function TabsLayout() {
   const { user } = useAuthStore();
   const role = user?.role ?? "user";
 
-  // Merchant & Distributor get "Scan" tab, others get "Send"
-  const showScan = role === "merchant" || role === "distributor";
+  // Merchant & Distributor: "Send" tab hidden, "Scan" becomes "POS Terminal"
+  const isPosMerchant = role === "merchant" || role === "distributor";
 
   return (
     <Tabs
@@ -48,21 +48,21 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="send"
         options={{
-          title: showScan ? i18n.t("tab.scan") : i18n.t("tab.send"),
-          tabBarIcon: ({ color, size }) =>
-            showScan ? (
-              <ScanLine size={size} color={color} />
-            ) : (
-              <Send size={size} color={color} />
-            ),
+          title: i18n.t("tab.send"),
+          tabBarIcon: ({ color, size }) => <Send size={size} color={color} />,
+          href: isPosMerchant ? null : undefined,
         }}
       />
       <Tabs.Screen
         name="scan"
         options={{
-          title: i18n.t("tab.scan"),
-          tabBarIcon: ({ color, size }) => <ScanLine size={size} color={color} />,
-          href: showScan ? undefined : null, // Hide for non-merchant/distributor
+          title: isPosMerchant ? "POS" : i18n.t("tab.scan"),
+          tabBarIcon: ({ color, size }) =>
+            isPosMerchant ? (
+              <Smartphone size={size} color={color} />
+            ) : (
+              <ScanLine size={size} color={color} />
+            ),
         }}
       />
       <Tabs.Screen

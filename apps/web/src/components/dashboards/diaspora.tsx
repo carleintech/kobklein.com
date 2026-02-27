@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiGet } from "@/lib/api";
 import { KIdCard } from "@/components/kid-card";
-import { kkPost, kkPatch } from "@/lib/kobklein-api";
+import { kkPost, kkPatch, kkGet } from "@/lib/kobklein-api";
 import { useToast } from "@kobklein/ui";
 import {
   ArrowUpRight, Calendar, CheckCircle2, Crown, Globe, Heart,
   Plus, Send, Shield, Star, Users, Wallet, Zap, TrendingUp,
   RefreshCw, Eye, EyeOff, ChevronRight, Bell, Receipt,
   ArrowDownLeft, ArrowUpLeft, MoreHorizontal, MapPin,
-  Sparkles, Clock, DollarSign, X,
+  Sparkles, Clock, DollarSign, X, Siren, AlertCircle,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
@@ -127,8 +127,9 @@ function useCountUp(target: number, duration = 1200) {
   return val;
 }
 
-// Remittance bar chart mock data (last 6 months)
-const MONTHS = ["Sep", "Oct", "Nov", "Dec", "Jan", "Feb"];
+// Remittance chart data (fetched from API)
+type RemittanceMonth = { month: string; sent: number; savedVsWesternUnion: number };
+type TimelineEntry = { id: string; amount: number; type: string; currency: string; createdAt: string; counterpart?: { name: string } };
 
 // ─── Custom Tooltip ───────────────────────────────────────────────────────────
 
@@ -163,16 +164,28 @@ export function DiasporaDashboard({ profile }: Props) {
   const [hideBalance, setHideBalance] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<"family" | "activity">("family");
+  const [remittanceData, setRemittanceData] = useState<RemittanceMonth[]>([]);
+  const [recentActivity, setRecentActivity] = useState<TimelineEntry[]>([]);
+  const [fxRate, setFxRate] = useState<{ mid: number; buy: number } | null>(null);
+  const [emergencyModal, setEmergencyModal] = useState(false);
+  const [emergencyAmount, setEmergencyAmount] = useState("");
+  const [emergencyLoading, setEmergencyLoading] = useState(false);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [dash, members] = await Promise.all([
+      const [dash, members, remit, timeline, fx] = await Promise.allSettled([
         apiGet<DashboardData>("v1/family/dashboard"),
         apiGet<FamilyMember[]>("v1/family/members"),
+        kkGet<{ months: RemittanceMonth[] }>("v1/diaspora/remittance-history?months=6"),
+        kkGet<{ entries: TimelineEntry[] }>("v1/wallets/timeline?limit=10"),
+        kkGet<{ mid: number; buy: number; sell: number; updatedAt: string }>("v1/fx/rates/live?from=USD&to=HTG"),
       ]);
-      setDashboard(dash);
-      setFamily(members);
+      if (dash.status === "fulfilled") setDashboard(dash.value);
+      if (members.status === "fulfilled") setFamily(members.value);
+      if (remit.status === "fulfilled") setRemittanceData(remit.value.months ?? []);
+      if (timeline.status === "fulfilled") setRecentActivity(timeline.value.entries ?? []);
+      if (fx.status === "fulfilled") setFxRate({ mid: fx.value.mid, buy: fx.value.buy });
     } catch (e: unknown) {
       console.error("Failed to load diaspora dashboard:", e);
     } finally {
@@ -221,6 +234,24 @@ export function DiasporaDashboard({ profile }: Props) {
     }
   }
 
+  async function handleEmergencySend() {
+    const amt = parseFloat(emergencyAmount);
+    if (!amt || amt <= 0) return;
+    setEmergencyLoading(true);
+    try {
+      await kkPost("v1/family/emergency-send", { amountUsd: amt });
+      toast.show("Emergency funds sent!", "success");
+      setEmergencyModal(false);
+      setEmergencyAmount("");
+      load(true);
+    } catch (e: unknown) {
+      const message = typeof e === "object" && e && "message" in e ? (e as any).message : undefined;
+      toast.show(message || "Emergency send failed. Check emergency contact is set.", "error");
+    } finally {
+      setEmergencyLoading(false);
+    }
+  }
+
   const sortedFamily = [...family].sort((a, b) => {
     if (a.isFavorite && !b.isFavorite) return -1;
     if (!a.isFavorite && b.isFavorite) return 1;
@@ -242,22 +273,21 @@ export function DiasporaDashboard({ profile }: Props) {
     hour < 12 ? "Bonjou" : hour < 17 ? "Bon apremidi" : "Bonswa";
   const name = profile.firstName ? `, ${profile.firstName}` : "";
 
-  // Mock remittance chart data seeded from total sent
-  const chartSeed = totalSent || 850;
-  const remittanceData = MONTHS.map((m, i) => ({
-    month: m,
-    sent: Math.round(chartSeed * (0.4 + Math.random() * 0.6) * (i === 5 ? 1 : 0.6 + i * 0.08)),
-    saved: Math.round(chartSeed * 0.12 * (0.5 + i * 0.1)),
+  // Map real API remittance data to chart format (rename savedVsWesternUnion → saved)
+  const chartData = remittanceData.map((r) => ({
+    month: r.month,
+    sent: r.sent,
+    saved: r.savedVsWesternUnion,
   }));
 
-  // Mock Reciit (recent) activity seeded from family
-  const mockActivity = sortedFamily.slice(0, 3).map((m, i) => ({
-    id: m.id,
-    name: m.nickname || m.familyUser.firstName || "Family",
-    type: i === 0 ? "Monthly Support" : i === 1 ? "Tuition" : "Business Transfer",
-    amount: m.recentTransfers[0]?.amount ?? (150 - i * 50),
-    currency: "USD",
-    date: "Feb 23, 2026",
+  // Map real timeline entries to activity display format
+  const activityItems = recentActivity.slice(0, 5).map((entry, i) => ({
+    id: entry.id,
+    name: entry.counterpart?.name || "Transfer",
+    type: entry.type === "send" ? "Sent" : entry.type === "receive" ? "Received" : "Transfer",
+    amount: entry.amount,
+    currency: entry.currency || "USD",
+    date: new Date(entry.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
     color: getMemberColor(i),
   }));
 
@@ -382,11 +412,19 @@ export function DiasporaDashboard({ profile }: Props) {
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.15em] font-bold" style={{ color: D.muted }}>Global Reserve Balance</p>
                   {dashboard && (
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <span className="text-[10px]" style={{ color: D.dimmed }}>≈ HTG</span>
                       <span className="text-[10px] font-bold" style={{ color: D.muted }}>
-                        {(balance * 130).toLocaleString("fr-HT")}
+                        {(balance * (fxRate?.mid ?? 130)).toLocaleString("fr-HT")}
                       </span>
+                      {fxRate && (
+                        <span
+                          className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+                          style={{ background: `${D.success}18`, color: D.success, border: `1px solid ${D.success}25` }}
+                        >
+                          1 USD = {fxRate.mid.toFixed(1)} HTG
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -454,6 +492,32 @@ export function DiasporaDashboard({ profile }: Props) {
                   </div>
                 ))}
               </div>
+
+              {/* Emergency Send — Voye Pou Yo */}
+              <motion.button
+                whileHover={{ scale: 1.01, y: -1 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={() => setEmergencyModal(true)}
+                className="flex items-center justify-between w-full rounded-2xl px-4 py-3 mb-3 transition-all"
+                style={{
+                  background: "linear-gradient(135deg, rgba(220,38,38,0.10), rgba(201,168,76,0.06))",
+                  border: "1px solid rgba(220,38,38,0.22)",
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: "rgba(220,38,38,0.14)", border: "1px solid rgba(220,38,38,0.28)" }}>
+                    <Siren className="h-4 w-4 text-red-400" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-[#F87171]">Voye Pou Yo — Emergency Send</p>
+                    <p className="text-[9px]" style={{ color: D.dimmed }}>
+                      Instant · No PIN · Daily limit $200 · Emergency contact only
+                    </p>
+                  </div>
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-red-400 shrink-0" />
+              </motion.button>
 
               {/* Quick Actions */}
               <div className="grid grid-cols-4 gap-2">
@@ -701,10 +765,10 @@ export function DiasporaDashboard({ profile }: Props) {
                     exit={{ opacity: 0, x: -10 }}
                     className="space-y-2"
                   >
-                    {mockActivity.length === 0 ? (
+                    {activityItems.length === 0 ? (
                       <div className="py-8 text-center text-sm" style={{ color: D.dimmed }}>No recent activity</div>
                     ) : (
-                      mockActivity.map((a, i) => (
+                      activityItems.map((a, i) => (
                         <motion.div
                           key={a.id}
                           initial={{ opacity: 0, y: 6 }}
@@ -779,6 +843,43 @@ export function DiasporaDashboard({ profile }: Props) {
         {/* RIGHT COLUMN */}
         <div className="space-y-5">
 
+          {/* ── LIVE FX RATE CARD ────────────────────────────────────── */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="rounded-2xl overflow-hidden"
+            style={{ background: `linear-gradient(135deg, ${D.card} 0%, ${D.bg} 100%)`, border: `1px solid ${D.border}` }}
+          >
+            <div className="px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: `${D.success}14`, border: `1px solid ${D.success}22` }}>
+                  <TrendingUp className="h-3.5 w-3.5" style={{ color: D.success }} />
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.12em] font-bold" style={{ color: D.dimmed }}>Live Exchange Rate</p>
+                  {fxRate ? (
+                    <p className="text-sm font-black tabular-nums" style={{ color: D.text }}>
+                      1 USD ={" "}
+                      <span style={{ color: D.gold }}>{fxRate.mid.toFixed(2)} HTG</span>
+                    </p>
+                  ) : (
+                    <p className="text-sm font-black" style={{ color: D.dimmed }}>Loading…</p>
+                  )}
+                </div>
+              </div>
+              {fxRate && (
+                <div className="text-right">
+                  <p className="text-[9px] font-bold px-2 py-1 rounded-full"
+                    style={{ background: `${D.success}14`, color: D.success, border: `1px solid ${D.success}22` }}>
+                    Buy {fxRate.buy.toFixed(1)}
+                  </p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
           {/* ── REMITTANCE INSIGHTS ──────────────────────────────────── */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -813,19 +914,25 @@ export function DiasporaDashboard({ profile }: Props) {
 
               {/* Bar chart */}
               <div className="h-36">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={remittanceData} barGap={2} barCategoryGap="25%">
-                    <XAxis dataKey="month" tick={{ fontSize: 9, fill: D.dimmed }} axisLine={false} tickLine={false} />
-                    <YAxis hide />
-                    <Tooltip content={<ChartTooltip />} cursor={{ fill: `${D.accent}0D` }} />
-                    <Bar dataKey="sent" radius={[4, 4, 0, 0]} maxBarSize={20}>
-                      {remittanceData.map((_, i) => (
-                        <Cell key={i} fill={i === remittanceData.length - 1 ? D.gold : D.accent} fillOpacity={i === remittanceData.length - 1 ? 1 : 0.5} />
-                      ))}
-                    </Bar>
-                    <Bar dataKey="saved" radius={[4, 4, 0, 0]} fill={D.gold} fillOpacity={0.25} maxBarSize={20} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {chartData.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-xs" style={{ color: D.dimmed }}>
+                    No remittance data yet
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} barGap={2} barCategoryGap="25%">
+                      <XAxis dataKey="month" tick={{ fontSize: 9, fill: D.dimmed }} axisLine={false} tickLine={false} />
+                      <YAxis hide />
+                      <Tooltip content={<ChartTooltip />} cursor={{ fill: `${D.accent}0D` }} />
+                      <Bar dataKey="sent" radius={[4, 4, 0, 0]} maxBarSize={20}>
+                        {chartData.map((_, i) => (
+                          <Cell key={i} fill={i === chartData.length - 1 ? D.gold : D.accent} fillOpacity={i === chartData.length - 1 ? 1 : 0.5} />
+                        ))}
+                      </Bar>
+                      <Bar dataKey="saved" radius={[4, 4, 0, 0]} fill={D.gold} fillOpacity={0.25} maxBarSize={20} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
 
               {/* Legend */}
@@ -872,11 +979,11 @@ export function DiasporaDashboard({ profile }: Props) {
                 </button>
               </div>
 
-              {mockActivity.length === 0 ? (
+              {activityItems.length === 0 ? (
                 <p className="text-xs text-center py-4" style={{ color: D.dimmed }}>No recent transfers</p>
               ) : (
                 <div className="space-y-3">
-                  {mockActivity.map((a, i) => (
+                  {activityItems.map((a, i) => (
                     <motion.div
                       key={a.id}
                       initial={{ opacity: 0, x: 8 }}
@@ -1026,6 +1133,140 @@ export function DiasporaDashboard({ profile }: Props) {
           )}
         </div>
       </div>
+
+      {/* ── EMERGENCY SEND MODAL (Voye Pou Yo) ─────────────────────── */}
+      <AnimatePresence>
+        {emergencyModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: "rgba(4,8,20,0.90)", backdropFilter: "blur(12px)" }}
+            onClick={() => setEmergencyModal(false)}
+          >
+            <motion.div
+              initial={{ y: 40, scale: 0.95, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 40, scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", damping: 26, stiffness: 280 }}
+              className="w-full max-w-sm rounded-3xl overflow-hidden"
+              style={{
+                background: "linear-gradient(160deg, #0A1628 0%, #050E1F 100%)",
+                border: "1px solid rgba(220,38,38,0.22)",
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div
+                className="flex items-center justify-between px-5 pt-5 pb-4"
+                style={{ borderBottom: "1px solid rgba(220,38,38,0.12)" }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.32)" }}
+                  >
+                    <Siren className="h-5 w-5 text-red-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-[#F87171]">Emergency Send</p>
+                    <p className="text-[10px] text-[#5A6B82]">Voye Pou Yo — No PIN required</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEmergencyModal(false)}
+                  className="p-1.5 rounded-xl hover:bg-white/5 transition-colors"
+                >
+                  <X className="h-4 w-4 text-[#5A6B82]" />
+                </button>
+              </div>
+
+              <div className="p-5 space-y-4">
+                {/* Info banner */}
+                <div
+                  className="flex items-start gap-2 rounded-xl px-3 py-2.5"
+                  style={{ background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.15)" }}
+                >
+                  <AlertCircle className="h-3.5 w-3.5 text-red-400 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-[#7A8394] leading-relaxed">
+                    Sends immediately to your{" "}
+                    <span className="font-bold text-red-400">emergency contact</span> in Haiti.
+                    Daily limit: <span className="font-bold text-[#F87171]">$200 USD</span>.
+                    No confirmation PIN required. Ensure your emergency contact is set in Family settings.
+                  </p>
+                </div>
+
+                {/* Amount input */}
+                <div>
+                  <label className="text-[10px] uppercase tracking-[0.12em] font-bold text-[#4A5A72] mb-2 block">
+                    Amount (USD)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-[#5A6B82]">$</span>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={emergencyAmount}
+                      onChange={e => setEmergencyAmount(e.target.value)}
+                      className="w-full pl-8 pr-4 py-3 rounded-xl text-sm font-bold outline-none"
+                      style={{
+                        background: "rgba(255,255,255,0.05)",
+                        border: "1px solid rgba(220,38,38,0.22)",
+                        color: "#E0E4EE",
+                      }}
+                      min="1"
+                      max="200"
+                    />
+                  </div>
+                  {fxRate && emergencyAmount && parseFloat(emergencyAmount) > 0 && (
+                    <p className="text-[10px] mt-1.5" style={{ color: D.dimmed }}>
+                      ≈{" "}
+                      <span className="font-bold" style={{ color: D.muted }}>
+                        {(parseFloat(emergencyAmount) * fxRate.mid).toLocaleString("fr-HT")} HTG
+                      </span>{" "}
+                      at {fxRate.mid.toFixed(1)} rate
+                    </p>
+                  )}
+                </div>
+
+                {/* Action buttons */}
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
+                  <motion.button
+                    type="button"
+                    onClick={() => setEmergencyModal(false)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="h-11 rounded-2xl font-bold text-sm transition-all"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      color: "#5A6B82",
+                    }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    type="button"
+                    onClick={handleEmergencySend}
+                    disabled={!emergencyAmount || parseFloat(emergencyAmount) <= 0 || emergencyLoading}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="h-11 rounded-2xl font-bold text-sm disabled:opacity-40 transition-all flex items-center justify-center gap-2"
+                    style={{ background: "linear-gradient(135deg, #EF4444, #DC2626)", color: "white" }}
+                  >
+                    {emergencyLoading
+                      ? <RefreshCw className="h-4 w-4 animate-spin" />
+                      : <Siren className="h-4 w-4" />}
+                    Send Now
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

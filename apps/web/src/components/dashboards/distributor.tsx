@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { kkGet } from "@/lib/kobklein-api";
 import { KIdCard } from "@/components/kid-card";
+import { KNfcIcon } from "@/components/pos/KNfcIcon";
+import { PosActivationModal } from "@/components/pos/PosActivationModal";
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -292,19 +294,23 @@ export function DistributorDashboard({ profile }: Props) {
   const [hideBalance,  setHideBalance]  = useState(false);
   const [copied,       setCopied]       = useState(false);
   const [activeTab,    setActiveTab]    = useState<"overview" | "history">("overview");
+  const [posActive,    setPosActive]    = useState(false);
+  const [showPosModal, setShowPosModal] = useState(false);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
     setError(null);
     try {
-      const [dashRes, txnsRes] = await Promise.allSettled([
+      const [dashRes, txnsRes, posRes] = await Promise.allSettled([
         kkGet<AgentDashboard>("v1/distributor/dashboard"),
         kkGet<LedgerEntry[]>("v1/distributor/transactions"),
+        kkGet<{ hasActivePosDevice: boolean }>("v1/pos/devices/my"),
       ]);
       if (dashRes.status === "fulfilled") setDashboard(dashRes.value);
       else setError("Could not load agent dashboard.");
       if (txnsRes.status === "fulfilled") setTxns(txnsRes.value);
+      if (posRes.status === "fulfilled") setPosActive(posRes.value.hasActivePosDevice ?? false);
     } catch {
       setError("Could not load agent dashboard.");
     } finally {
@@ -387,13 +393,37 @@ export function DistributorDashboard({ profile }: Props) {
             </div>
           </div>
 
-          <motion.button type="button" onClick={() => load(true)} whileTap={{ scale: 0.9 }}
-            className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={glass()}>
-            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-              style={{ color: G.muted }} />
-          </motion.button>
+          <div className="flex items-center gap-2">
+            {/* K-NFC POS activation */}
+            <div className="flex flex-col items-center gap-0.5">
+              <KNfcIcon
+                size={44}
+                active={posActive}
+                onClick={() => posActive ? router.push("/distributor/pos") : setShowPosModal(true)}
+              />
+              <span className="text-[8px] font-bold uppercase tracking-wide"
+                style={{ color: posActive ? G.success : G.dimmed }}>
+                {posActive ? "POS On" : "K-NFC"}
+              </span>
+            </div>
+            <motion.button type="button" onClick={() => load(true)} whileTap={{ scale: 0.9 }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={glass()}>
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+                style={{ color: G.muted }} />
+            </motion.button>
+          </div>
         </motion.div>
+
+        {/* ── POS Activation Modal ────────────────────────────────────── */}
+        <AnimatePresence>
+          {showPosModal && (
+            <PosActivationModal
+              onActivated={() => setPosActive(true)}
+              onClose={() => setShowPosModal(false)}
+            />
+          )}
+        </AnimatePresence>
 
         {/* ── K-ID CARD ──────────────────────────────────────────────── */}
         <KIdCard compact profile={profile} />

@@ -124,6 +124,14 @@ import { EmergencyController } from "./admin/emergency.controller";
 import { DualControlController } from "./policies/dual-control.controller";
 import { DualControlService } from "./policies/dual-control.service";
 import { AdminChannelsController } from "./admin/admin-channels.controller";
+import { RemittanceHistoryController } from "./diaspora/remittance-history.controller";
+import { PlaidController } from "./diaspora/plaid.controller";
+import { PlaidService } from "./diaspora/plaid.service";
+import { PosDeviceController } from "./merchant/pos-device.controller";
+import { PosDeviceService } from "./merchant/pos-device.service";
+import { FxLiveController } from "./fx/fx-live.controller";
+import { DiasporaStatsController } from "./diaspora/diaspora-stats.controller";
+import { EmergencySendController } from "./diaspora/emergency-send.controller";
 
 @Module({
   imports: [
@@ -244,8 +252,14 @@ import { AdminChannelsController } from "./admin/admin-channels.controller";
     EmergencyController,
     DualControlController,
     AdminChannelsController,
+    RemittanceHistoryController,
+    PlaidController,
+    PosDeviceController,
+    FxLiveController,
+    DiasporaStatsController,
+    EmergencySendController,
   ],
-  providers: [StripeService, AuditService, DualControlService],
+  providers: [StripeService, AuditService, DualControlService, PlaidService, PosDeviceService],
 })
 export class AppModule implements OnModuleInit, NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -154,6 +154,9 @@ importers:
       pg:
         specifier: ^8.18.0
         version: 8.18.0
+      plaid:
+        specifier: ^41.3.0
+        version: 41.3.0
       prisma:
         specifier: ^7.3.0
         version: 7.3.0(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
@@ -441,6 +444,9 @@ importers:
       react-leaflet:
         specifier: ^5.0.0
         version: 5.0.0(leaflet@1.9.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react-plaid-link:
+        specifier: ^4.1.1
+        version: 4.1.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       recharts:
         specifier: ^3.7.0
         version: 3.7.0(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react-is@19.2.4)(react@19.2.4)(redux@5.0.1)
@@ -8177,6 +8183,10 @@ packages:
   pkg-types@2.3.0:
     resolution: {integrity: sha512-SIqCzDRg0s9npO5XQ3tNZioRY1uK06lA41ynBC1YmFTmnY6FjUjVt6s4LoADmwoig1qqD0oK8h1p/8mlMx8Oig==}
 
+  plaid@41.3.0:
+    resolution: {integrity: sha512-P5r7YdvXYv+prYtj+s7ODPftg8rIYHPmA7NFn2a7K3B0QL8GouhbNPfa6BHU2pYBr3cKVZDVJRm4fTv+KgUUxg==}
+    engines: {node: '>=10.0.0'}
+
   plist@3.1.0:
     resolution: {integrity: sha512-uysumyrvkUX0rX/dEVqt8gC3sTBzd4zoWfLeS29nb53imdaXVvLINYXTI2GNqzaMuvacNx4uJQ8+b3zXR0pkgQ==}
     engines: {node: '>=10.4.0'}
@@ -8512,6 +8522,12 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  react-plaid-link@4.1.1:
+    resolution: {integrity: sha512-xzAYWQIT/gk+u6lwFAMEZ20f9+AUsCwVyfm64/iudMsyuWANta4wm3Jb7N+APSwuKIR9VUlTkYDhPjLamIGcPA==}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18 || ^19
+      react-dom: ^16.8.0 || ^17 || ^18 || ^19
 
   react-promise-suspense@0.3.4:
     resolution: {integrity: sha512-I42jl7L3Ze6kZaq+7zXWSunBa3b1on5yfvUW6Eo/3fFOj6dZ5Bqmcd264nJbTK/gn1HjjILAjSwnZbV4RpSaNQ==}
@@ -18976,6 +18992,12 @@ snapshots:
       exsolve: 1.0.8
       pathe: 2.0.3
 
+  plaid@41.3.0:
+    dependencies:
+      axios: 1.13.5
+    transitivePeerDependencies:
+      - debug
+
   plist@3.1.0:
     dependencies:
       '@xmldom/xmldom': 0.8.11
@@ -19375,6 +19397,12 @@ snapshots:
       - encoding
       - supports-color
       - utf-8-validate
+
+  react-plaid-link@4.1.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+    dependencies:
+      prop-types: 15.8.1
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
 
   react-promise-suspense@0.3.4:
     dependencies:

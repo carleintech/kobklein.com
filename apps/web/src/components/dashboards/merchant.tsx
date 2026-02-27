@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { kkGet } from "@/lib/kobklein-api";
 import { KIdCard } from "@/components/kid-card";
+import { KNfcIcon } from "@/components/pos/KNfcIcon";
+import { PosActivationModal } from "@/components/pos/PosActivationModal";
 import {
   Store, QrCode, Monitor, Banknote, BarChart3, TrendingUp,
   RefreshCw, Eye, EyeOff, CheckCircle2, Crown, Shield,
@@ -156,6 +158,8 @@ export function MerchantDashboard({ profile }: Props) {
   const [hideBalance, setHideBalance] = useState(false);
   const [activeTab, setActiveTab]   = useState<"today" | "week" | "month">("today");
   const [copied, setCopied]         = useState(false);
+  const [posActive, setPosActive]   = useState(false);
+  const [showPosModal, setShowPosModal] = useState(false);
 
   // ── Data loading ───────────────────────────────────────────────────────────
   const todayStr   = todayISO();
@@ -167,12 +171,17 @@ export function MerchantDashboard({ profile }: Props) {
     try {
       // v1/merchant/stats is the primary endpoint — has today + week + month rolled up
       // v1/merchant/reports/settlement for full entry list (last 30 days)
-      const [statsRes, settlementRes] = await Promise.allSettled([
+      const [statsRes, settlementRes, posRes] = await Promise.allSettled([
         kkGet<MerchantStats>("v1/merchant/stats"),
         kkGet<SettlementReport>(
           `v1/merchant/reports/settlement?from=${monthStart}&to=${todayStr}`
         ),
+        kkGet<{ hasActivePosDevice: boolean }>("v1/pos/devices/my"),
       ]);
+
+      if (posRes.status === "fulfilled") {
+        setPosActive(posRes.value.hasActivePosDevice ?? false);
+      }
 
       if (statsRes.status === "fulfilled") {
         setStats(statsRes.value);
@@ -322,16 +331,40 @@ export function MerchantDashboard({ profile }: Props) {
               </span>
             )}
           </div>
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={handleRefresh}
-            className="p-1.5 rounded-lg transition-colors"
-            style={{ background: M.panel, border: `1px solid ${M.border}`, color: M.muted }}
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
-          </motion.button>
+          <div className="flex items-center gap-2">
+            {/* K-NFC POS activation button */}
+            <div className="flex flex-col items-center gap-0.5">
+              <KNfcIcon
+                size={44}
+                active={posActive}
+                onClick={() => posActive ? router.push("/merchant/pos") : setShowPosModal(true)}
+              />
+              <span className="text-[8px] font-bold uppercase tracking-wide"
+                style={{ color: posActive ? "#16C784" : M.muted }}>
+                {posActive ? "POS On" : "K-NFC"}
+              </span>
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={handleRefresh}
+              className="p-1.5 rounded-lg transition-colors"
+              style={{ background: M.panel, border: `1px solid ${M.border}`, color: M.muted }}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+            </motion.button>
+          </div>
         </div>
       </motion.div>
+
+      {/* ── POS Activation Modal ────────────────────────────────────── */}
+      <AnimatePresence>
+        {showPosModal && (
+          <PosActivationModal
+            onActivated={() => setPosActive(true)}
+            onClose={() => setShowPosModal(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── K-ID Identity Card ─────────────────────────────────────── */}
       <KIdCard compact profile={profile} />
