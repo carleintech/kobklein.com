@@ -35,10 +35,10 @@ const PARTICLES = [
 ];
 
 const FEATURES = [
-  { icon: Shield, label: "Bank-level security" },
-  { icon: Zap, label: "Instant transfers" },
-  { icon: Globe, label: "Global network" },
-  { icon: Gem, label: "Zero hidden fees" },
+  { icon: Shield, label: "Military-grade security" },
+  { icon: Zap,    label: "Instant transfers" },
+  { icon: Globe,  label: "Global network" },
+  { icon: Gem,    label: "Zero hidden fees" },
 ];
 
 const STATS = [
@@ -91,15 +91,23 @@ function LoginForm() {
     setError(null);
     try {
       const supabase = createBrowserSupabase();
-      await supabase.auth.signInWithOAuth({
+      // Use skipBrowserRedirect so we can detect "provider not enabled" before navigation
+      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          skipBrowserRedirect: true,
         },
       });
-      // Browser will navigate away; no need to setGLoading(false)
+      if (oauthError || !data?.url) {
+        setError("Google sign-in isn't enabled yet. Please sign in with your email and password.");
+        setGLoading(false);
+        return;
+      }
+      window.location.href = data.url;
+      // Browser navigates away — no need to setGLoading(false)
     } catch {
-      setError("Google sign-in failed. Please try again.");
+      setError("Google sign-in failed. Please use your email and password instead.");
       setGLoading(false);
     }
   }
@@ -224,7 +232,7 @@ function LoginForm() {
             className="text-base text-[#B8BCC8] max-w-md mb-10 leading-relaxed"
           >
             Sign in to your account and continue your journey with
-            secure, bank-free digital payments.
+            KobKlein — Haiti&apos;s most trusted digital payment platform.
           </motion.p>
 
           {/* Features */}
@@ -282,7 +290,7 @@ function LoginForm() {
           >
             <Lock className="h-3.5 w-3.5 text-[#1F6F4A]" />
             <span className="text-xs text-[#7A8394]">
-              256-bit encrypted • Bank-level security
+              256-bit encrypted • Military-grade security
             </span>
           </motion.div>
         </motion.div>

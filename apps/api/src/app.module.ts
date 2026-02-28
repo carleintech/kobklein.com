@@ -134,6 +134,7 @@ import { DiasporaStatsController } from "./diaspora/diaspora-stats.controller";
 import { EmergencySendController } from "./diaspora/emergency-send.controller";
 import { UserTimelineController } from "./wallets/user-timeline.controller";
 import { UserLocationController } from "./users/user-location.controller";
+import { CheckUniquenessController } from "./auth/check-uniqueness.controller";
 
 @Module({
   imports: [
@@ -262,6 +263,7 @@ import { UserLocationController } from "./users/user-location.controller";
     EmergencySendController,
     UserTimelineController,
     UserLocationController,
+    CheckUniquenessController,
   ],
   providers: [StripeService, AuditService, DualControlService, PlaidService, PosDeviceService],
 })
