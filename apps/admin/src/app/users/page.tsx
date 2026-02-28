@@ -15,6 +15,7 @@ import {
   ShieldX,
   Smartphone,
   Trash2,
+  UserCheck,
   UserCog,
   Users,
   Wallet,
@@ -22,7 +23,7 @@ import {
 } from "lucide-react";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ApiError, kkDelete, kkGet, kkPost } from "@/lib/kobklein-api";
+import { ApiError, kkDelete, kkGet, kkPatch, kkPost } from "@/lib/kobklein-api";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -273,9 +274,9 @@ function UserRow({
   onAction: () => void;
   onNotify: (u: UserResult) => void;
 }) {
-  const [expanded, setExpanded]         = useState<"role" | "wallet" | "delete" | null>(null);
+  const [expanded, setExpanded]         = useState<"role" | "wallet" | "delete" | "kyc" | null>(null);
   const [newRole, setNewRole]           = useState(user.role);
-  const [submitting, setSubmitting]     = useState<"freeze" | "role" | "wallet" | "delete" | null>(null);
+  const [submitting, setSubmitting]     = useState<"freeze" | "role" | "wallet" | "delete" | "kyc_approve" | "kyc_reject" | null>(null);
   const [error, setError]               = useState("");
   const [success, setSuccess]           = useState("");
   const [wallets, setWallets]           = useState<WalletInfo[]>([]);
@@ -284,11 +285,12 @@ function UserRow({
   const [adjustDirection, setAdjustDirection]   = useState<"credit" | "debit">("credit");
   const [adjustAmount, setAdjustAmount]         = useState("");
   const [adjustReason, setAdjustReason]         = useState("");
+  const [kycRejectReason, setKycRejectReason]   = useState("");
 
   const rs = roleStyle(user.role);
   const ts = tierStyle(user.kycTier);
 
-  function togglePanel(panel: "role" | "wallet" | "delete") {
+  function togglePanel(panel: "role" | "wallet" | "delete" | "kyc") {
     const next = expanded === panel ? null : panel;
     setExpanded(next);
     setError(""); setSuccess("");
@@ -360,6 +362,29 @@ function UserRow({
       setExpanded(null); onAction();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Delete failed");
+    } finally { setSubmitting(null); }
+  }
+
+  async function handleKycApprove() {
+    setSubmitting("kyc_approve"); setError(""); setSuccess("");
+    try {
+      await kkPatch(`v1/kyc/admin/${user.id}/approve`);
+      setSuccess("KYC approved — user upgraded to Tier 2 ✓");
+      setExpanded(null); onAction();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Approve failed");
+    } finally { setSubmitting(null); }
+  }
+
+  async function handleKycReject() {
+    if (!kycRejectReason.trim()) return;
+    setSubmitting("kyc_reject"); setError(""); setSuccess("");
+    try {
+      await kkPatch(`v1/kyc/admin/${user.id}/reject`, { reason: kycRejectReason.trim() });
+      setSuccess("KYC rejected — user notified");
+      setKycRejectReason(""); setExpanded(null); onAction();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Reject failed");
     } finally { setSubmitting(null); }
   }
 
@@ -475,6 +500,29 @@ function UserRow({
           >
             <Bell className="h-3.5 w-3.5" />
             Notify
+          </button>
+
+          {/* KYC Verify */}
+          <button
+            type="button"
+            disabled={submitting !== null}
+            onClick={() => togglePanel("kyc")}
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition-all disabled:opacity-40 ${
+              expanded === "kyc"
+                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                : user.kycStatus === "pending"
+                  ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400 animate-pulse"
+                  : user.kycStatus === "approved"
+                    ? "bg-emerald-500/8 border-emerald-500/20 text-emerald-400"
+                    : "bg-white/5 border-white/10 text-kob-muted hover:text-emerald-400 hover:border-emerald-500/25"
+            }`}
+          >
+            {(submitting === "kyc_approve" || submitting === "kyc_reject") ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <UserCheck className="h-3.5 w-3.5" />
+            )}
+            KYC{user.kycStatus === "pending" ? " !" : ""}
           </button>
 
           {/* Role */}
@@ -676,6 +724,111 @@ function UserRow({
                   Apply
                 </button>
               </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── KYC panel ── */}
+      {expanded === "kyc" && (
+        <div className="px-5 pb-5 pt-0 border-t border-emerald-500/10">
+          <div className="pt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] text-emerald-400/70 uppercase tracking-widest font-semibold">
+                KYC Identity Verification — {user.firstName} {user.lastName}
+              </p>
+              <div className="flex items-center gap-2">
+                {/* Current tier badge */}
+                <span className={`px-2 py-0.5 rounded-md border text-[10px] font-semibold ${tierStyle(user.kycTier).bg} ${tierStyle(user.kycTier).text}`}>
+                  Tier {user.kycTier}
+                </span>
+                {/* Current status badge */}
+                {user.kycStatus === "approved" && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-emerald-500/25 bg-emerald-500/10 text-[10px] font-semibold text-emerald-400">
+                    <ShieldCheck className="h-3 w-3" /> Verified
+                  </span>
+                )}
+                {user.kycStatus === "pending" && (
+                  <span className="px-2 py-0.5 rounded-md border border-yellow-500/25 bg-yellow-500/10 text-[10px] font-semibold text-yellow-400">
+                    ⏳ Pending Review
+                  </span>
+                )}
+                {user.kycStatus === "rejected" && (
+                  <span className="px-2 py-0.5 rounded-md border border-red-500/25 bg-red-500/10 text-[10px] font-semibold text-red-400">
+                    Rejected
+                  </span>
+                )}
+                {(!user.kycStatus || user.kycStatus === "none") && (
+                  <span className="px-2 py-0.5 rounded-md border border-white/15 bg-white/5 text-[10px] font-semibold text-kob-muted">
+                    Unverified
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Already approved */}
+            {user.kycStatus === "approved" ? (
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-500/8 border border-emerald-500/20">
+                <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                <p className="text-xs text-emerald-400 font-medium">
+                  This user is already KYC verified at Tier {user.kycTier}.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Approve button */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <button
+                    type="button"
+                    disabled={submitting !== null}
+                    onClick={handleKycApprove}
+                    className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-[12px] font-bold text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-40"
+                  >
+                    {submitting === "kyc_approve" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ShieldCheck className="h-4 w-4" />
+                    )}
+                    Approve KYC — Upgrade to Tier 2
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpanded(null)}
+                    className="px-3 py-2 rounded-xl border border-white/8 text-[11px] text-kob-muted hover:text-kob-text transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                {/* Reject section */}
+                <div className="space-y-2 pt-1">
+                  <p className="text-[10px] text-red-400/60 uppercase tracking-widest font-semibold">
+                    Or Reject with Reason
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={kycRejectReason}
+                      onChange={(e) => setKycRejectReason(e.target.value)}
+                      placeholder="e.g. Document not clear, please resubmit"
+                      className="flex-1 h-9 rounded-xl bg-white/5 border border-white/10 focus:border-red-400/40 focus:outline-none px-3 text-xs text-kob-text placeholder:text-kob-muted/50 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      disabled={submitting !== null || !kycRejectReason.trim()}
+                      onClick={handleKycReject}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-[11px] font-bold text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-40"
+                    >
+                      {submitting === "kyc_reject" ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <ShieldX className="h-3.5 w-3.5" />
+                      )}
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>

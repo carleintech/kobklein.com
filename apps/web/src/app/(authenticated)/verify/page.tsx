@@ -648,21 +648,57 @@ export default function VerifyPage() {
             />
           )}
 
-          {/* Submitted notice */}
+          {/* Submitted notice + CTA */}
           <AnimatePresence>
             {status?.documentUrl && status?.selfieUrl && status?.kycStatus === "pending" && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="rounded-2xl border border-[#C9A84C]/20 p-4 flex items-start gap-3"
+                className="rounded-2xl border border-[#C9A84C]/20 overflow-hidden"
                 style={{ background: "rgba(201,168,76,0.05)" }}
               >
-                <AlertCircle className="h-5 w-5 text-[#C9A84C] shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-bold text-[#C9A84C]">Documents Submitted</p>
-                  <p className="text-xs text-[#7A8394] mt-0.5 leading-relaxed">
-                    Our team is reviewing your documents. You&apos;ll receive a notification within 24 hours once verified.
-                  </p>
+                {/* Notice */}
+                <div className="p-4 flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-[#C9A84C] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-[#C9A84C]">
+                      ✓ Documents Submitted — Under Review
+                    </p>
+                    <p className="text-xs text-[#7A8394] mt-0.5 leading-relaxed">
+                      All done! Our compliance team is reviewing your documents. You&apos;ll
+                      be notified within 24 hours once verified.
+                    </p>
+                  </div>
+                </div>
+                {/* Action buttons */}
+                <div className="px-4 pb-4 flex items-center gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => router.push("/")}
+                    className="flex-1 h-11 rounded-xl flex items-center justify-center gap-2
+                               text-sm font-bold text-[#060D1F] transition-all"
+                    style={{
+                      background: "linear-gradient(135deg, #E2CA6E, #C9A84C)",
+                      boxShadow: "0 6px 18px -4px rgba(201,168,76,0.4)",
+                    }}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                    Back to Dashboard
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => router.push("/support")}
+                    className="px-4 h-11 rounded-xl text-sm font-semibold transition-all"
+                    style={{
+                      background: "var(--dash-shell-bg, #1C0A35)",
+                      border: "1px solid var(--dash-shell-border, rgba(165,150,201,0.22))",
+                      color: "#7A8394",
+                    }}
+                  >
+                    Need Help?
+                  </motion.button>
                 </div>
               </motion.div>
             )}

@@ -12,6 +12,7 @@ import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import { GlobalExceptionFilter } from "./filters/http-exception.filter";
 import helmet from "helmet";
+import * as express from "express";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -20,6 +21,10 @@ async function bootstrap() {
 
   // Security headers
   app.use(helmet());
+
+  // Increase body parser limit for KYC document uploads (base64 images can be 5–15 MB)
+  app.use(express.json({ limit: "25mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "25mb" }));
 
   // Enable global validation (class-validator DTOs)
   app.useGlobalPipes(
