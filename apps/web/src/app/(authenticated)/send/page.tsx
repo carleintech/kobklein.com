@@ -124,6 +124,7 @@ function SendPage() {
   const [smartRecipients, setSmartRecipients] = useState<Recipient[]>([]);
   const [fxPreview,       setFxPreview]       = useState<any>(null);
   const [previewLoading,  setPreviewLoading]  = useState(false);
+  const [transferPreview, setTransferPreview] = useState<any>(null); // from attempt response
   const [stepUpOpen,      setStepUpOpen]      = useState(false);
   const [lookupLoading,   setLookupLoading]   = useState(false);
   const [lookupResult,    setLookupResult]    = useState<{ name: string; kId?: string; kycTier?: number } | null>(null);
@@ -227,6 +228,7 @@ function SendPage() {
     setState("processing"); setError(null);
     try {
       const result = await attemptTransfer({ recipientUserId, amount: Number(amount), currency: fromCurrency });
+      if (result.preview) setTransferPreview(result.preview);
       if (result.otpRequired && result.challengeId) {
         setChallengeId(result.challengeId);
         setOtpCode(result.otpCode ?? null);
@@ -261,7 +263,7 @@ function SendPage() {
   function reset() {
     setState("idle"); setPhone(""); setAmount(""); setRecipientUserId("");
     setRecipientName(""); setRecipientTrust("new"); setSelectedR(null);
-    setChallengeId(null); setOtpCode(null); setReceipt(null); setError(null); setFxPreview(null);
+    setChallengeId(null); setOtpCode(null); setReceipt(null); setError(null); setFxPreview(null); setTransferPreview(null);
     setLookupResult(null); setLookupError(null);
     refresh();
   }
@@ -510,6 +512,7 @@ function SendPage() {
           onVerify={handleStepUpVerify}
           challengeId={challengeId || undefined}
           otpCode={otpCode || undefined}
+          preview={transferPreview}
         />
       </div>
     );

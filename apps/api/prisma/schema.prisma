@@ -300,12 +300,14 @@ model FamilyLink {
 
 model FeeConfig {
   id        String   @id @default(cuid())
-  type      String
+  type      String   // corridor code e.g. "CLIENT_DIASPORA"
+  label     String?  // human-readable e.g. "Client → Diaspora (HTG→USD)"
   percent   Decimal  @default(0) @db.Decimal(8, 4)
   flat      Decimal  @default(0) @db.Decimal(18, 2)
-  currency  String   @default("HTG")
+  currency  String   @default("HTG") // currency the fee is charged in
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([type, currency])
 }

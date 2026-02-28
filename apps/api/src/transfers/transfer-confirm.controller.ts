@@ -57,13 +57,15 @@ export class TransferConfirmController {
       throw new BadRequestException(msg);
     }
 
-    let result: { transferId?: string };
+    let result: { transferId?: string; receivedAmount?: number; toCurrency?: string; fee?: number };
     try {
       result = await executeTransfer({
         senderUserId: userId,
         recipientUserId: payload.recipientUserId,
         amount: payload.amount,
         currency: payload.currency,
+        toCurrency: payload.toCurrency,   // cross-currency support
+        fee: payload.fee ?? 0,            // fee agreed at attempt time
         idempotencyKey: payload.idempotencyKey,
       });
     } catch (err: unknown) {
@@ -89,6 +91,9 @@ export class TransferConfirmController {
     return {
       ok: true,
       transferId: result.transferId,
+      receivedAmount: result.receivedAmount,
+      toCurrency: result.toCurrency,
+      fee: result.fee,
     };
   }
 }

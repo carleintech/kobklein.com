@@ -1,7 +1,20 @@
 "use client";
 
-import { Lock, Shield } from "lucide-react";
+import { ArrowRight, Lock, Shield } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
+type TransferPreview = {
+  fromCurrency: string;
+  toCurrency: string;
+  sentAmount: number;
+  receivedAmount: number;
+  fxRate: number;
+  isCrossCurrency: boolean;
+  fee: number;
+  feeCurrency: string;
+  totalDeducted: number;
+  corridorLabel?: string;
+};
 
 type Props = {
   open: boolean;
@@ -9,11 +22,12 @@ type Props = {
   onVerify: (otpCode: string) => Promise<void>;
   challengeId?: string;
   otpCode?: string;
+  preview?: TransferPreview | null;
 };
 
 const DIGIT_KEYS = ["d0", "d1", "d2", "d3", "d4", "d5"] as const;
 
-export default function StepUpModal({ open, onClose, onVerify, otpCode }: Props) {
+export default function StepUpModal({ open, onClose, onVerify, otpCode, preview }: Props) {
   const [otp, setOtp]         = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<string | null>(null);
@@ -157,6 +171,79 @@ export default function StepUpModal({ open, onClose, onVerify, otpCode }: Props)
 
           {error && (
             <p className="text-sm text-red-400 text-center -mt-2">{error}</p>
+          )}
+
+          {/* Transfer breakdown — shown when preview is available */}
+          {preview && (
+            <div
+              className="rounded-2xl p-4 space-y-2"
+              style={{
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <p className="text-[10px] uppercase tracking-wider font-bold mb-3" style={{ color: "#7A8394" }}>
+                Transfer Summary
+              </p>
+
+              {/* You send */}
+              <div className="flex justify-between text-xs">
+                <span style={{ color: "#7A8394" }}>You send</span>
+                <span className="font-semibold" style={{ color: "#F2F2F2" }}>
+                  {preview.sentAmount.toLocaleString()} {preview.fromCurrency}
+                </span>
+              </div>
+
+              {/* Fee (only if > 0) */}
+              {preview.fee > 0 && (
+                <div className="flex justify-between text-xs">
+                  <span style={{ color: "#7A8394" }}>Transfer fee</span>
+                  <span className="font-semibold" style={{ color: "#F87171" }}>
+                    − {preview.fee.toLocaleString()} {preview.feeCurrency}
+                  </span>
+                </div>
+              )}
+
+              {/* FX conversion (only cross-currency) */}
+              {preview.isCrossCurrency && (
+                <div className="flex justify-between text-xs">
+                  <span style={{ color: "#7A8394" }}>Exchange rate</span>
+                  <span style={{ color: "#C4C7CF" }}>
+                    1 {preview.fromCurrency} = {preview.fxRate < 1
+                      ? `$${preview.fxRate.toFixed(6)}`
+                      : preview.fxRate.toLocaleString()
+                    } {preview.toCurrency}
+                  </span>
+                </div>
+              )}
+
+              {/* Divider */}
+              <div className="border-t my-2" style={{ borderColor: "rgba(255,255,255,0.06)" }} />
+
+              {/* Total deducted */}
+              <div className="flex justify-between text-xs font-bold">
+                <span style={{ color: "#7A8394" }}>Total deducted</span>
+                <span style={{ color: "#E1C97A" }}>
+                  {preview.totalDeducted.toLocaleString()} {preview.fromCurrency}
+                </span>
+              </div>
+
+              {/* Recipient gets */}
+              <div className="flex justify-between text-xs font-bold">
+                <span style={{ color: "#7A8394" }}>Recipient gets</span>
+                <div className="flex items-center gap-1">
+                  {preview.isCrossCurrency && (
+                    <ArrowRight className="h-3 w-3" style={{ color: "#7A8394" }} />
+                  )}
+                  <span style={{ color: "#22C55E" }}>
+                    {preview.toCurrency === "USD"
+                      ? `$${preview.receivedAmount.toFixed(2)}`
+                      : preview.receivedAmount.toLocaleString()
+                    } {preview.toCurrency}
+                  </span>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Actions */}

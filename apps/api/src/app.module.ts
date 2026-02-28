@@ -104,6 +104,7 @@ import { DevicesController } from "./security/devices.controller";
 import { AdminDevicesController } from "./admin/admin-devices.controller";
 import { LockdownController } from "./security/lockdown.controller";
 import { AdminComplianceController } from "./admin/admin-compliance.controller";
+import { AdminFeesController } from "./admin/admin-fees.controller";
 // KycUploadController removed — KycController already handles all /v1/kyc/upload/* routes
 // and correctly saves documentType + idNumber. Having both created a route conflict.
 import { BillingController } from "./billing/billing.controller";
@@ -238,6 +239,7 @@ import { CheckUniquenessController } from "./auth/check-uniqueness.controller";
     AdminDevicesController,
     LockdownController,
     AdminComplianceController,
+    AdminFeesController,
     BillingController,
     AdminPlansController,
     PushController,
