@@ -59,7 +59,7 @@ export function Topbar({
   unreadCount?: number;
   sidebarWidth?: number;
 }) {
-  const { user }                = useUser();
+  const { user, avatarUrl }     = useUser();
   const router                  = useRouter();
   const [search, setSearch]     = useState("");
   const [dropOpen, setDropOpen] = useState(false);
@@ -206,11 +206,11 @@ export function Topbar({
                          hover:bg-white/[0.05] border border-transparent
                          hover:border-white/[0.07] transition-all"
             >
-              {/* Avatar */}
-              {user.picture ? (
+              {/* Avatar — prefers DB profile photo, falls back to initials */}
+              {avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={user.picture}
+                  src={avatarUrl}
                   alt={displayName}
                   className="w-7 h-7 rounded-full object-cover ring-2 ring-[#C9A84C]/30 shrink-0"
                 />

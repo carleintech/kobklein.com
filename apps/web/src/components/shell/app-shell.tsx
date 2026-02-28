@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ShieldAlert, X } from "lucide-react";
@@ -35,6 +35,11 @@ export function AppShell({
   const [onboardingChecked, setOnboardingChecked]   = useState(false);
   const [fraudAlert, setFraudAlert]                 = useState<string | null>(null);
   const [localUserId, setLocalUserId]               = useState<string | null>(null);
+  /** DB profilePhotoUrl — kept in sync with the profile page via custom event */
+  const [profilePhotoUrl, setProfilePhotoUrl]       = useState<string | undefined>(
+    user.profilePhotoUrl || user.picture || undefined,
+  );
+  const avatarSetRef = useRef(false); // prevent double-fetch
   const pathname = usePathname();
   const router   = useRouter();
 
@@ -45,13 +50,22 @@ export function AppShell({
       .catch(() => {});
   }, []);
 
-  // Fetch localUserId once (needed for Realtime channel filters)
+  // Fetch localUserId + profilePhotoUrl once (needed for Realtime filters + avatar)
   useEffect(() => {
-    kkGet<{ id: string }>("v1/users/me")
-      .then((p) => { if (p?.id) setLocalUserId(p.id); })
+    if (avatarSetRef.current) return;
+    avatarSetRef.current = true;
+
+    kkGet<{ id: string; profilePhotoUrl?: string | null }>("v1/users/me")
+      .then((p) => {
+        if (p?.id) setLocalUserId(p.id);
+        if (p?.profilePhotoUrl) setProfilePhotoUrl(p.profilePhotoUrl);
+      })
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Note: kk:profile-photo-updated event is handled inside UserProvider itself,
+  // so no listener is needed here. AppShell only populates the initial DB value.
 
   // ── Realtime: new Notification → increment badge + detect fraud ──────────
   const handleNewNotification = useCallback((row: Record<string, unknown>) => {
@@ -167,8 +181,11 @@ export function AppShell({
 
   const sidebarWidth = sidebarCollapsed ? 64 : 240;
 
+  // Inject resolved avatar into user object so UserProvider initialises with it
+  const resolvedUser: AuthUser = { ...user, profilePhotoUrl: profilePhotoUrl ?? user.profilePhotoUrl };
+
   return (
-    <UserProvider user={user} localUserId={localUserId ?? undefined}>
+    <UserProvider user={resolvedUser} localUserId={localUserId ?? undefined}>
       {/* Sidebar — fixed left panel, desktop only */}
       <Sidebar unreadCount={unreadCount} onCollapsedChange={setSidebarCollapsed} />
 

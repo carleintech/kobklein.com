@@ -181,6 +181,12 @@ export default function ProfilePage() {
 
       // Persist URL to backend
       await kkPatch("v1/users/profile", { profilePhotoUrl: publicUrl });
+
+      // Broadcast to the entire app — topbar + sidebar avatar update instantly
+      window.dispatchEvent(
+        new CustomEvent("kk:profile-photo-updated", { detail: publicUrl }),
+      );
+
       toast.show("Photo updated!", "success");
     } catch (err: any) {
       toast.show(err.message || "Failed to upload photo", "error");

@@ -141,7 +141,7 @@ export function Sidebar({
   onCollapsedChange?: (collapsed: boolean) => void;
 }) {
   const pathname = usePathname();
-  const { user } = useUser();
+  const { user, avatarUrl } = useUser();
   const router   = useRouter();
   const { t }    = useI18n();
   const userRole = user.role || "client";
@@ -283,11 +283,11 @@ export function Sidebar({
           className={`w-full flex items-center py-3 transition-colors hover:bg-white/[0.03]
             ${collapsed ? "justify-center px-2" : "px-4 gap-3"}`}
         >
-          {/* Avatar */}
+          {/* Avatar — prefers DB profile photo, falls back to initials */}
           <div className="shrink-0">
-            {user.picture ? (
+            {avatarUrl ? (
               <img
-                src={user.picture}
+                src={avatarUrl}
                 alt=""
                 className="w-8 h-8 rounded-full object-cover ring-1 ring-[#C9A84C]/30"
               />
