@@ -1,5 +1,8 @@
 FROM node:20-alpine
 
+# Install pnpm (required by build scripts)
+RUN npm install -g pnpm
+
 WORKDIR /app
 
 # Copy package manifests and install all deps
