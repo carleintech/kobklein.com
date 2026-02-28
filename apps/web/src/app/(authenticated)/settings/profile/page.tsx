@@ -161,48 +161,32 @@ export default function ProfilePage() {
 
     setUploading(true);
     try {
-      const supabase = createBrowserSupabase();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      // Upload via server-side route — bypasses Supabase Storage RLS
+      const form = new FormData();
+      form.append("file", file);
 
-      // Upload to Supabase Storage → bucket: profile-photos
-      const ext  = file.name.split(".").pop() ?? "jpg";
-      const path = `${user.id}/avatar.${ext}`;
+      const res = await fetch("/api/upload/profile-photo", {
+        method: "POST",
+        body:   form,
+      });
 
-      const { error: uploadError } = await supabase.storage
-        .from("profile-photos")
-        .upload(path, file, { upsert: true, contentType: file.type });
+      const json = await res.json();
 
-      if (uploadError) {
-        // Give a helpful message for the "bucket not found" case
-        if (
-          uploadError.message?.toLowerCase().includes("bucket") ||
-          uploadError.message?.toLowerCase().includes("not found") ||
-          (uploadError as any).statusCode === 400 ||
-          (uploadError as any).error === "Bucket not found"
-        ) {
-          throw new Error(
-            "Storage bucket not set up yet. Go to Supabase Dashboard → Storage → New bucket → name it 'profile-photos' → set to Public."
-          );
-        }
-        throw uploadError;
+      if (!res.ok) {
+        throw new Error(json.error || "Failed to upload photo");
       }
 
-      const { data: urlData } = supabase.storage
-        .from("profile-photos")
-        .getPublicUrl(path);
-
-      const publicUrl = urlData.publicUrl + `?t=${Date.now()}`;
+      const publicUrl: string = json.url;
       setPhotoUrl(publicUrl);
 
-      // Persist to backend
+      // Persist URL to backend
       await kkPatch("v1/users/profile", { profilePhotoUrl: publicUrl });
       toast.show("Photo updated!", "success");
     } catch (err: any) {
       toast.show(err.message || "Failed to upload photo", "error");
     } finally {
       setUploading(false);
-      // Reset file input
+      // Reset file input so the same file can be re-selected after a fix
       if (fileRef.current) fileRef.current.value = "";
     }
   }
