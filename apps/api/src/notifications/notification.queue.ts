@@ -57,6 +57,10 @@ const QUEUE_NAME = "notifications";
 let queue: Queue<NotificationJob> | null = null;
 
 export function getNotificationQueue(): Queue<NotificationJob> | null {
+  // DISABLE_QUEUE=true → skip BullMQ entirely (prevents ioredis stall-checker
+  // from firing evalsha every 30s and exhausting Upstash's 500k/day free tier).
+  if (process.env.DISABLE_QUEUE === "true") return null;
+
   if (!queue) {
     try {
       queue = new Queue<NotificationJob>(QUEUE_NAME, {
@@ -190,6 +194,14 @@ function checkTCPReachable(url: string): Promise<boolean> {
 export async function startNotificationWorker(): Promise<void> {
   if (worker) return; // already running
 
+  // DISABLE_QUEUE=true → skip BullMQ entirely. Use this in dev when pointing
+  // at Upstash to avoid exhausting the 500k/day free-tier command limit.
+  // Notifications fall back to direct (synchronous) delivery instead.
+  if (process.env.DISABLE_QUEUE === "true") {
+    console.log("⚠ DISABLE_QUEUE=true — BullMQ notification worker disabled (direct delivery fallback active)");
+    return;
+  }
+
   if (!process.env.REDIS_URL) {
     console.warn("⚠ REDIS_URL not set — notification worker disabled");
     return;
@@ -207,6 +219,10 @@ export async function startNotificationWorker(): Promise<void> {
   worker = new Worker<NotificationJob>(QUEUE_NAME, processNotification, {
     connection: createRedisConnection(),
     concurrency: 5,
+    // Increase stall-check interval from 30s (default) to 5 minutes.
+    // Each stall check = ~8 Redis commands via evalsha.  At 30s the default
+    // exhausts Upstash's 500k/day free tier in hours; 5 min reduces that 10×.
+    stalledInterval: 300_000,
     limiter: {
       max: 10, // max 10 SMS per second (Twilio rate limit safe)
       duration: 1000,
