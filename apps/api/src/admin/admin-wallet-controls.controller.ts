@@ -12,6 +12,7 @@ import { Roles } from "../policies/roles.decorator";
 import { RolesGuard } from "../policies/roles.guard";
 import { prisma } from "../db/prisma";
 import { AuditService } from "../audit/audit.service";
+import { invalidateBalance } from "../wallets/balance.service";
 
 /**
  * Admin Manual Wallet Controls
@@ -71,6 +72,9 @@ export class AdminWalletControlsController {
         reference: `admin:${req.localUser?.id}:${direction}:${reason.slice(0, 80)}`,
       },
     });
+
+    // Invalidate Redis balance cache so next fetch returns the updated balance
+    await invalidateBalance(wallet.id).catch(() => {/* Redis optional */});
 
     await this.auditService.logFinancialAction({
       actorUserId: req.localUser?.id,

@@ -766,13 +766,36 @@ function UserRow({
               </div>
             </div>
 
-            {/* Already approved */}
-            {user.kycStatus === "approved" ? (
+            {/* Already approved at Tier 2+ */}
+            {user.kycStatus === "approved" && user.kycTier >= 2 ? (
               <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-500/8 border border-emerald-500/20">
                 <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
                 <p className="text-xs text-emerald-400 font-medium">
-                  This user is already KYC verified at Tier {user.kycTier}.
+                  This user is fully verified at Tier {user.kycTier}. ✓
                 </p>
+              </div>
+            ) : user.kycStatus === "approved" && user.kycTier < 2 ? (
+              /* Approved at Tier 1 — can upgrade to Tier 2 if documents are on file */
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-yellow-500/8 border border-yellow-500/20">
+                  <ShieldAlert className="h-4 w-4 text-yellow-400 shrink-0" />
+                  <p className="text-xs text-yellow-300 font-medium">
+                    Approved at Tier 1 — upgrade to Tier 2 if full documents are on file.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={submitting !== null}
+                  onClick={handleKycApprove}
+                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-[12px] font-bold text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-40"
+                >
+                  {submitting === "kyc_approve" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ShieldCheck className="h-4 w-4" />
+                  )}
+                  Upgrade to Tier 2 — Full Verified
+                </button>
               </div>
             ) : (
               <>

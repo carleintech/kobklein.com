@@ -11,7 +11,7 @@ import { SupabaseGuard } from "../auth/supabase.guard";
 import { RolesGuard } from "../policies/roles.guard";
 import { Roles } from "../policies/roles.decorator";
 import { prisma } from "../db/prisma";
-import { evaluateKycTier } from "../compliance/kyc.rules";
+// evaluateKycTier removed — tier is now determined by document presence (not volume)
 import { screenUser, getScreeningHistory } from "../compliance/sanctions.service";
 import { createNotification } from "../notifications/notification.service";
 import { renderTemplate, toLang } from "../i18n/render";
@@ -157,20 +157,43 @@ export class AdminComplianceController {
 
   /**
    * POST /v1/admin/compliance/kyc/:userId/approve — Approve KYC
+   *
+   * Tier logic:
+   *  - Caller can pass body.tier to explicitly set the tier.
+   *  - Otherwise: if the user has submitted both a document + selfie (full KYC),
+   *    approve at Tier 2 (the standard verified tier).
+   *  - If only Level-1 info was submitted (no documents), approve at Tier 1.
+   *  - evaluateKycTier() computes based on TRANSACTION VOLUME which is $0 for
+   *    new users — so we never use it to downgrade an admin's manual approval.
    */
   @Post("kyc/:userId/approve")
   async approveKyc(
     @Param("userId") userId: string,
     @Body() body: { tier?: number },
   ) {
-    const evaluation = await evaluateKycTier(userId);
-    const newTier = body.tier ?? evaluation.requiredTier;
+    // Determine the correct tier from the KYC profile documents
+    const kycProfile = await prisma.kycProfile.findUnique({
+      where: { userId },
+      select: { documentUrl: true, selfieUrl: true, addressProof: true },
+    });
+
+    let newTier: number;
+    if (body.tier !== undefined) {
+      // Admin explicitly passed the desired tier
+      newTier = body.tier;
+    } else if (kycProfile?.documentUrl && kycProfile?.selfieUrl) {
+      // Full document review — upgrade to Tier 2 (Verified)
+      newTier = kycProfile.addressProof ? 3 : 2;
+    } else {
+      // Only Level-1 info submitted — Tier 1
+      newTier = 1;
+    }
 
     await prisma.user.update({
       where: { id: userId },
       data: {
         kycStatus: "approved",
-        kycTier: Math.max(newTier, 1),
+        kycTier: newTier,
       },
     });
 

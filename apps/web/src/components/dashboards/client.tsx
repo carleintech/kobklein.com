@@ -329,15 +329,19 @@ export function ClientDashboard({ profile }: Props) {
           )}
         </div>
 
-        {/* Status badges */}
+        {/* Status badges — driven by kycStatus first, kycTier as fallback */}
         <div className="flex flex-wrap items-center gap-2">
-          {profile.kycTier >= 2 ? (
+          {(profile.kycTier >= 2 || profile.kycStatus === "approved") ? (
             <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-semibold">
               <CheckCircle2 className="h-3 w-3" /> Verified Identity
             </span>
-          ) : profile.kycTier === 1 ? (
+          ) : profile.kycStatus === "pending" ? (
             <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] animate-pulse">
-              <Clock className="h-3 w-3" /> KYC Pending
+              <Clock className="h-3 w-3" /> Under Review
+            </span>
+          ) : profile.kycTier === 1 ? (
+            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-[11px]">
+              <Shield className="h-3 w-3" /> Basic KYC
             </span>
           ) : (
             <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[11px]">
@@ -839,8 +843,9 @@ export function ClientDashboard({ profile }: Props) {
             <div className="space-y-2 mb-3">
               {[
                 { label: "Encryption",      value: "AES-256",    color: "text-emerald-400" },
-                { label: "Identity",         value: profile.kycTier >= 2 ? "Verified" : profile.kycTier === 1 ? "Pending" : "Unverified",
-                  color: profile.kycTier >= 2 ? "text-emerald-400" : "text-amber-400" },
+                { label: "Identity",
+                  value: (profile.kycTier >= 2 || profile.kycStatus === "approved") ? "Verified" : profile.kycStatus === "pending" ? "Under Review" : profile.kycTier === 1 ? "Basic" : "Unverified",
+                  color: (profile.kycTier >= 2 || profile.kycStatus === "approved") ? "text-emerald-400" : profile.kycStatus === "pending" ? "text-amber-400" : "text-red-400" },
                 { label: "Account Status",  value: "Active",     color: "text-emerald-400" },
               ].map((row) => (
                 <div key={row.label} className="flex items-center justify-between text-[11px]">
@@ -858,8 +863,8 @@ export function ClientDashboard({ profile }: Props) {
             </button>
           </motion.div>
 
-          {/* KYC banner */}
-          {profile.kycTier < 2 && (
+          {/* KYC banner — hide when fully approved */}
+          {profile.kycTier < 2 && profile.kycStatus !== "approved" && (
             <motion.button
               type="button"
               onClick={() => router.push("/verify")}

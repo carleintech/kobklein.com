@@ -40,6 +40,20 @@ type KycProfile = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+const DOC_TYPE_LABELS: Record<string, string> = {
+  national_id:      "National ID",
+  passport:         "Passport",
+  drivers_license:  "Driver License",
+  drivers_licence:  "Driver License",
+  residence_permit: "Residence Permit",
+  voter_id:         "Voter ID",
+};
+
+function fmtDocType(raw: string | null): string {
+  if (!raw) return "—";
+  return DOC_TYPE_LABELS[raw] ?? raw.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function timeAgo(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime();
   const h = Math.floor(ms / 3_600_000);
@@ -143,8 +157,8 @@ function KycCard({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1.5">
             {[
               { label: "Full Name", value: profile.fullName },
-              { label: "Doc Type", value: profile.documentType },
-              { label: "ID Number", value: profile.idNumber },
+              { label: "Doc Type", value: fmtDocType(profile.documentType) },
+              { label: "ID Number", value: profile.idNumber || "—" },
               {
                 label: "Submitted",
                 value: profile.submittedAt

@@ -15,15 +15,27 @@ import helmet from "helmet";
 import * as express from "express";
 
 async function bootstrap() {
+  // Disable NestJS's default body parsers (100 kb limit) so we can replace them
+  // with 25 mb parsers that also capture rawBody for Stripe webhook verification.
   const app = await NestFactory.create(AppModule, {
     rawBody: true,
+    bodyParser: false,
   });
 
   // Security headers
   app.use(helmet());
 
-  // Increase body parser limit for KYC document uploads (base64 images can be 5–15 MB)
-  app.use(express.json({ limit: "25mb" }));
+  // ── Custom body parsers (must come BEFORE route handlers) ──────────────────
+  // Using bodyParser: false above so these are the ONLY parsers running.
+  // The verify callback stores req.rawBody for Stripe / webhook signature checks.
+  app.use(
+    express.json({
+      limit: "25mb",
+      verify: (req: any, _res, buf) => {
+        if (buf?.length) req.rawBody = buf;
+      },
+    }),
+  );
   app.use(express.urlencoded({ extended: true, limit: "25mb" }));
 
   // Enable global validation (class-validator DTOs)
