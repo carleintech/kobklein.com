@@ -49,6 +49,61 @@ body {
 
 /* ── Sovereign Luxury Utility Classes ── */
 
+/* ── Reusable CTA Buttons ── */
+
+/* Primary gold gradient button — "Join the Pilot Program", "Get Started", etc. */
+.btn-gold-primary {
+  height: 3rem;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #E1C97A 0%, #C6A756 50%, #9F7F2C 100%);
+  color: #080B14;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 20px -4px rgba(198, 167, 86, 0.40);
+  transition: box-shadow 0.25s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+.btn-gold-primary:hover {
+  box-shadow: 0 8px 32px -4px rgba(198, 167, 86, 0.60);
+  transform: translateY(-1px);
+}
+.btn-gold-primary:active {
+  transform: translateY(0);
+}
+
+/* Secondary gold outline button — "Become a Merchant Partner", "Learn More", etc. */
+.btn-gold-outline {
+  height: 3rem;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  background: transparent;
+  border: 1.5px solid rgba(198, 167, 86, 0.45);
+  color: #C6A756;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.25s ease, border-color 0.25s ease,
+              box-shadow 0.25s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+.btn-gold-outline:hover {
+  background: rgba(198, 167, 86, 0.08);
+  border-color: rgba(198, 167, 86, 0.75);
+  box-shadow: 0 4px 20px -4px rgba(198, 167, 86, 0.20);
+  transform: translateY(-1px);
+}
+.btn-gold-outline:active {
+  transform: translateY(0);
+}
+
 /* Font shorthand for Playfair Display headings */
 .font-serif-luxury {
   font-family: "Playfair Display", Georgia, serif;

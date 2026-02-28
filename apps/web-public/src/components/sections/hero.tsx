@@ -1,9 +1,10 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
-import { ArrowRight, Shield, Zap, Eye } from "lucide-react";
+import { ArrowRight, Shield, Zap, Eye, Store } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useParams } from "next/navigation";
 import type { Dictionary } from "@/i18n";
 import HeroBackground from "@/components/HeroBackground";
 
@@ -38,6 +39,9 @@ const heroFeatures = [
 ];
 
 export function HeroSection({ dict }: { dict: Dictionary }) {
+	const params = useParams<{ locale: string }>();
+	const locale = params?.locale ?? "en";
+
 	const stats = [
 		{ value: dict.hero.stats.users, label: dict.hero.stats.usersLabel },
 		{
@@ -102,17 +106,21 @@ export function HeroSection({ dict }: { dict: Dictionary }) {
 							custom={3}
 							className="mt-10 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4"
 						>
+							{/* ── PRIMARY: Join the Pilot Program ── */}
 							<Link
-								href={appUrl}
-								className="h-12 px-8 py-3 rounded-xl bg-kob-gold text-kob-black text-base font-semibold tracking-wide hover:bg-kob-goldLight hover:shadow-lg hover:shadow-kob-gold/30 transition-all duration-300 flex items-center gap-2 group"
+								href={`${appUrl}/signup`}
+								className="btn-gold-primary"
 							>
 								{dict.hero.cta}
 								<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
 							</Link>
+
+							{/* ── SECONDARY: Become a Merchant Partner ── */}
 							<Link
-								href="#how-it-works"
-								className="h-12 px-8 py-3 rounded-xl bg-transparent border border-kob-teal/50 text-kob-teal text-base font-medium tracking-wide hover:bg-kob-teal/10 hover:border-kob-teal hover:shadow-lg hover:shadow-kob-teal/20 transition-all duration-300"
+								href={`/${locale}/business`}
+								className="btn-gold-outline"
 							>
+								<Store className="h-4 w-4 shrink-0" />
 								{dict.hero.ctaSecondary}
 							</Link>
 						</motion.div>
