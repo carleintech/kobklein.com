@@ -105,7 +105,7 @@ const sections: NavSection[] = [
   {
     heading: "Network",
     items: [
-      { label: "Users",         href: "/users",         icon: UserCog },
+      { label: "User Control",   href: "/users",         icon: UserCog },
       { label: "Clients",       href: "/clients",       icon: Users },
       { label: "Diaspora",      href: "/diaspora",      icon: Globe },
       { label: "Agents",        href: "/agents",        icon: Building2 },
