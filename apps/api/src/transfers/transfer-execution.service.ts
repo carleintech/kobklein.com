@@ -253,53 +253,56 @@ export async function executeTransfer(params: {
     return t;
   });
 
-  // Invalidate balance cache
-  await invalidateBalance(senderWallet.id);
-  await invalidateBalance(recipientWallet.id);
+  // Invalidate balance cache (Redis optional — never block the response)
+  await invalidateBalance(senderWallet.id).catch(() => {});
+  await invalidateBalance(recipientWallet.id).catch(() => {});
 
-  // Save contact
-  await prisma.transferContact.upsert({
-    where: {
-      userId_contactUserId: {
+  // Post-transfer side effects — fire-and-forget so a failure here
+  // NEVER causes a 500 on a completed transfer.
+  Promise.allSettled([
+    // Save contact for smart recipients
+    prisma.transferContact.upsert({
+      where: {
+        userId_contactUserId: {
+          userId: senderUserId,
+          contactUserId: recipientUserId,
+        },
+      },
+      update: {
+        transferCount: { increment: 1 },
+        lastTransferAt: new Date(),
+      },
+      create: {
         userId: senderUserId,
         contactUserId: recipientUserId,
       },
-    },
-    update: {
-      transferCount: { increment: 1 },
-      lastTransferAt: new Date(),
-    },
-    create: {
-      userId: senderUserId,
-      contactUserId: recipientUserId,
-    },
-  });
+    }),
 
-  // Notifications
-  await createNotification(
-    senderUserId,
-    "Money Sent",
-    `You sent ${amount} ${currency} to ${recipient?.firstName || "recipient"}.`,
-    "transfer",
-  );
+    // Notifications
+    createNotification(
+      senderUserId,
+      "Money Sent",
+      `You sent ${amount} ${currency} to ${recipient?.firstName || "recipient"}.`,
+      "transfer",
+    ),
+    createNotification(
+      recipientUserId,
+      "Money Received",
+      `You received ${amount} ${currency} from ${sender?.firstName || "someone"}.`,
+      "transfer",
+    ),
 
-  await createNotification(
-    recipientUserId,
-    "Money Received",
-    `You received ${amount} ${currency} from ${sender?.firstName || "someone"}.`,
-    "transfer",
-  );
-
-  // Domain event
-  await emitEvent("transfer.posted", {
-    transferId: transfer.id,
-    fromWalletId: senderWallet.id,
-    toWalletId: recipientWallet.id,
-    amount,
-    currency,
-    senderUserId,
-    recipientUserId,
-  });
+    // Domain event
+    emitEvent("transfer.posted", {
+      transferId: transfer.id,
+      fromWalletId: senderWallet.id,
+      toWalletId: recipientWallet.id,
+      amount,
+      currency,
+      senderUserId,
+      recipientUserId,
+    }),
+  ]).catch(() => {}); // allSettled never rejects, but just in case
 
   return { transferId: transfer.id, deduplicated: false, riskEventId };
 }

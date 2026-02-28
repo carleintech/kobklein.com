@@ -38,6 +38,11 @@ export class TransferConfirmController {
       "Too many attempts",
       "Cannot transfer to yourself",
       "Amount must be positive",
+      "Sender wallet not found",
+      "Recipient wallet not found",
+      "Transfer blocked",
+      "Daily send limit exceeded",
+      "Monthly limit exceeded",
     ];
 
     let payload: Record<string, any>;

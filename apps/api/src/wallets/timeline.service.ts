@@ -13,7 +13,7 @@ export async function getWalletTimeline(walletId: string, limit = 50, offset = 0
       FROM "Transfer" t
       JOIN "Wallet" w ON w.id = t."toWalletId"
       JOIN "User" u ON u.id = w."userId"
-      WHERE t."fromWalletId" = $1 AND t.status = 'posted'
+      WHERE t."fromWalletId" = $1 AND t.status IN ('posted', 'completed')
 
       UNION ALL
 
@@ -22,7 +22,7 @@ export async function getWalletTimeline(walletId: string, limit = 50, offset = 0
       FROM "Transfer" t
       JOIN "Wallet" w ON w.id = t."fromWalletId"
       JOIN "User" u ON u.id = w."userId"
-      WHERE t."toWalletId" = $1 AND t.status = 'posted'
+      WHERE t."toWalletId" = $1 AND t.status IN ('posted', 'completed')
 
       UNION ALL
 
